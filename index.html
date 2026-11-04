@@ -426,34 +426,54 @@ body.authed #login{display:none}
     return out;
   }
 
-  // ---------- Logística: semáforo de tractos ----------
+  // ---------- Logística: semáforo de tractos (tolerante a variaciones de encabezados) ----------
+  function cmp(s) { return norm(s).replace(/[^A-Z0-9%$]/g, ''); }
+  function logHeader(aoa) {
+    const lim = Math.min(aoa.length, 40);
+    for (let i = 0; i < lim; i++) {
+      const row = (aoa[i] || []).map(cmp);
+      if (row.some(c => c.indexOf('ECONOMICO') === 0) && row.some(c => c.indexOf('MARCA') >= 0) && row.some(c => c.indexOf('RENDIMIENTO') >= 0 || c.indexOf('KILOMETRAJE') >= 0 || c.indexOf('CONSUMIDO') >= 0)) return { row: i, cols: row };
+    }
+    return null;
+  }
+  function isLogRend(sheets) { return Object.keys(sheets).some(n => !/ANALISIS|CARGAS|RUTAS/.test(norm(n)) && logHeader(sheets[n])); }
   function parseLogRend(sheets, fileName) {
     const names = Object.keys(sheets);
+    const score = n => { const t = norm(n); if (/ANALISIS|CARGAS|RUTAS/.test(t)) return 9; if (t.indexOf('NO REPORTA') >= 0) return 1; if (t.indexOf('TORTON') >= 0 || t.indexOf('KALMAR') >= 0) return 2; return 0; };
     let period = null; const rows = []; const seen = {};
-    const order = names.slice().sort((a, b) => score(a) - score(b));
-    function score(n) { const t = norm(n); return t.indexOf('TRACTOS') >= 0 ? 0 : t.indexOf('NO REPORTA') >= 0 ? 1 : t.indexOf('TORTON') >= 0 || t.indexOf('KALMAR') >= 0 ? 2 : 9; }
-    for (const sn of order) {
+    for (const sn of names.slice().sort((a, b) => score(a) - score(b))) {
       const sc = score(sn); if (sc === 9) continue;
-      const aoa = sheets[sn];
-      const h = findHeader(aoa, ['ECONOMICO', 'MARCA SUB / MOTOR']);
-      if (!h) continue;
+      const aoa = sheets[sn]; const h = logHeader(aoa); if (!h) continue;
+      const C = h.cols;
+      const fz = (inc, exc) => { for (const p of inc) { const j = C.findIndex(c => c && c.indexOf(p) >= 0 && !(exc || []).some(x => c.indexOf(x) >= 0)); if (j >= 0) return j; } return -1; };
+      const eq = (...ps) => { for (const p of ps) { const j = C.indexOf(p); if (j >= 0) return j; } return -1; };
+      const I = {
+        eco: C.findIndex(c => c.indexOf('ECONOMICO') === 0), marca: fz(['MARCASUBMOTOR', 'MARCASUB', 'MARCA']), modelo: eq('MODELO'), norma: eq('NORMA'), trans: fz(['TRANSMISION']),
+        segmento: fz(['SEGMENTO']), ruta: eq('RUTA'), pctRuta: fz(['%ENRUTA']), zona: fz(['ZONACIRCULACION', 'ZONA', 'REGION']), full: fz(['%FULL']), senc: fz(['%SENCILLO']),
+        km: fz(['KILOMETRAJERECORRIDO', 'KMRECORRIDO', 'KMSRECORRIDO', 'KILOMETROSRECORRIDO'], ['INICIAL', 'FINAL', 'PRESUP']), imp: fz(['IMPORTEENPESOSDIESEL', 'IMPORTEDIESEL', 'IMPORTE'], ['UREA']),
+        precio: fz(['PRECIODIESEL', 'PRECIO'], ['UREA']), ltsCarg: fz(['COMBUSTIBLECARGADO', 'LITROSCARGADOS']), lts: fz(['COMBUSTIBLECONSUMIDO', 'LITROSCONSUMIDOS', 'CONSUMIDO']),
+        rend: fz(['RENDIMIENTOMESACTUAL', 'RENDIMIENTOREAL', 'RENDIMIENTO'], ['SAMSARA', 'VARIACION', 'IDEAL', 'ANTERIOR']), rendS: fz(['RENDIMIENTOSAMSARA', 'SAMSARA'], ['VARIACION', 'OBSERVACION', 'DIFERENCIA']),
+        urea: fz(['CONSUMOUREA']), impUrea: fz(['$UREA']), obs: fz(['OBSERVACIONESBAJO', 'OBSERVACIONES'], ['SAMSARA'])
+      };
+      const g = (r, k) => I[k] >= 0 ? r[I[k]] : null;
       if (!period && sc === 0) {
         period = periodFromText(sn);
         for (let i = 0; i < h.row && !period; i++) for (const c of (aoa[i] || [])) { const p = periodFromText(c); if (p) { period = p; break; } }
       }
-      const I = h.idx;
-      const g = (r, n) => r[I[n]];
       for (let i = h.row + 1; i < aoa.length; i++) {
         const r = aoa[i]; if (!r) continue;
-        const eco = txt(g(r, 'ECONOMICO'));
+        const eco = txt(g(r, 'eco'));
         if (!/^M?\d{3,}/i.test(eco)) continue;
-        const marca = txt(g(r, 'MARCA SUB / MOTOR')); if (!marca || norm(marca) === 'MARCA SUB / MOTOR') continue;
+        const marca = txt(g(r, 'marca')); if (!marca || /^MARCA/.test(norm(marca))) continue;
         const key = eco.toUpperCase(); if (seen[key]) continue; seen[key] = 1;
         let tipo = 'TRACTO';
-        if (sc === 2) tipo = norm(marca).indexOf('KALMAR') >= 0 ? 'KALMAR' : 'TORTON';
-        const lts = num(g(r, 'COMBUSTIBLE CONSUMIDO (LTS)')), km = num(g(r, 'KILOMETRAJE RECORRIDOS'));
-        let rend = num(g(r, 'RENDIMIENTO MES ACTUAL')); if (rend === null && km && lts) rend = km / lts;
-        rows.push({ eco: key, marca: marca, modelo: txt(g(r, 'MODELO')), norma: txt(g(r, 'NORMA')), trans: txt(g(r, 'TRANSMISION')).toLowerCase(), segmento: txt(g(r, 'SEGMENTO')), ruta: txt(g(r, 'RUTA')), pctRuta: r2(num(g(r, '% EN RUTA')), 4), zona: (/^(#N\/A|0|-)?$/i.test(txt(g(r, 'ZONA CIRCULACION'))) ? 'SIN ZONA' : txt(g(r, 'ZONA CIRCULACION')).toUpperCase()), full: r2(num(g(r, '% FULL')), 4), senc: r2(num(g(r, '% SENCILLO')), 4), km: r2(km || 0, 1), imp: r2(num(g(r, 'IMPORTE EN PESOS DIESEL')) || 0, 2), precio: r2(num(g(r, 'PRECIO DIESEL')), 3), ltsCarg: r2(num(g(r, 'COMBUSTIBLE CARGADO')), 2), lts: r2(lts || 0, 2), rend: r2(rend, 4), rendS: r2(num(g(r, 'RENDIMIENTO SAMSARA MES ACTUAL')), 3), urea: r2(num(g(r, 'CONSUMO UREA')), 2), impUrea: r2(num(g(r, '$ UREA')), 2), obs: txt(g(r, 'OBSERVACIONES BAJO RENDIMIENTO')), tipo: tipo, wialon: sc === 1 ? 1 : 0 });
+        if (sc === 2 || /RABON|TORTON|KALMAR/.test(norm(marca))) tipo = norm(marca).indexOf('KALMAR') >= 0 ? 'KALMAR' : 'TORTON';
+        const lts = num(g(r, 'lts')), km = num(g(r, 'km'));
+        let rend = num(g(r, 'rend')); if ((rend === null || rend > 50) && km && lts) rend = km / lts;
+        let pf = num(g(r, 'full')), ps = num(g(r, 'senc'));
+        if (pf !== null && pf > 1.5) pf = pf / 100; if (ps !== null && ps > 1.5) ps = ps / 100;
+        const z = txt(g(r, 'zona'));
+        rows.push({ eco: key, marca: marca, modelo: txt(g(r, 'modelo')), norma: txt(g(r, 'norma')), trans: txt(g(r, 'trans')).toLowerCase(), segmento: txt(g(r, 'segmento')), ruta: txt(g(r, 'ruta')), pctRuta: r2(num(g(r, 'pctRuta')), 4), zona: /^(#N\/A|0|-)?$/i.test(z) ? 'SIN ZONA' : z.toUpperCase(), full: r2(pf, 4), senc: r2(ps, 4), km: r2(km || 0, 1), imp: r2(num(g(r, 'imp')) || 0, 2), precio: r2(num(g(r, 'precio')), 3), ltsCarg: r2(num(g(r, 'ltsCarg')), 2), lts: r2(lts || 0, 2), rend: r2(rend, 4), rendS: r2(num(g(r, 'rendS')), 3), urea: r2(num(g(r, 'urea')), 2), impUrea: r2(num(g(r, 'impUrea')), 2), obs: txt(g(r, 'obs')), tipo: tipo, wialon: sc === 1 ? 1 : 0 });
       }
     }
     if (!rows.length) return null;
@@ -560,7 +580,7 @@ body.authed #login{display:none}
       for (const n of all) { const r = parseRalenti(sheets[n]); if (r) { res.push({ ds: area + '_ral', rows: r }); break; } }
     } else if (has(['CHOFER', 'DISTANCIA (KM)'])) {
       for (const n of all) { const r = parseChoferes(sheets[n]); if (r) { res.push({ ds: area + '_chof', period: per, rows: r }); break; } }
-    } else if (has(['ECONOMICO', 'MARCA SUB / MOTOR'])) {
+    } else if (isLogRend(sheets)) {
       const r = parseLogRend(sheets, fileName); if (r) res.push.apply(res, r);
     } else if (has(['SUCURSAL', 'MOVIL', 'KMS REC'])) {
       const r = parseOpsRend(sheets, fileName); if (r) res.push.apply(res, r);
@@ -569,6 +589,7 @@ body.authed #login{display:none}
     } else if (has(['FECHA', 'MOVIL', 'LITROS', 'PROVEEDOR'])) {
       const r = parseLogCargas(sheets); if (r) res.push({ ds: 'log_cargas', rows: r });
     }
+    if (res.length && /SEMAFORO|TRACTOS/.test(norm(fileName)) && res[0].ds.indexOf('cargas') >= 0) return { results: [], error: '"' + fileName + '" parece un semáforo de rendimientos, pero no encontré la hoja de tractos (encabezados Económico, Marca, Rendimiento). Mándamelo para ajustar la lectura.' };
     if (!res.length) return { results: [], error: 'No reconocí el formato de "' + fileName + '". Revisa que tenga los encabezados originales.' };
     // validar área
     for (const x of res) {
