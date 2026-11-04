@@ -451,7 +451,7 @@ body.authed #login{display:none}
       const eq = (...ps) => { for (const p of ps) { const j = C.indexOf(p); if (j >= 0) return j; } return -1; };
       const I = {
         eco: C.findIndex(c => c.indexOf('ECONOMICO') === 0), marca: fz(['MARCASUBMOTOR', 'MARCASUB', 'MARCA']), modelo: eq('MODELO'), norma: eq('NORMA'), trans: fz(['TRANSMISION']),
-        segmento: fz(['SEGMENTO']), ruta: eq('RUTA'), pctRuta: fz(['%ENRUTA']), zona: fz(['ZONACIRCULACION', 'ZONA', 'REGION']), full: fz(['%FULL']), senc: fz(['%SENCILLO']),
+        segmento: fz(['SEGMENTO']), ruta: eq('RUTA'), pctRuta: fz(['%ENRUTA']), zona: fz(['ZONACIRCULACION', 'ZONA', 'REGION']), full: fz(['%FULL', 'PORCENTAJEFULL', 'FULL%', 'FULL'], ['SENCILLO', 'KILOM', 'RENDIM', 'LITRO', 'COMBUST']), senc: fz(['%SENCILLO', 'PORCENTAJESENCILLO', 'SENCILLO%', 'SENCILLO'], ['FULL', 'KILOM', 'RENDIM', 'LITRO', 'COMBUST']),
         km: fz(['KILOMETRAJERECORRIDO', 'KMRECORRIDO', 'KMSRECORRIDO', 'KILOMETROSRECORRIDO'], ['INICIAL', 'FINAL', 'PRESUP']), imp: fz(['IMPORTEENPESOSDIESEL', 'IMPORTEDIESEL', 'IMPORTE'], ['UREA']),
         precio: fz(['PRECIODIESEL', 'PRECIO'], ['UREA']), ltsCarg: fz(['COMBUSTIBLECARGADO', 'LITROSCARGADOS']), lts: fz(['COMBUSTIBLECONSUMIDO', 'LITROSCONSUMIDOS', 'CONSUMIDO']),
         rend: fz(['RENDIMIENTOMESACTUAL', 'RENDIMIENTOREAL', 'RENDIMIENTO'], ['SAMSARA', 'VARIACION', 'IDEAL', 'ANTERIOR']), rendS: fz(['RENDIMIENTOSAMSARA', 'SAMSARA'], ['VARIACION', 'OBSERVACION', 'DIFERENCIA']),
@@ -473,7 +473,9 @@ body.authed #login{display:none}
         const lts = num(g(r, 'lts')), km = num(g(r, 'km'));
         let rend = num(g(r, 'rend')); if ((rend === null || rend > 50) && km && lts) rend = km / lts;
         let pf = num(g(r, 'full')), ps = num(g(r, 'senc'));
-        if (pf !== null && pf > 1.5) pf = pf / 100; if (ps !== null && ps > 1.5) ps = ps / 100;
+        if (pf !== null && ps !== null && pf + ps > 0) { const t = pf + ps; pf = pf / t; ps = ps / t; }
+        else if (pf !== null && ps === null) { if (pf > 1.5) pf = pf / 100; ps = Math.max(0, 1 - pf); }
+        else if (ps !== null && pf === null) { if (ps > 1.5) ps = ps / 100; pf = Math.max(0, 1 - ps); }
         const z = txt(g(r, 'zona'));
         rows.push({ eco: key, marca: marca, modelo: txt(g(r, 'modelo')), norma: txt(g(r, 'norma')), trans: txt(g(r, 'trans')).toLowerCase(), segmento: txt(g(r, 'segmento')), ruta: txt(g(r, 'ruta')), pctRuta: r2(num(g(r, 'pctRuta')), 4), zona: /^(#N\/A|0|-)?$/i.test(z) ? 'SIN ZONA' : z.toUpperCase().replace(/^LOG\s*(?=CENTRO|NORTE|SUR|OCCIDENTE|NOROESTE|PACIFICO|PXGL)/, ''), full: r2(pf, 4), senc: r2(ps, 4), km: r2(km || 0, 1), imp: r2(num(g(r, 'imp')) || 0, 2), precio: r2(num(g(r, 'precio')), 3), ltsCarg: r2(num(g(r, 'ltsCarg')), 2), lts: r2(lts || 0, 2), rend: r2(rend, 4), rendS: r2(num(g(r, 'rendS')), 3), urea: r2(num(g(r, 'urea')), 2), impUrea: r2(num(g(r, 'impUrea')), 2), obs: txt(g(r, 'obs')), tipo: tipo, wialon: sc === 1 ? 1 : 0 });
       }
