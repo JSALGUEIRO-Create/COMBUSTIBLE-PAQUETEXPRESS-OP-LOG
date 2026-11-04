@@ -278,6 +278,14 @@ details.cmp[open]>summary{border-bottom:1px solid var(--line);margin-bottom:10px
 .ceinfo{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--ink2)}
 table.cet tr.grp td{background:var(--surface2);font-weight:800;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
 table.cet td.best{color:var(--good-ink);font-weight:800}
+
+#combo{position:fixed;z-index:150;display:none;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 14px 40px rgba(0,0,0,.25);overflow:auto;padding:4px}
+#combo .co{padding:8px 12px;border-radius:8px;cursor:pointer;font-size:13.5px;white-space:nowrap}
+#combo .co.hl,#combo .co:hover{background:var(--surface2);color:var(--s1)}
+#combo .co.cur{font-weight:800}
+#combo .cnone{padding:8px 12px;color:var(--muted);font-size:12.5px}
+.cepick{cursor:pointer}.cepick .cdrop{color:var(--muted);padding:0 10px;font-size:12px}
+.cepick:hover{border-color:var(--s1)}
 .ghbar{background:#fff4d6;color:#7a5200;text-align:center;padding:8px;font-weight:700;font-size:13px}.ghbar .lnk{color:#0b2a5b;text-decoration:underline}</style>
 </head>
 <body>
@@ -877,6 +885,44 @@ function card(title, body, opts) {
 }
 function empty(msg) { return '<div class="empty">' + msg + '</div>'; }
 function bullets(list) { return '<ul class="insights">' + list.filter(Boolean).map(x => '<li>' + x + '</li>').join('') + '</ul>'; }
+
+/* ---------- Lista desplegable con búsqueda ---------- */
+const COMBO = {};
+let comboEl = null, comboInp = null, comboIdx = -1;
+function comboInit() {
+  comboEl = document.createElement('div'); comboEl.id = 'combo'; comboEl.setAttribute('role', 'listbox'); document.body.appendChild(comboEl);
+  const open = (inp, all) => {
+    comboInp = inp; const list = COMBO[inp.getAttribute('data-combo')] || [];
+    const q = all ? '' : FP.norm(inp.value);
+    const m = q ? list.filter(o => FP.norm(o).indexOf(q) >= 0) : list;
+    comboIdx = Math.max(0, m.indexOf(inp.value));
+    comboEl.innerHTML = (m.length ? m.slice(0, 400).map((o, i) => '<div class="co' + (o === inp.value ? ' cur' : '') + '" data-v="' + esc(o) + '" data-i="' + i + '">' + esc(o) + '</div>').join('') : '<div class="cnone">Sin coincidencias</div>') + (m.length > 400 ? '<div class="cnone">Escribe para filtrar (' + F.n0(m.length) + ' opciones)</div>' : '');
+    const r = inp.getBoundingClientRect(); const h = Math.min(320, window.innerHeight - r.bottom - 12);
+    comboEl.style.cssText = 'display:block;left:' + r.left + 'px;top:' + (r.bottom + 4) + 'px;min-width:' + Math.max(220, r.width) + 'px;max-height:' + Math.max(160, h) + 'px';
+    const cur = comboEl.querySelector('.cur'); if (cur) cur.scrollIntoView({ block: 'nearest' }); hl();
+  };
+  const close = () => { comboEl.style.display = 'none'; comboInp = null; };
+  const hl = () => { comboEl.querySelectorAll('.co').forEach((d, i) => d.classList.toggle('hl', i === comboIdx)); const h = comboEl.querySelector('.hl'); if (h) h.scrollIntoView({ block: 'nearest' }); };
+  const pick = v => { const inp = comboInp; close(); if (!inp) return; inp.value = v; inp.dispatchEvent(new Event('change', { bubbles: true })); };
+  document.addEventListener('mousedown', e => {
+    const inp = e.target.closest && e.target.closest('.combo-in, .cepick');
+    const opt = e.target.closest && e.target.closest('#combo .co');
+    if (opt) { e.preventDefault(); pick(opt.getAttribute('data-v')); return; }
+    if (e.target.closest && e.target.closest('#combo')) { e.preventDefault(); return; }
+    if (inp && !(e.target.closest('.x'))) { const i2 = inp.classList.contains('combo-in') ? inp : inp.querySelector('.combo-in'); if (i2) { setTimeout(() => { i2.focus(); i2.select(); open(i2, true); }, 0); } return; }
+    close();
+  });
+  document.addEventListener('input', e => { if (e.target.classList && e.target.classList.contains('combo-in')) open(e.target, false); });
+  document.addEventListener('keydown', e => {
+    if (!comboInp || comboEl.style.display === 'none') { if (e.target.classList && e.target.classList.contains('combo-in') && e.key === 'ArrowDown') open(e.target, true); return; }
+    const n = comboEl.querySelectorAll('.co').length;
+    if (e.key === 'ArrowDown') { comboIdx = Math.min(n - 1, comboIdx + 1); hl(); e.preventDefault(); }
+    else if (e.key === 'ArrowUp') { comboIdx = Math.max(0, comboIdx - 1); hl(); e.preventDefault(); }
+    else if (e.key === 'Enter') { const d = comboEl.querySelectorAll('.co')[comboIdx]; if (d) { e.preventDefault(); pick(d.getAttribute('data-v')); } }
+    else if (e.key === 'Escape') close();
+  });
+  window.addEventListener('scroll', () => { if (comboInp) close(); }, true);
+}
 
 /* ---------- Tooltip ---------- */
 function tipInit() {
@@ -1837,8 +1883,8 @@ function viewComparador(a) {
   while (ents.length < 2 && opts.length > ents.length) { const byKm = aggLog ? Array.from(counts.keys()).sort((x, y) => counts.get(y) - counts.get(x)) : opts; const nx = byKm.find(o => ents.indexOf(o) < 0); if (!nx) break; ents.push(nx); }
   ce.ents = ents;
   const typeSel = '<div class="seg">' + CE_TYPES[a].map(([v, l]) => '<button data-act="ce-type" data-v="' + v + '" class="' + (ce.type === v ? 'on' : '') + '">' + l + '</button>').join('') + '</div>';
-  const dl = '<datalist id="ce-dl">' + opts.map(o => '<option value="' + esc(o) + '">').join('') + '</datalist>';
-  const pick = ents.map((e, i) => '<label class="cepick" style="--cc:' + PAL[i] + '"><span>' + String.fromCharCode(65 + i) + '</span><input list="ce-dl" data-act="ce-ent" data-i="' + i + '" value="' + esc(e) + '">' + (i > 1 ? '<button class="x" data-act="ce-rm" data-i="' + i + '" aria-label="Quitar">×</button>' : '') + '</label>').join('') + (ents.length < 4 ? '<button class="btn ghost sm" data-act="ce-add">+ Agregar</button>' : '');
+  COMBO.ce = opts; const dl = '';
+  const pick = ents.map((e, i) => '<label class="cepick" style="--cc:' + PAL[i] + '"><span>' + String.fromCharCode(65 + i) + '</span><input class="combo-in" data-combo="ce" autocomplete="off" data-act="ce-ent" data-i="' + i + '" value="' + esc(e) + '" placeholder="Elige o escribe…"><span class="cdrop">▾</span>' + (i > 1 ? '<button class="x" data-act="ce-rm" data-i="' + i + '" aria-label="Quitar">×</button>' : '') + '</label>').join('') + (ents.length < 4 ? '<button class="btn ghost sm" data-act="ce-add">+ Agregar</button>' : '');
   const M = ents.map(e => ceMetrics(a, ce.type, e, mes));
   const groups = CE_ROWS[a].concat(CE_COMMON);
   let tbl = '<div class="tscroll"><table class="cet"><thead><tr><th>Indicador</th>' + ents.map((e, i) => '<th class="num"><i class="sw" style="background:' + PAL[i] + '"></i>' + esc(trunc(e, 26)) + '</th>').join('') + (ents.length === 2 ? '<th class="num">Diferencia B − A</th>' : '') + '</tr></thead><tbody>';
@@ -1870,7 +1916,7 @@ function viewComparador(a) {
     hbar(document.getElementById(cid2), { labels: ['Costo por km', 'Precio por litro'], series: ents.map((e, i) => ({ name: e, data: [M[i].costKm, M[i].precio], color: PAL[i] })), fmt: F.money2, vfmt: F.money2 });
   });
   return dl + '<div class="blockhead"><div><h2>Comparador · ' + perLabel(mes) + '</h2><p class="sub">Compara móviles, regiones, marcas' + (a === 'ops' ? ', sucursales o tipos de unidad' : ', modalidades o segmentos') + ' con todo lo comparable: rendimiento, gasto, cargas y ralentí' + (a === 'ops' && f.comb !== 'ALL' ? ' · solo ' + f.comb.toLowerCase() : '') + '</p></div></div>' +
-    card('¿Qué quieres comparar?', '<div class="cebar">' + typeSel + '</div><div class="cebar picks">' + pick + '</div>' + info, { sub: 'Escribe o elige de la lista; puedes comparar hasta 4' }) +
+    card('¿Qué quieres comparar?', '<div class="cebar">' + typeSel + '</div><div class="cebar picks">' + pick + '</div>' + info, { sub: 'Haz clic en un recuadro para ver la lista o escribe para buscar; puedes comparar hasta 4' }) +
     '<div class="grid2">' + card('Rendimiento real vs ideal', '<div id="' + cid1 + '"></div>') + card('Costo por km y precio por litro', '<div id="' + cid2 + '"></div>') + '</div>' +
     card('Análisis comparativo', bullets(L), { cls: 'analysis-card' }) +
     card('Todos los indicadores', tbl, { sub: 'En verde, el mejor valor en indicadores por unidad o de eficiencia (los totales dependen del tamaño) · choferes no se incluye porque su archivo no trae móvil ni región' });
@@ -2326,7 +2372,7 @@ async function init() {
   await (window.GH ? ghLogin() : loginGate());
   let t = 'light'; try { t = localStorage.getItem('pc-theme') || (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); } catch (e) { }
   setTheme(t);
-  tipInit(); bindEvents(); render();
+  tipInit(); comboInit(); bindEvents(); render();
   await dbInit();
   const st = $('#dbdot'); if (window.GH) { st.className = 'dbdot ok'; st.title = 'Datos del repositorio' + (GHS.publishedAt ? ' · publicados ' + new Date(GHS.publishedAt).toLocaleString('es-MX') : ''); render(); return; } st.className = 'dbdot ' + (S.dbState === 'ok' ? 'ok' : 'off'); st.title = S.dbState === 'ok' ? 'Datos compartidos conectados' : 'Sin almacenamiento compartido';
   render();
