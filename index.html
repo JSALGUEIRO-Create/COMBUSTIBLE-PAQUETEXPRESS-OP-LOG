@@ -256,6 +256,8 @@ body.authed #login{display:none}
 .lbox button:hover{filter:brightness(1.06)}
 .lerr{min-height:18px;color:#ffd0d0;font-size:13px;text-align:center;font-weight:700}
 .lbox.shake{animation:sh .35s}@keyframes sh{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+
+.notice{background:rgba(242,169,0,.13);border:1px solid rgba(242,169,0,.45);color:var(--ink);padding:10px 14px;border-radius:12px;margin-bottom:14px;font-size:13px}
 .ghbar{background:#fff4d6;color:#7a5200;text-align:center;padding:8px;font-weight:700;font-size:13px}.ghbar .lnk{color:#0b2a5b;text-decoration:underline}</style>
 </head>
 <body>
@@ -473,7 +475,7 @@ body.authed #login{display:none}
         let pf = num(g(r, 'full')), ps = num(g(r, 'senc'));
         if (pf !== null && pf > 1.5) pf = pf / 100; if (ps !== null && ps > 1.5) ps = ps / 100;
         const z = txt(g(r, 'zona'));
-        rows.push({ eco: key, marca: marca, modelo: txt(g(r, 'modelo')), norma: txt(g(r, 'norma')), trans: txt(g(r, 'trans')).toLowerCase(), segmento: txt(g(r, 'segmento')), ruta: txt(g(r, 'ruta')), pctRuta: r2(num(g(r, 'pctRuta')), 4), zona: /^(#N\/A|0|-)?$/i.test(z) ? 'SIN ZONA' : z.toUpperCase(), full: r2(pf, 4), senc: r2(ps, 4), km: r2(km || 0, 1), imp: r2(num(g(r, 'imp')) || 0, 2), precio: r2(num(g(r, 'precio')), 3), ltsCarg: r2(num(g(r, 'ltsCarg')), 2), lts: r2(lts || 0, 2), rend: r2(rend, 4), rendS: r2(num(g(r, 'rendS')), 3), urea: r2(num(g(r, 'urea')), 2), impUrea: r2(num(g(r, 'impUrea')), 2), obs: txt(g(r, 'obs')), tipo: tipo, wialon: sc === 1 ? 1 : 0 });
+        rows.push({ eco: key, marca: marca, modelo: txt(g(r, 'modelo')), norma: txt(g(r, 'norma')), trans: txt(g(r, 'trans')).toLowerCase(), segmento: txt(g(r, 'segmento')), ruta: txt(g(r, 'ruta')), pctRuta: r2(num(g(r, 'pctRuta')), 4), zona: /^(#N\/A|0|-)?$/i.test(z) ? 'SIN ZONA' : z.toUpperCase().replace(/^LOG\s*(?=CENTRO|NORTE|SUR|OCCIDENTE|NOROESTE|PACIFICO|PXGL)/, ''), full: r2(pf, 4), senc: r2(ps, 4), km: r2(km || 0, 1), imp: r2(num(g(r, 'imp')) || 0, 2), precio: r2(num(g(r, 'precio')), 3), ltsCarg: r2(num(g(r, 'ltsCarg')), 2), lts: r2(lts || 0, 2), rend: r2(rend, 4), rendS: r2(num(g(r, 'rendS')), 3), urea: r2(num(g(r, 'urea')), 2), impUrea: r2(num(g(r, 'impUrea')), 2), obs: txt(g(r, 'obs')), tipo: tipo, wialon: sc === 1 ? 1 : 0 });
       }
     }
     if (!rows.length) return null;
@@ -696,7 +698,7 @@ let LK = null;
 function lookups() {
   if (LK) return LK;
   const logU = {}, opsU = {}, logSet = new Set(), logChof = new Set();
-  for (const p of periodsOf('log_rend')) for (const r of rowsOf('log_rend', p)) { logU[r.eco] = { zona: r.zona, marca: r.marca.trim(), tipo: r.tipo }; logSet.add(r.eco); }
+  for (const p of periodsOf('log_rend')) for (const r of rowsOf('log_rend', p)) { logU[r.eco] = { zona: String(r.zona || '').toUpperCase().replace(/^LOG\s*(?=CENTRO|NORTE|SUR|OCCIDENTE|NOROESTE|PACIFICO|PXGL)/, ''), marca: r.marca.trim(), tipo: r.tipo }; logSet.add(r.eco); }
   for (const ds of ['ops_rend_d', 'ops_rend_g']) for (const p of periodsOf(ds)) for (const r of rowsOf(ds, p)) opsU[r.movil] = { suc: r.suc, region: r.region, desc: r.desc, comb: r.comb };
   for (const p of periodsOf('log_ral')) for (const r of rowsOf('log_ral', p)) logSet.add(r.veh);
   for (const p of periodsOf('log_cargas')) for (const r of rowsOf('log_cargas', p)) logSet.add(r.movil);
@@ -1165,9 +1167,29 @@ function logIdeal(r) {
   const iF = setting('idealFull'), iS = setting('idealSenc');
   return 1 / ((fu / t) / iF + (se / t) / iS);
 }
+// Mezcla Full/Sencillo por tracto de todos los meses, para meses cuyo semáforo no la trae
+let MIXK = null, MIX = null;
+function mixOf(eco, p) {
+  if (MIXK !== S.ver) {
+    MIX = { by: {}, fleet: null }; MIXK = S.ver; let kf = 0, kt = 0;
+    for (const q of periodsOf('log_rend')) for (const r of rowsOf('log_rend', q)) {
+      const t = (r.full || 0) + (r.senc || 0); if (!(t > 0)) continue;
+      (MIX.by[r.eco] = MIX.by[r.eco] || []).push({ q, f: (r.full || 0) / t }); kf += r.km * (r.full || 0) / t; kt += r.km;
+    }
+    MIX.fleet = kt ? kf / kt : 0.6;
+  }
+  const L = MIX.by[eco];
+  if (L && L.length) { const pn = n => { const [y, m] = n.split('-').map(Number); return y * 12 + m; }; const best = L.slice().sort((a, b) => Math.abs(pn(a.q) - pn(p)) - Math.abs(pn(b.q) - pn(p)))[0]; return { f: best.f, src: 'otro mes' }; }
+  return { f: MIX.fleet, src: 'promedio flota' };
+}
+function normZona(z) { z = String(z || '').toUpperCase().trim(); return z.replace(/^LOG\s*(?=CENTRO|NORTE|SUR|OCCIDENTE|NOROESTE|PACIFICO|PXGL)/, '') || 'SIN ZONA'; }
 function logRendRows(p, ignoreRegion, src) {
   const f = S.f.log; src = src || logSrc();
-  return rowsOf('log_rend', p).filter(r => (r.tipo === 'TRACTO' || tog('logTK', false)) && (!r.wialon || tog('logWialon', true)) && (ignoreRegion || f.region === 'ALL' || r.zona === f.region) && (r.km > 0 || r.lts > 0)).map(r => {
+  return rowsOf('log_rend', p).map(r0 => {
+    const zona = normZona(r0.zona); const t = (r0.full || 0) + (r0.senc || 0);
+    if (t > 0 || r0.tipo !== 'TRACTO') return zona === r0.zona ? r0 : Object.assign({}, r0, { zona });
+    const m = mixOf(r0.eco, p); return Object.assign({}, r0, { zona, full: m.f, senc: 1 - m.f, mixEst: m.src });
+  }).filter(r => (r.tipo === 'TRACTO' || tog('logTK', false)) && (!r.wialon || tog('logWialon', true)) && (ignoreRegion || f.region === 'ALL' || r.zona === f.region) && (r.km > 0 || r.lts > 0)).map(r => {
     const useS = src === 'S' && r.rendS > 0 && r.km > 0;
     const ideal = logIdeal(r);
     return Object.assign({}, r, { rendM: r.rend, ltsM: r.lts, lts: useS ? r.km / r.rendS : r.lts, rend: useS ? r.rendS : r.rend, src: useS ? 'S' : 'M', ideal, li: ideal ? r.km / ideal : 0 });
@@ -1185,7 +1207,7 @@ function aggLog(rows, key) {
 }
 function logRendStats(rows) {
   const a = aggLog(rows, () => 'T')[0] || {};
-  return { km: a.km || 0, lts: a.lts || 0, imp: a.imp || 0, rend: a.rend, precio: a.precio, u: rows.length, ideal: a.ideal, cump: a.cump, lExc: a.lExc, sinIdeal: rows.filter(r => !r.ideal).length };
+  return { km: a.km || 0, lts: a.lts || 0, imp: a.imp || 0, rend: a.rend, precio: a.precio, u: rows.length, ideal: a.ideal, cump: a.cump, lExc: a.lExc, sinIdeal: rows.filter(r => !r.ideal).length, mixEst: rows.filter(r => r.mixEst).length, mixFlota: rows.filter(r => r.mixEst === 'promedio flota').length, sinS: rows.filter(r => r.src === 'M').length };
 }
 function logUnits(rows) {
   const minKm = setting('minKmLog');
@@ -1222,6 +1244,8 @@ function viewLogRend() {
     byM.length > 1 ? 'Por marca/motor el mejor cumplimiento es <b>' + esc(byM[0].n) + '</b> (' + F.pct(byM[0].cump) + '); el menor, <b>' + esc(byM[byM.length - 1].n) + '</b> (' + F.pct(byM[byM.length - 1].cump) + ').' : null,
     'El ' + F.pct(div(kmFull, kmFull + kmSen)) + ' de los km se recorrió en Full. ' + byMod.filter(x => x.n !== 'S/D').map(x => esc(x.n) + ': ' + F.kml(x.rend) + ' vs ideal ' + F.kml(x.ideal) + ' (' + F.pct0(x.cump) + ')').join(' · ') + '.',
     'El ' + F.pct(pctOpt) + ' de los tractos evaluados alcanza su ideal; <b>' + F.n0(stc.bad) + '</b> están debajo de 90%' + (opp.length ? ' y consumieron <b>' + F.L(excTot) + '</b> por encima de su ideal (~' + F.money(excImp) + ')' : '') + '.',
+    st.mixEst ? '<span class="tw">El semáforo de ' + perLabel(p) + ' no trae % Full / % Sencillo: para ' + F.n0(st.mixEst - st.mixFlota) + ' tractos se tomó la mezcla del mes más cercano' + (st.mixFlota ? ' y para ' + F.n0(st.mixFlota) + ' el promedio de la flota' : '') + '. El ideal ponderado de este mes es estimado.</span>' : null,
+    logSrc() === 'S' && st.sinS ? F.n0(st.sinS) + ' unidades no traen rendimiento Samsara y se evalúan con el cálculo manual.' : null,
     st.sinIdeal ? F.n0(st.sinIdeal) + ' unidades no tienen % Full / Sencillo (o son torton/Kalmar) y no entran al cálculo de cumplimiento.' : null,
     sams.length ? sams.length + ' unidades tienen más de 10% de diferencia entre el cálculo manual y Samsara: conviene revisar cargas, odómetro o telemetría.' : null
   ];
@@ -1242,6 +1266,7 @@ function viewLogRend() {
   const tools = srcSel + '<label class="chk"><input type="checkbox" data-act="tg" data-k="logWialon"' + (tog('logWialon', true) ? ' checked' : '') + '> Incluir “No reporta Wialon”</label><label class="chk"><input type="checkbox" data-act="tg" data-k="logTK"' + (tog('logTK', false) ? ' checked' : '') + '> Incluir torton y Kalmar</label>';
   const other = logRendStats(logRendRows(p, false, logSrc() === 'S' ? 'M' : 'S'));
   return '<div class="blockhead"><div><h2>Rendimientos · ' + perLabel(p) + '</h2><p class="sub">' + (logSrc() === 'S' ? '<b>Rendimiento Samsara (oficial)</b>' : '<b class="tw">Cálculo manual · solo consulta, no es el oficial</b>') + ' · ideal ponderado Full ' + F.n2(iF) + ' / Sencillo ' + F.n2(iS) + ' km/L · ' + F.n0(st.u) + ' unidades' + (f.region !== 'ALL' ? ' · ' + esc(f.region) : '') + '</p></div><div class="bh-tools">' + tools + '<button class="btn xls" data-act="xls" data-area="log">⬇ Reporte mensual Excel</button></div></div>' +
+    (st.mixEst ? '<div class="notice">⚠ El semáforo de ' + perLabel(p) + ' no trae % Full / % Sencillo. Para calcular el ideal ponderado se usó la mezcla de cada tracto en el mes más cercano (' + F.n0(st.mixEst - st.mixFlota) + ' tractos)' + (st.mixFlota ? ' o el promedio de la flota (' + F.n0(st.mixFlota) + ')' : '') + '.</div>' : '') +
     '<div class="kpis">' + kpi('Rendimiento flota', F.n2(st.rend) + '<small> km/L</small>', 'Ideal ponderado ' + F.kml(st.ideal) + (prev ? ' ' + delta(prev.rend, st.rend, 'up', F.n3) : ''), 'hero') + kpi('Cumplimiento vs ideal', F.pct(st.cump), badge(st.cump) + (prev ? ' ' + delta(prev.cump, st.cump, 'up', F.pct) : '')) + kpi('Kilómetros', F.n0(st.km), prev ? delta(prev.km, st.km, null, F.n0) : '') + kpi('Gasto diésel', F.money(st.imp), 'Precio prom. ' + F.money2(st.precio) + '/L') + kpi(logSrc() === 'S' ? 'Rend. manual (consulta)' : 'Rend. Samsara (oficial)', F.n2(other.rend) + '<small> km/L</small>', F.pct(other.cump) + ' de cumplimiento') + kpi('Litros sobre el ideal', F.L(excTot), F.money(excImp) + ' en tractos debajo de 90%') + '</div>' +
     '<div class="grid2">' + card('Cumplimiento por región', '<div id="' + ids.z + '"></div>', { sub: 'Rendimiento real ÷ ideal ponderado por la mezcla Full / Sencillo de cada región' }) + card('Estado de los tractos', '<div id="' + ids.st + '"></div>', { sub: 'Cumplimiento de cada tracto contra su propio ideal · mínimo ' + F.km(setting('minKmLog')) }) + '</div>' +
     card('Detalle por región', table(gcols('Región'), byZ, { sort: 'cump' })) +
