@@ -374,6 +374,27 @@ section.hero:after{z-index:0}
 .abanner.portrait img{width:320px;object-position:center 18%}
 .abanner.portrait:before{background:linear-gradient(90deg,#0b2a5b 0%,#0b2a5b calc(100% - 318px),rgba(11,42,91,0) calc(100% - 170px))}
 .abanner.ops.portrait:before{background:linear-gradient(90deg,#0a3d33 0%,#0d4a3d calc(100% - 318px),rgba(13,74,61,0) calc(100% - 170px))}
+
+/* ===== Detalle desplegable ===== */
+#modal.drill{align-items:start;overflow:auto}
+.mbox.wide{max-width:1180px;margin:30px auto}
+.mbox.wide header{align-items:flex-start;gap:12px;position:sticky;top:0;background:var(--surface);z-index:2;border-radius:16px 16px 0 0}
+.mbox.wide header h3{font-size:18px}
+.mtools{display:flex;gap:10px;align-items:center;flex:none}
+.dcount{font-weight:800;color:var(--ink2);font-size:13px;background:var(--surface2);padding:6px 10px;border-radius:9px}
+.lnk.back{padding:0;margin-bottom:4px;display:block}
+.dbody{display:block}
+.dbody h4{margin:16px 0 8px;font-size:14px}
+.fks{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.fk{background:var(--surface2);border-radius:12px;padding:10px 12px}.fk span{display:block;font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase}.fk b{display:block;font-size:19px;margin:2px 0}.fk em{font-style:normal;font-size:11.5px;color:var(--ink2)}
+.finfo{margin:0 0 12px;font-weight:700;color:var(--ink2)}
+tr.rclick{cursor:pointer}tr.rclick:hover td{background:rgba(42,120,214,.08)}
+tr.rclick td:first-child{color:var(--s1);font-weight:700}
+.viz [data-click]{cursor:pointer}.dl-click{cursor:pointer;border-radius:6px}.dl-click:hover{background:var(--surface2)}
+.click{cursor:pointer}.ptile.click:hover img{transform:scale(1.04)}.ptile img{transition:transform .4s}
+.quad.click:hover,.kwrap.click:hover .kpi{box-shadow:0 0 0 2px var(--s1)}
+.kwrap{display:contents}
+.tclick{color:#9fc4ff;font-style:normal;font-size:11.5px}[data-theme="dark"] .tclick{color:#1d5fb8}
 .ghbar{background:#fff4d6;color:#7a5200;text-align:center;padding:8px;font-weight:700;font-size:13px}.ghbar .lnk{color:#0b2a5b;text-decoration:underline}</style>
 </head>
 <body>
@@ -1065,7 +1086,7 @@ function hbar(el, o) {
       const v = se.data[i]; if (v === null || v === undefined || !isFinite(v)) return;
       const y = y0 + j * (bh + 2); const x0 = x(Math.min(0, v)), x1 = x(Math.max(0, v));
       const col = o.colors ? o.colors(i, v, j) : (se.color || PAL[j]);
-      const tip = '<b>' + esc(lab) + '</b>' + (ns > 1 ? '<br>' + esc(se.name) : '') + '<br>' + (o.fmt || F.n2)(v) + (o.tipExtra ? o.tipExtra(i, j) : '');
+      const tip = '<b>' + esc(lab) + '</b>' + (ns > 1 ? '<br>' + esc(se.name) : '') + '<br>' + (o.fmt || F.n2)(v) + (o.tipExtra ? o.tipExtra(i, j) : '') + (o.onClick ? '<br><i class="tclick">Clic para ver el detalle</i>' : '');
       s += '<g class="hit"' + tipAttr(tip) + (o.onClick ? ' data-click="' + i + '"' : '') + '><rect x="' + left + '" y="' + (y - 1) + '" width="' + (W - left) + '" height="' + (bh + 2) + '" fill="transparent"/><rect x="' + x0 + '" y="' + y + '" width="' + Math.max(1.5, x1 - x0) + '" height="' + bh + '" rx="3" fill="' + col + '"/>';
       if (o.valueLabels !== false) s += '<text x="' + (x1 + 5) + '" y="' + (y + bh / 2 + 4) + '" class="vl">' + (o.vfmt || o.fmt || F.n2)(v) + '</text>';
       s += '</g>';
@@ -1095,8 +1116,8 @@ function vbar(el, o) {
   const every = Math.ceil(n / Math.max(4, Math.floor((W - left) / 46)));
   o.labels.forEach((lab, i) => {
     const cx = left + bw * i + bw / 2;
-    const tip = '<b>' + esc(o.tipLabels ? o.tipLabels[i] : lab) + '</b>' + o.series.map(se => '<br>' + (ns > 1 ? esc(se.name) + ': ' : '') + (o.fmt || F.n2)(se.data[i])).join('');
-    s += '<g class="hit"' + tipAttr(tip) + '><rect x="' + (left + bw * i) + '" y="' + top + '" width="' + bw + '" height="' + (H - top - bottom) + '" fill="transparent"/>';
+    const tip = '<b>' + esc(o.tipLabels ? o.tipLabels[i] : lab) + '</b>' + o.series.map(se => '<br>' + (ns > 1 ? esc(se.name) + ': ' : '') + (o.fmt || F.n2)(se.data[i])).join('') + (o.onClick ? '<br><i class="tclick">Clic para ver el detalle</i>' : '');
+    s += '<g class="hit"' + tipAttr(tip) + (o.onClick ? ' data-click="' + i + '"' : '') + '><rect x="' + (left + bw * i) + '" y="' + top + '" width="' + bw + '" height="' + (H - top - bottom) + '" fill="transparent"/>';
     o.series.forEach((se, j) => {
       const v = se.data[i]; if (!isFinite(v) || v === null) return;
       const bx = cx - inner / 2 + j * (sbw + 2);
@@ -1110,6 +1131,7 @@ function vbar(el, o) {
   if (o.ref) s += '<line x1="' + left + '" x2="' + (W - right) + '" y1="' + y(o.ref.v) + '" y2="' + y(o.ref.v) + '" class="ref"/><text x="' + (W - right - 4) + '" y="' + (y(o.ref.v) - 5) + '" class="reft" text-anchor="end">' + esc(o.ref.label) + '</text>';
   if (o.xTitle) s += '<text x="' + ((W + left) / 2) + '" y="' + (H - 3) + '" class="ax" text-anchor="middle">' + esc(o.xTitle) + '</text>';
   el.innerHTML = s + '</svg>' + legendHTML(o.series);
+  if (o.onClick) $$('[data-click]', el).forEach(g => g.addEventListener('click', () => o.onClick(+g.getAttribute('data-click'))));
 }
 
 // Líneas con cruce y tooltip
@@ -1154,12 +1176,13 @@ function donut(el, o) {
     const col = o.colors ? o.colors[i] : PAL[i];
     const path = v / tot > 0.9999 ? '<circle cx="' + cx + '" cy="' + cy + '" r="' + ((R + r) / 2) + '" fill="none" stroke="' + col + '" stroke-width="' + (R - r) + '"/>' :
       '<path d="M' + p(R, a0) + ' A' + R + ' ' + R + ' 0 ' + large + ' 1 ' + p(R, a1) + ' L' + p(r, a1) + ' A' + r + ' ' + r + ' 0 ' + large + ' 0 ' + p(r, a0) + 'Z" fill="' + col + '" stroke="var(--surface)" stroke-width="2"/>';
-    s += '<g class="hit"' + tipAttr('<b>' + esc(o.labels[i]) + '</b><br>' + (o.fmt || F.n0)(v) + ' · ' + F.pct(v / tot)) + '>' + path + '</g>';
+    s += '<g class="hit"' + tipAttr('<b>' + esc(o.labels[i]) + '</b><br>' + (o.fmt || F.n0)(v) + ' · ' + F.pct(v / tot) + (o.onClick ? '<br><i class="tclick">Clic para ver el detalle</i>' : '')) + (o.onClick ? ' data-click="' + i + '"' : '') + '>' + path + '</g>';
     a0 = a1;
   });
   s += '<text x="80" y="76" text-anchor="middle" class="dt1">' + esc(o.center || '') + '</text><text x="80" y="94" text-anchor="middle" class="dt2">' + esc(o.centerSub || '') + '</text></svg><div class="dleg">';
-  o.data.forEach((v, i) => { s += '<div><i style="background:' + (o.colors ? o.colors[i] : PAL[i]) + '"></i><span>' + esc(o.labels[i]) + '</span><b>' + F.pct(v / tot) + '</b><em>' + (o.fmt || F.n0)(v) + '</em></div>'; });
+  o.data.forEach((v, i) => { s += '<div' + (o.onClick ? ' data-click="' + i + '" class="dl-click"' : '') + '><i style="background:' + (o.colors ? o.colors[i] : PAL[i]) + '"></i><span>' + esc(o.labels[i]) + '</span><b>' + F.pct(v / tot) + '</b><em>' + (o.fmt || F.n0)(v) + '</em></div>'; });
   el.innerHTML = s + '</div></div>';
+  if (o.onClick) $$('[data-click]', el).forEach(g => g.addEventListener('click', () => o.onClick(+g.getAttribute('data-click'))));
 }
 
 function scatter(el, o) {
@@ -1192,9 +1215,10 @@ function heat(el, o) {
   cols.forEach((c, j) => { if (j % 2 === 0) s += '<text x="' + (left + j * cw + cw / 2) + '" y="12" class="ax" text-anchor="middle">' + c + '</text>'; });
   rows.forEach((r, i) => {
     s += '<text x="' + (left - 6) + '" y="' + (top + i * chh + 14) + '" class="ax" text-anchor="end">' + r + '</text>';
-    cols.forEach((c, j) => { const v = o.values[i][j] || 0; const a = v ? 0.12 + 0.88 * v / mx : 0; s += '<rect x="' + (left + j * cw + 1) + '" y="' + (top + i * chh + 1) + '" width="' + (cw - 2) + '" height="' + (chh - 2) + '" rx="3" fill="' + (v ? 'var(--s1)' : 'var(--grid)') + '" fill-opacity="' + (v ? a.toFixed(2) : 1) + '"' + tipAttr('<b>' + r + ' ' + c + ':00</b><br>' + (o.fmt || F.n0)(v)) + '/>'; });
+    cols.forEach((c, j) => { const v = o.values[i][j] || 0; const a = v ? 0.12 + 0.88 * v / mx : 0; s += '<rect x="' + (left + j * cw + 1) + '" y="' + (top + i * chh + 1) + '" width="' + (cw - 2) + '" height="' + (chh - 2) + '" rx="3" fill="' + (v ? 'var(--s1)' : 'var(--grid)') + '" fill-opacity="' + (v ? a.toFixed(2) : 1) + '"' + tipAttr('<b>' + r + ' ' + c + ':00</b><br>' + (o.fmt || F.n0)(v) + (o.onClick && v ? '<br><i class="tclick">Clic para ver el detalle</i>' : '')) + (o.onClick && v ? ' data-click="' + i + ',' + j + '"' : '') + '/>'; });
   });
   el.innerHTML = s + '</svg>';
+  if (o.onClick) $$('[data-click]', el).forEach(g => g.addEventListener('click', () => { const [i, j] = g.getAttribute('data-click').split(',').map(Number); o.onClick(i, j); }));
 }
 
 /* ---------- Tablas ordenables ---------- */
@@ -1202,7 +1226,7 @@ const TBL = {};
 function table(cols, rows, opts) {
   opts = opts || {};
   const id = cid('t');
-  TBL[id] = { cols, rows, sort: opts.sort || null, dir: opts.dir || -1, limit: opts.limit || 12, q: '', search: opts.search, exportName: opts.exportName };
+  TBL[id] = { cols, rows, sort: opts.sort || null, dir: opts.dir || -1, limit: opts.limit || 12, q: '', search: opts.search, exportName: opts.exportName, onRow: opts.onRow };
   later(() => drawTable(id));
   return '<div class="tblw" id="' + id + '"></div>';
 }
@@ -1211,16 +1235,17 @@ function drawTable(id) {
   let rows = T.rows;
   if (T.q) { const q = FP.norm(T.q); rows = rows.filter(r => T.cols.some(c => FP.norm(r[c.k]).indexOf(q) >= 0)); }
   if (T.sort) { const k = T.sort, d = T.dir; rows = rows.slice().sort((a, b) => { const x = a[k], y = b[k]; if (x === y) return 0; if (x === null || x === undefined) return 1; if (y === null || y === undefined) return -1; return (typeof x === 'number' && typeof y === 'number' ? x - y : String(x).localeCompare(String(y), 'es')) * d; }); }
-  const shown = rows.slice(0, T.limit);
+  const shown = rows.slice(0, T.limit); T.shown = shown;
   let s = '';
   if (T.search) s += '<div class="tsearch"><input type="search" placeholder="Buscar…" value="' + esc(T.q) + '"><span>' + F.n0(rows.length) + ' registros</span></div>';
   s += '<div class="tscroll"><table><thead><tr>' + T.cols.map(c => '<th data-k="' + c.k + '" class="' + (c.num ? 'num' : '') + (T.sort === c.k ? ' s' + (T.dir > 0 ? 'a' : 'd') : '') + '">' + esc(c.l) + '</th>').join('') + '</tr></thead><tbody>';
-  for (const r of shown) s += '<tr>' + T.cols.map(c => '<td class="' + (c.num ? 'num' : '') + '">' + (c.html ? c.html(r) : c.f ? c.f(r[c.k]) : esc(r[c.k])) + '</td>').join('') + '</tr>';
+  for (let ri = 0; ri < shown.length; ri++) { const r = shown[ri]; s += '<tr' + (T.onRow ? ' class="rclick" data-ri="' + ri + '" title="Clic para ver el detalle"' : '') + '>' + T.cols.map(c => '<td class="' + (c.num ? 'num' : '') + '">' + (c.html ? c.html(r) : c.f ? c.f(r[c.k]) : esc(r[c.k])) + '</td>').join('') + (T.onRow ? '' : '') + '</tr>'; }
   if (!shown.length) s += '<tr><td colspan="' + T.cols.length + '" class="muted">Sin registros</td></tr>';
   s += '</tbody></table></div>';
   if (rows.length > T.limit) s += '<button class="more">Ver más (' + F.n0(rows.length - T.limit) + ' restantes)</button>';
   else if (T.limit > 12 && rows.length > 12) s += '<button class="less">Ver menos</button>';
   el.innerHTML = s;
+  if (T.onRow) $$('tr.rclick', el).forEach(tr => tr.onclick = () => T.onRow(T.shown[+tr.getAttribute('data-ri')]));
   $$('th', el).forEach(th => th.onclick = () => { const k = th.getAttribute('data-k'); if (T.sort === k) T.dir = -T.dir; else { T.sort = k; T.dir = -1; } drawTable(id); });
   const mb = $('.more', el); if (mb) mb.onclick = () => { T.limit += 25; drawTable(id); };
   const lb = $('.less', el); if (lb) lb.onclick = () => { T.limit = 12; drawTable(id); };
@@ -1396,7 +1421,9 @@ function viewLogRend() {
   const ids = { z: cid(), m: cid(), mod: cid(), modr: cid(), hist: cid(), gz: cid(), st: cid() };
   const excTot = sum(opp, 'exc'), excImp = sum(opp, 'excImp');
   const pctOpt = div(stc.good, units.length);
-  const cumpBar = (el, list) => hbar(document.getElementById(el), { labels: list.map(x => x.n), series: [{ name: 'Cumplimiento', data: list.map(x => x.cump) }], fmt: F.pct, ref: { v: 1, label: 'Ideal 100%' }, colors: (i, v) => STC[statusOf(v).k], tipExtra: i => '<br>Real ' + F.kml(list[i].rend) + ' · Ideal ' + F.kml(list[i].ideal) + '<br>' + list[i].u + ' unidades' });
+  const cumpBar = (el, list, kf, lab) => hbar(document.getElementById(el), { labels: list.map(x => x.n), series: [{ name: 'Cumplimiento', data: list.map(x => x.cump) }], fmt: F.pct, ref: { v: 1, label: 'Ideal 100%' }, colors: (i, v) => STC[statusOf(v).k], tipExtra: i => '<br>Real ' + F.kml(list[i].rend) + ' · Ideal ' + F.kml(list[i].ideal) + '<br>' + list[i].u + ' tractos', onClick: i => dUnits('log', lab + ' ' + list[i].n + ' · ' + perLabel(p), rows.filter(r => kf(r) === list[i].n)) });
+  const DU = (t, f) => dUnits('log', t + ' · ' + perLabel(p), rows.filter(f));
+  const minK = setting('minKmLog'); const stK = ['good', 'ok', 'warn', 'bad'], stL = ['Óptimo ≥100%', 'Aceptable 95–100%', 'Vigilancia 90–95%', 'Crítico <90%'];
   const zs = byZ.filter(z => z.km > 50000 && z.cump);
   const an = [
     logSrc() === 'M' ? '<span class="tw">Estás viendo el cálculo manual (km ÷ litros del semáforo), solo de consulta; el análisis oficial usa Samsara (' + F.kml(logRendStats(logRendRows(p, false, 'S')).rend) + ').</span>' : null,
@@ -1413,15 +1440,15 @@ function viewLogRend() {
     sams.length ? sams.length + ' unidades tienen más de 10% de diferencia entre el cálculo manual y Samsara: conviene revisar cargas, odómetro o telemetría.' : null
   ];
   later(() => {
-    cumpBar(ids.z, byZ); cumpBar(ids.m, byM);
-    donut(document.getElementById(ids.mod), { labels: ['Km en Full', 'Km en Sencillo'], data: [kmFull, kmSen], fmt: F.km, center: F.pct0(div(kmFull, kmFull + kmSen)), centerSub: 'Full' });
+    cumpBar(ids.z, byZ, r => r.zona, 'Región'); cumpBar(ids.m, byM, r => sm(r.marca), 'Marca');
+    donut(document.getElementById(ids.mod), { labels: ['Km en Full', 'Km en Sencillo'], data: [kmFull, kmSen], fmt: F.km, center: F.pct0(div(kmFull, kmFull + kmSen)), centerSub: 'Full', onClick: i => DU('Tractos en modalidad ' + (i ? 'SENCILLO' : 'FULL'), r => modalidad(r) === (i ? 'SENCILLO' : 'FULL')) });
     const bm = byMod.filter(x => x.n !== 'S/D');
-    hbar(document.getElementById(ids.modr), { labels: bm.map(x => x.n + ' (' + x.u + ')'), series: [{ name: 'Real', data: bm.map(x => x.rend), color: 'var(--s1)' }, { name: 'Ideal ponderado', data: bm.map(x => x.ideal), color: 'var(--s7)' }], fmt: F.kml, vfmt: F.n2 });
-    donut(document.getElementById(ids.st), { labels: ['Óptimo ≥100%', 'Aceptable 95–100%', 'Vigilancia 90–95%', 'Crítico <90%'], data: [stc.good, stc.ok, stc.warn, stc.bad], colors: [STC.good, STC.ok, STC.warn, STC.bad], fmt: v => F.n0(v) + ' tractos', center: F.pct0(pctOpt), centerSub: 'en ideal' });
+    hbar(document.getElementById(ids.modr), { labels: bm.map(x => x.n + ' (' + x.u + ')'), series: [{ name: 'Real', data: bm.map(x => x.rend), color: 'var(--s1)' }, { name: 'Ideal ponderado', data: bm.map(x => x.ideal), color: 'var(--s7)' }], fmt: F.kml, vfmt: F.n2, onClick: i => DU('Modalidad ' + bm[i].n, r => modalidad(r) === bm[i].n) });
+    donut(document.getElementById(ids.st), { labels: ['Óptimo ≥100%', 'Aceptable 95–100%', 'Vigilancia 90–95%', 'Crítico <90%'], data: [stc.good, stc.ok, stc.warn, stc.bad], colors: [STC.good, STC.ok, STC.warn, STC.bad], fmt: v => F.n0(v) + ' tractos', center: F.pct0(pctOpt), centerSub: 'en ideal', onClick: i => DU('Tractos en estado ' + stL[i], r => r.ideal && r.lts > 0 && r.km >= minK && statusOf(r.km / r.lts / r.ideal).k === stK[i]) });
     const bins = []; for (let b = 0.6; b < 1.4; b += 0.05) bins.push(b);
-    vbar(document.getElementById(ids.hist), { labels: bins.map(b => F.pct0(b)), tipLabels: bins.map(b => F.pct0(b) + '–' + F.pct0(b + 0.05) + ' del ideal'), series: [{ name: 'Tractos', data: bins.map(b => units.filter(u => u.cump >= b && u.cump < b + 0.05).length) }], fmt: F.n0, colors: i => STC[statusOf(bins[i] + 0.025).k], xTitle: '% del rendimiento ideal ponderado' });
+    vbar(document.getElementById(ids.hist), { labels: bins.map(b => F.pct0(b)), tipLabels: bins.map(b => F.pct0(b) + '–' + F.pct0(b + 0.05) + ' del ideal'), series: [{ name: 'Tractos', data: bins.map(b => units.filter(u => u.cump >= b && u.cump < b + 0.05).length) }], fmt: F.n0, colors: i => STC[statusOf(bins[i] + 0.025).k], xTitle: '% del rendimiento ideal ponderado', onClick: i => DU('Tractos con cumplimiento ' + F.pct0(bins[i]) + '–' + F.pct0(bins[i] + 0.05), r => { const c = r.ideal && r.lts > 0 && r.km >= minK ? r.km / r.lts / r.ideal : -1; return c >= bins[i] && c < bins[i] + 0.05; }) });
     const gz = byZ.slice().sort((a, b) => b.imp - a.imp);
-    hbar(document.getElementById(ids.gz), { labels: gz.map(x => x.n), series: [{ name: 'Gasto', data: gz.map(x => x.imp) }], fmt: F.money, vfmt: v => '$' + short(v) });
+    hbar(document.getElementById(ids.gz), { labels: gz.map(x => x.n), series: [{ name: 'Gasto', data: gz.map(x => x.imp) }], fmt: F.money, vfmt: v => '$' + short(v), onClick: i => DU('Región ' + gz[i].n, r => r.zona === gz[i].n) });
   });
   const gcols = lab => [{ k: 'n', l: lab }, { k: 'u', l: 'Unid.', num: 1, f: F.n0 }, { k: 'km', l: 'Km', num: 1, f: F.n0 }, { k: 'lts', l: 'Litros', num: 1, f: F.n0 }, { k: 'rend', l: 'Real', num: 1, f: F.n2 }, { k: 'ideal', l: 'Ideal pond.', num: 1, f: F.n2 }, { k: 'cump', l: 'Cumplimiento', num: 1, html: r => badge(r.cump, F.pct(r.cump)) }, { k: 'pBajo', l: '% unid. <90%', num: 1, f: F.pct0 }, { k: 'imp', l: 'Gasto', num: 1, f: F.money }];
   const ucols = [{ k: 'eco', l: 'Económico' }, { k: 'marca', l: 'Marca / motor' }, { k: 'zona', l: 'Región' }, { k: 'ruta', l: 'Segmento' }, { k: 'pf', l: '% Full', num: 1, f: F.pct0 }, { k: 'km', l: 'Km', num: 1, f: F.n0 }, { k: 'rend', l: 'Real', num: 1, f: F.n2 }, { k: 'ideal', l: 'Ideal', num: 1, f: F.n2 }, { k: 'cump', l: 'Cumpl.', num: 1, html: r => badge(r.cump, F.pct0(r.cump)) }];
@@ -1432,15 +1459,15 @@ function viewLogRend() {
     (st.mixEst > st.u * 0.2 ? '<div class="notice">⚠ El semáforo de ' + perLabel(p) + ' no trae % Full / % Sencillo. Para calcular el ideal ponderado se usó la mezcla de cada tracto en el mes más cercano (' + F.n0(st.mixEst - st.mixFlota) + ' tractos)' + (st.mixFlota ? ' o el promedio de la flota (' + F.n0(st.mixFlota) + ')' : '') + '.</div>' : '') +
     '<div class="kpis">' + kpi('Rendimiento flota', F.n2(st.rend) + '<small> km/L</small>', 'Ideal ponderado ' + F.kml(st.ideal) + (prev ? ' ' + delta(prev.rend, st.rend, 'up', F.n3) : ''), 'hero') + kpi('Cumplimiento vs ideal', F.pct(st.cump), badge(st.cump) + (prev ? ' ' + delta(prev.cump, st.cump, 'up', F.pct) : '')) + kpi('Kilómetros', F.n0(st.km), prev ? delta(prev.km, st.km, null, F.n0) : '') + kpi('Gasto diésel', F.money(st.imp), 'Precio prom. ' + F.money2(st.precio) + '/L') + kpi(logSrc() === 'S' ? 'Rend. manual (consulta)' : 'Rend. Samsara (oficial)', F.n2(other.rend) + '<small> km/L</small>', F.pct(other.cump) + ' de cumplimiento') + kpi('Litros sobre el ideal', F.L(excTot), F.money(excImp) + ' en tractos debajo de 90%') + '</div>' +
     '<div class="grid2">' + card('Cumplimiento por región', '<div id="' + ids.z + '"></div>', { sub: 'Rendimiento real ÷ ideal ponderado por la mezcla Full / Sencillo de cada región' }) + card('Estado de los tractos', '<div id="' + ids.st + '"></div>', { sub: 'Cumplimiento de cada tracto contra su propio ideal · mínimo ' + F.km(setting('minKmLog')) }) + '</div>' +
-    card('Detalle por región', table(gcols('Región'), byZ, { sort: 'cump' })) +
-    '<div class="grid2">' + card('Cumplimiento por marca / motor', '<div id="' + ids.m + '"></div>') + card('Detalle por marca / motor', table(gcols('Marca / motor'), byM, { sort: 'cump' })) + '</div>' +
-    (() => { const mF = byMod.find(x => x.n === 'FULL') || {}, mS = byMod.find(x => x.n === 'SENCILLO') || {}; const tile = (k, t, m, share) => '<div class="ptile ' + k + '"><img src="' + IMG[k] + '" alt=""><div class="ptxt"><b>' + t + '</b><span>' + F.pct0(share) + ' de los km</span><em>' + (m.u ? F.n0(m.u) + ' tractos · real ' + F.n2(m.rend) + ' vs ideal ' + F.n2(m.ideal) + ' km/L' : '') + '</em>' + (m.cump ? badge(m.cump, F.pct0(m.cump)) : '') + '</div></div>'; return '<div class="ptiles">' + tile('full', 'FULL', mF, div(kmFull, kmFull + kmSen)) + tile('sencillo', 'SENCILLO', mS, div(kmSen, kmFull + kmSen)) + '</div>'; })() +
+    card('Detalle por región', table(gcols('Región'), byZ, { sort: 'cump', onRow: x => DU('Región ' + x.n, r => r.zona === x.n) })) +
+    '<div class="grid2">' + card('Cumplimiento por marca / motor', '<div id="' + ids.m + '"></div>') + card('Detalle por marca / motor', table(gcols('Marca / motor'), byM, { sort: 'cump', onRow: x => DU('Marca ' + x.n, r => sm(r.marca) === x.n) })) + '</div>' +
+    (() => { const mF = byMod.find(x => x.n === 'FULL') || {}, mS = byMod.find(x => x.n === 'SENCILLO') || {}; const tile = (k, t, m, share) => '<div class="ptile ' + k + ' click"' + dr(() => DU('Tractos en modalidad ' + t, r => modalidad(r) === t)) + ' title="Clic para ver los tractos"><img src="' + IMG[k] + '" alt=""><div class="ptxt"><b>' + t + '</b><span>' + F.pct0(share) + ' de los km</span><em>' + (m.u ? F.n0(m.u) + ' tractos · real ' + F.n2(m.rend) + ' vs ideal ' + F.n2(m.ideal) + ' km/L' : '') + '</em>' + (m.cump ? badge(m.cump, F.pct0(m.cump)) : '') + '</div></div>'; return '<div class="ptiles">' + tile('full', 'FULL', mF, div(kmFull, kmFull + kmSen)) + tile('sencillo', 'SENCILLO', mS, div(kmSen, kmFull + kmSen)) + '</div>'; })() +
     '<div class="grid2">' + card('Modalidad: kilómetros Full vs Sencillo', '<div id="' + ids.mod + '"></div>', { sub: 'Ponderado por el % Full / % Sencillo de cada unidad' }) + card('Rendimiento real vs ideal por modalidad', '<div id="' + ids.modr + '"></div>', { sub: 'Full ≥ 70% de viajes full · Sencillo ≥ 70% sencillo · resto Mixto' }) + '</div>' +
     '<div class="grid2">' + card('Distribución de cumplimiento', '<div id="' + ids.hist + '"></div>') + card('Gasto en diésel por región', '<div id="' + ids.gz + '"></div>') + '</div>' +
-    '<div class="grid2">' + card('Móviles con área de oportunidad', table(ucols.concat([{ k: 'exc', l: 'Litros de más', num: 1, f: F.n0 }]), opp, { sort: 'exc', limit: 15, search: true }), { sub: 'Debajo de 90% de su ideal ponderado · ordenados por litros consumidos de más', cls: 'bad-edge' }) +
-    card('Móviles mejor posicionados', table(ucols, best.slice(0, 80), { sort: 'cump', limit: 15 }), { sub: 'Mayor cumplimiento contra su ideal ponderado', cls: 'good-edge' }) + '</div>' +
-    '<div class="grid2">' + card('Segmentos con más kilometraje', table([{ k: 'n', l: 'Segmento' }, { k: 'u', l: 'Unid.', num: 1, f: F.n0 }, { k: 'km', l: 'Km', num: 1, f: F.n0 }, { k: 'rend', l: 'Real', num: 1, f: F.n2 }, { k: 'ideal', l: 'Ideal', num: 1, f: F.n2 }, { k: 'cump', l: 'Cumpl.', num: 1, html: r => badge(r.cump, F.pct0(r.cump)) }], segs, { sort: 'km', limit: 10, search: true })) +
-    card('Diferencia manual vs Samsara', sams.length ? table([{ k: 'eco', l: 'Económico' }, { k: 'zona', l: 'Región' }, { k: 'rend', l: 'km/L manual', num: 1, f: F.n2 }, { k: 'rendS', l: 'km/L Samsara', num: 1, f: F.n2 }, { k: 'dif', l: 'Diferencia', num: 1, f: F.pct }], sams.map(r => ({ eco: r.eco, zona: r.zona, rend: r.rendM, rendS: r.rendS, dif: r.rendS / r.rendM - 1 })), { sort: 'dif', limit: 10 }) : empty('Sin diferencias mayores a 10%'), { sub: 'Unidades con más de 10% de diferencia' }) + '</div>' +
+    '<div class="grid2">' + card('Móviles con área de oportunidad', table(ucols.concat([{ k: 'exc', l: 'Litros de más', num: 1, f: F.n0 }]), opp, { sort: 'exc', limit: 15, search: true, onRow: u => ficha('log', u.eco) }), { sub: 'Debajo de 90% de su ideal ponderado · ordenados por litros consumidos de más', cls: 'bad-edge' }) +
+    card('Móviles mejor posicionados', table(ucols, best.slice(0, 80), { sort: 'cump', limit: 15, onRow: u => ficha('log', u.eco) }), { sub: 'Mayor cumplimiento contra su ideal ponderado', cls: 'good-edge' }) + '</div>' +
+    '<div class="grid2">' + card('Segmentos con más kilometraje', table([{ k: 'n', l: 'Segmento' }, { k: 'u', l: 'Unid.', num: 1, f: F.n0 }, { k: 'km', l: 'Km', num: 1, f: F.n0 }, { k: 'rend', l: 'Real', num: 1, f: F.n2 }, { k: 'ideal', l: 'Ideal', num: 1, f: F.n2 }, { k: 'cump', l: 'Cumpl.', num: 1, html: r => badge(r.cump, F.pct0(r.cump)) }], segs, { sort: 'km', limit: 10, search: true, onRow: x => DU('Segmento ' + x.n, r => r.segmento === x.n) })) +
+    card('Diferencia manual vs Samsara', sams.length ? table([{ k: 'eco', l: 'Económico' }, { k: 'zona', l: 'Región' }, { k: 'rend', l: 'km/L manual', num: 1, f: F.n2 }, { k: 'rendS', l: 'km/L Samsara', num: 1, f: F.n2 }, { k: 'dif', l: 'Diferencia', num: 1, f: F.pct }], sams.map(r => ({ eco: r.eco, zona: r.zona, rend: r.rendM, rendS: r.rendS, dif: r.rendS / r.rendM - 1 })), { sort: 'dif', limit: 10, onRow: x => ficha('log', x.eco) }) : empty('Sin diferencias mayores a 10%'), { sub: 'Unidades con más de 10% de diferencia' }) + '</div>' +
     card('Análisis del mes', bullets(an), { cls: 'analysis-card' }) +
     compareBlock('logRend', { mode: 'month', ds: ['log_rend'], area: 'log', story: (A, B) => storyRend('log', A, B), compute: sel => { const r = logRendRows(sel.v.slice(0, 7)); const s = logRendStats(r); return { kpis: [{ l: 'Rendimiento', v: s.rend, f: F.n3, good: 'up' }, { l: 'Cumplimiento', v: s.cump, f: F.pct, good: 'up' }, { l: 'Ideal ponderado', v: s.ideal, f: F.n3 }, { l: 'Km recorridos', v: s.km, f: F.n0 }, { l: 'Gasto', v: s.imp, f: F.money, good: 'down' }, { l: 'Precio por litro', v: s.precio, f: F.money2, good: 'down' }], groups: [{ t: 'Cumplimiento por región', k: 'Región', rows: aggLog(r, x => x.zona).map(x => ({ n: x.n, v: x.cump })), f: F.pct, good: 'up' }, { t: 'Cumplimiento por marca / motor', k: 'Marca', rows: aggLog(r, x => sm(x.marca)).map(x => ({ n: x.n, v: x.cump })), f: F.pct, good: 'up' }, { t: 'Cumplimiento por modalidad', k: 'Modalidad', rows: aggLog(r, modalidad).map(x => ({ n: x.n, v: x.cump })), f: F.pct, good: 'up' }] }; } });
 }
@@ -1500,17 +1527,21 @@ function viewOpsRend() {
     probl.length ? 'Sucursal con más unidades bajo 90% del ideal: <b>' + esc(probl[0].n) + '</b> (' + F.pct(probl[0].pBajo) + ' de sus unidades).' : null,
     (csr.length || rsc.length) ? 'Casos a revisar: ' + csr.length + ' móviles con carga sin recorrido (' + F.L(sum(csr, 'lts')) + ') y ' + rsc.length + ' con recorrido sin carga (' + F.km(sum(rsc, 'km')) + ').' : null
   ];
+  const DO = (t, f) => dUnits('ops', t + ' · ' + perLabel(p), rows.filter(f));
+  const minKo = setting('minKmOps'); const stK = ['good', 'ok', 'warn', 'bad'], stL = ['Óptimo ≥100%', 'Aceptable 95–100%', 'Vigilancia 90–95%', 'Crítico <90%'];
+  const cO = r => { const id = idealOf(r); return r.caso === 'N' && id && r.lts > 0 && r.km >= minKo ? r.km / r.lts / id : -1; };
   later(() => {
-    hbar(document.getElementById(ids.r), { labels: byR.map(x => x.n), series: [{ name: 'Cumplimiento', data: byR.map(x => x.cump) }], fmt: F.pct, ref: { v: 1, label: 'Ideal 100%' }, colors: (i, v) => STC[statusOf(v).k], tipExtra: i => '<br>Real ' + F.kml(byR[i].rend) + ' · Ideal ' + F.kml(byR[i].ideal) + '<br>' + byR[i].u + ' unidades' });
-    const sb = (el, list) => hbar(document.getElementById(el), { labels: list.map(x => x.n), series: [{ name: 'Cumplimiento', data: list.map(x => x.cump) }], fmt: F.pct, ref: { v: 1, label: '100%' }, colors: (i, v) => STC[statusOf(v).k], tipExtra: i => '<br>' + list[i].u + ' unidades · ' + F.kml(list[i].rend) });
+    hbar(document.getElementById(ids.r), { labels: byR.map(x => x.n), series: [{ name: 'Cumplimiento', data: byR.map(x => x.cump) }], fmt: F.pct, ref: { v: 1, label: 'Ideal 100%' }, colors: (i, v) => STC[statusOf(v).k], tipExtra: i => '<br>Real ' + F.kml(byR[i].rend) + ' · Ideal ' + F.kml(byR[i].ideal) + '<br>' + byR[i].u + ' unidades', onClick: i => DO('Región ' + byR[i].n, r => r.region === byR[i].n) });
+    const sb = (el, list) => hbar(document.getElementById(el), { labels: list.map(x => x.n), series: [{ name: 'Cumplimiento', data: list.map(x => x.cump) }], fmt: F.pct, ref: { v: 1, label: '100%' }, colors: (i, v) => STC[statusOf(v).k], tipExtra: i => '<br>' + list[i].u + ' unidades · ' + F.kml(list[i].rend), onClick: i => DO('Sucursal ' + list[i].n, r => r.suc === list[i].n) });
     sb(ids.top, top15); sb(ids.bot, bot15);
-    hbar(document.getElementById(ids.m), { labels: byM.map(x => x.n), series: [{ name: 'Cumplimiento', data: byM.map(x => x.cump) }], fmt: F.pct, ref: { v: 1, label: '100%' }, colors: (i, v) => STC[statusOf(v).k], tipExtra: i => '<br>' + F.kml(byM[i].rend) + ' vs ideal ' + F.kml(byM[i].ideal) + '<br>' + byM[i].u + ' unidades' });
-    donut(document.getElementById(ids.tec), { labels: byT.map(x => x.n), data: byT.map(x => x.lts), fmt: F.L, center: F.n0(sum(byT, 'u')), centerSub: 'unidades' });
-    hbar(document.getElementById(ids.tam), { labels: byTam.concat(byT).map(x => x.n), series: [{ name: 'Cumplimiento', data: byTam.concat(byT).map(x => x.cump) }], fmt: F.pct, ref: { v: 1, label: '100%' }, colors: (i, v) => STC[statusOf(v).k], tipExtra: i => '<br>' + F.kml(byTam.concat(byT)[i].rend) });
-    donut(document.getElementById(ids.st), { labels: ['Óptimo ≥100%', 'Aceptable 95–100%', 'Vigilancia 90–95%', 'Crítico <90%'], data: [stc.good, stc.ok, stc.warn, stc.bad], colors: [STC.good, STC.ok, STC.warn, STC.bad], fmt: v => F.n0(v) + ' unid.', center: F.pct0(pctOpt), centerSub: 'en ideal' });
-    hbar(document.getElementById(ids.gr), { labels: byR.slice().sort((a, b) => b.imp - a.imp).map(x => x.n), series: [{ name: 'Gasto', data: byR.slice().sort((a, b) => b.imp - a.imp).map(x => x.imp) }], fmt: F.money, vfmt: v => '$' + short(v) });
+    hbar(document.getElementById(ids.m), { labels: byM.map(x => x.n), series: [{ name: 'Cumplimiento', data: byM.map(x => x.cump) }], fmt: F.pct, ref: { v: 1, label: '100%' }, colors: (i, v) => STC[statusOf(v).k], tipExtra: i => '<br>' + F.kml(byM[i].rend) + ' vs ideal ' + F.kml(byM[i].ideal) + '<br>' + byM[i].u + ' unidades', onClick: i => DO('Marca ' + byM[i].n, r => marcaOps(r.desc) === byM[i].n) });
+    donut(document.getElementById(ids.tec), { labels: byT.map(x => x.n), data: byT.map(x => x.lts), fmt: F.L, center: F.n0(sum(byT, 'u')), centerSub: 'unidades', onClick: i => DO(byT[i].n, r => tecOps(r) === byT[i].n) });
+    hbar(document.getElementById(ids.tam), { labels: byTam.concat(byT).map(x => x.n), series: [{ name: 'Cumplimiento', data: byTam.concat(byT).map(x => x.cump) }], fmt: F.pct, ref: { v: 1, label: '100%' }, colors: (i, v) => STC[statusOf(v).k], tipExtra: i => '<br>' + F.kml(byTam.concat(byT)[i].rend), onClick: i => { const n = byTam.concat(byT)[i].n; DO(n, r => tamOps(r) === n || tecOps(r) === n); } });
+    donut(document.getElementById(ids.st), { labels: ['Óptimo ≥100%', 'Aceptable 95–100%', 'Vigilancia 90–95%', 'Crítico <90%'], data: [stc.good, stc.ok, stc.warn, stc.bad], colors: [STC.good, STC.ok, STC.warn, STC.bad], fmt: v => F.n0(v) + ' unid.', center: F.pct0(pctOpt), centerSub: 'en ideal', onClick: i => DO('Unidades en estado ' + stL[i], r => cO(r) > 0 && statusOf(cO(r)).k === stK[i]) });
+    const grs = byR.slice().sort((a, b) => b.imp - a.imp);
+    hbar(document.getElementById(ids.gr), { labels: grs.map(x => x.n), series: [{ name: 'Gasto', data: grs.map(x => x.imp) }], fmt: F.money, vfmt: v => '$' + short(v), onClick: i => DO('Región ' + grs[i].n, r => r.region === grs[i].n) });
     const bins = []; for (let b = 0.5; b < 1.5; b += 0.05) bins.push(b);
-    vbar(document.getElementById(ids.hist), { labels: bins.map(b => F.pct0(b)), tipLabels: bins.map(b => F.pct0(b) + '–' + F.pct0(b + 0.05) + ' del ideal'), series: [{ name: 'Unidades', data: bins.map(b => units.filter(u => u.cump >= b && u.cump < b + 0.05).length) }], fmt: F.n0, colors: i => STC[statusOf(bins[i] + 0.025).k], xTitle: '% del rendimiento ideal' });
+    vbar(document.getElementById(ids.hist), { labels: bins.map(b => F.pct0(b)), tipLabels: bins.map(b => F.pct0(b) + '–' + F.pct0(b + 0.05) + ' del ideal'), series: [{ name: 'Unidades', data: bins.map(b => units.filter(u => u.cump >= b && u.cump < b + 0.05).length) }], fmt: F.n0, colors: i => STC[statusOf(bins[i] + 0.025).k], xTitle: '% del rendimiento ideal', onClick: i => DO('Unidades con cumplimiento ' + F.pct0(bins[i]) + '–' + F.pct0(bins[i] + 0.05), r => cO(r) >= bins[i] && cO(r) < bins[i] + 0.05) });
   });
   const gcols = (lab) => [{ k: 'n', l: lab }, { k: 'u', l: 'Unid.', num: 1, f: F.n0 }, { k: 'km', l: 'Km', num: 1, f: F.n0 }, { k: 'lts', l: 'Litros', num: 1, f: F.n0 }, { k: 'rend', l: 'Real', num: 1, f: F.n2 }, { k: 'ideal', l: 'Ideal pond.', num: 1, f: F.n2 }, { k: 'cump', l: 'Cumplimiento', num: 1, html: r => badge(r.cump, F.pct(r.cump)) }, { k: 'pBajo', l: '% unid. <90%', num: 1, f: F.pct0 }, { k: 'imp', l: 'Gasto', num: 1, f: F.money }];
   const ucols = [{ k: 'movil', l: 'Móvil' }, { k: 'suc', l: 'Suc.' }, { k: 'region', l: 'Región' }, { k: 'desc', l: 'Tipo de unidad' }, { k: 'km', l: 'Km', num: 1, f: F.n0 }, { k: 'rend', l: 'Real', num: 1, f: F.n2 }, { k: 'ideal', l: 'Ideal', num: 1, f: F.n2 }, { k: 'cump', l: 'Cumpl.', num: 1, html: r => badge(r.cump, F.pct0(r.cump)) }];
@@ -1520,15 +1551,15 @@ function viewOpsRend() {
     '<div class="kpis">' + kpi('Rendimiento real', F.n2(st.rend) + '<small> km/L</small>', 'Ideal ponderado ' + F.kml(st.ideal) + (prev ? ' ' + delta(prev.rend, st.rend, 'up', F.n3) : ''), 'hero') + kpi('Cumplimiento vs ideal', F.pct(st.cump), badge(st.cump) + (prev ? ' ' + delta(prev.cump, st.cump, 'up', F.pct) : '')) + kpi('Kilómetros', F.n0(st.km), prev ? delta(prev.km, st.km, null, F.n0) : '') + kpi('Litros', F.n0(st.lts), prev ? delta(prev.lts, st.lts, 'down', F.n0) : '') + kpi('Gasto combustible', F.money(st.imp), 'Precio prom. ' + F.money2(st.precio) + '/L') + kpi('Unidades en ideal', F.pct(pctOpt), F.n0(stc.good) + ' de ' + F.n0(units.length) + ' evaluadas') + '</div>' +
     '<div class="grid2">' + card('Cumplimiento por región', '<div id="' + ids.r + '"></div>', { sub: 'Rendimiento real ÷ ideal ponderado por la mezcla de unidades' }) + card('Estado de las unidades', '<div id="' + ids.st + '"></div>', { sub: 'Unidades con al menos ' + F.km(setting('minKmOps')) }) + '</div>' +
     '<div class="grid2">' + card('Podio · 15 mejores sucursales', '<div id="' + ids.top + '"></div>', { sub: 'Sucursales con 3 o más unidades', cls: 'good-edge' }) + card('15 sucursales con menor cumplimiento', '<div id="' + ids.bot + '"></div>', { cls: 'bad-edge' }) + '</div>' +
-    card('Rendimiento por sucursal', table(gcols('Sucursal'), byS, { sort: 'cump', limit: 12, search: true })) +
-    card('Detalle por región', table(gcols('Región'), byR, { sort: 'cump' })) +
-    '<div class="grid2">' + card('Rendimiento por marca', '<div id="' + ids.m + '"></div>') + card('Por tipo de unidad', table(gcols('Tipo de unidad'), byD, { sort: 'u', limit: 15 })) + '</div>' +
-    (() => { const g = byTam.find(x => /Ligero/.test(x.n)) || {}, m = byTam.find(x => /Mediano/.test(x.n)) || {}, p = byTam.find(x => /Pesado/.test(x.n)) || {}; const tile = (k, t, x) => '<div class="ptile ' + k + '"><img src="' + IMG[k] + '" alt=""><div class="ptxt"><b>' + t + '</b><span>' + F.n0(x.u || 0) + ' unidades</span><em>' + (x.u ? 'real ' + F.n2(x.rend) + ' vs ideal ' + F.n2(x.ideal) + ' km/L' : '') + '</em>' + (x.cump ? badge(x.cump, F.pct0(x.cump)) : '') + '</div></div>'; return '<div class="ptiles three">' + tile('sprinter', 'Ligeras (vans)', g) + tile('hino', 'Medianas (camión)', m) + tile('hinos_anden', 'Pesadas (rabón)', p) + '</div>'; })() +
+    card('Rendimiento por sucursal', table(gcols('Sucursal'), byS, { sort: 'cump', limit: 12, search: true, onRow: x => DO('Sucursal ' + x.n, r => r.suc === x.n) })) +
+    card('Detalle por región', table(gcols('Región'), byR, { sort: 'cump', onRow: x => DO('Región ' + x.n, r => r.region === x.n) })) +
+    '<div class="grid2">' + card('Rendimiento por marca', '<div id="' + ids.m + '"></div>') + card('Por tipo de unidad', table(gcols('Tipo de unidad'), byD, { sort: 'u', limit: 15, onRow: x => DO(x.n, r => r.desc === x.n) })) + '</div>' +
+    (() => { const g = byTam.find(x => /Ligero/.test(x.n)) || {}, m = byTam.find(x => /Mediano/.test(x.n)) || {}, p = byTam.find(x => /Pesado/.test(x.n)) || {}; const tile = (k, t, x) => '<div class="ptile ' + k + ' click"' + dr(() => DO(t, r => tamOps(r) === x.n)) + ' title="Clic para ver las unidades"><img src="' + IMG[k] + '" alt=""><div class="ptxt"><b>' + t + '</b><span>' + F.n0(x.u || 0) + ' unidades</span><em>' + (x.u ? 'real ' + F.n2(x.rend) + ' vs ideal ' + F.n2(x.ideal) + ' km/L' : '') + '</em>' + (x.cump ? badge(x.cump, F.pct0(x.cump)) : '') + '</div></div>'; return '<div class="ptiles three">' + tile('sprinter', 'Ligeras (vans)', g) + tile('hino', 'Medianas (camión)', m) + tile('hinos_anden', 'Pesadas (rabón)', p) + '</div>'; })() +
     '<div class="grid2">' + card('Modalidad · litros por tecnología', '<div id="' + ids.tec + '"></div>') + card('Cumplimiento por tamaño y tecnología', '<div id="' + ids.tam + '"></div>') + '</div>' +
     '<div class="grid2">' + card('Distribución de cumplimiento', '<div id="' + ids.hist + '"></div>') + card('Gasto por región', '<div id="' + ids.gr + '"></div>') + '</div>' +
-    '<div class="grid2">' + card('Móviles con área de oportunidad', table(ucols.concat([{ k: 'exc', l: 'Litros de más', num: 1, f: F.n0 }]), opp, { sort: 'exc', limit: 15, search: true }), { sub: 'Debajo de 90% de su ideal · ordenados por litros consumidos de más', cls: 'bad-edge' }) + card('Móviles mejor posicionados', table(ucols, best.slice(0, 100), { sort: 'cump', limit: 15 }), { cls: 'good-edge' }) + '</div>' +
-    card('Sucursales problema', table([{ k: 'n', l: 'Sucursal' }, { k: 'u', l: 'Unid.', num: 1, f: F.n0 }, { k: 'bajo', l: 'Unid. <90%', num: 1, f: F.n0 }, { k: 'pBajo', l: '% unid. <90%', num: 1, f: F.pct0 }, { k: 'cump', l: 'Cumplimiento', num: 1, html: r => badge(r.cump, F.pct(r.cump)) }, { k: 'lExc', l: 'Litros sobre ideal', num: 1, f: F.n0 }], probl, { sort: 'pBajo', limit: 10 }), { sub: 'Mayor proporción de unidades debajo de 90% del ideal' }) +
-    '<div class="grid2">' + card('Casos: carga sin recorrido (' + csr.length + ')', table(ccols, csr, { sort: 'lts', limit: 8 }), { sub: 'Cargaron combustible pero no registran km' }) + card('Casos: recorrido sin carga (' + rsc.length + ')', table(ccols, rsc, { sort: 'km', limit: 8 }), { sub: 'Registran km sin cargas en el mes' }) + '</div>' +
+    '<div class="grid2">' + card('Móviles con área de oportunidad', table(ucols.concat([{ k: 'exc', l: 'Litros de más', num: 1, f: F.n0 }]), opp, { sort: 'exc', limit: 15, search: true, onRow: u => ficha('ops', u.movil) }), { sub: 'Debajo de 90% de su ideal · ordenados por litros consumidos de más', cls: 'bad-edge' }) + card('Móviles mejor posicionados', table(ucols, best.slice(0, 100), { sort: 'cump', limit: 15, onRow: u => ficha('ops', u.movil) }), { cls: 'good-edge' }) + '</div>' +
+    card('Sucursales problema', table([{ k: 'n', l: 'Sucursal' }, { k: 'u', l: 'Unid.', num: 1, f: F.n0 }, { k: 'bajo', l: 'Unid. <90%', num: 1, f: F.n0 }, { k: 'pBajo', l: '% unid. <90%', num: 1, f: F.pct0 }, { k: 'cump', l: 'Cumplimiento', num: 1, html: r => badge(r.cump, F.pct(r.cump)) }, { k: 'lExc', l: 'Litros sobre ideal', num: 1, f: F.n0 }], probl, { sort: 'pBajo', limit: 10, onRow: x => DO('Sucursal ' + x.n + ' · unidades debajo de 90%', r => r.suc === x.n && cO(r) > 0 && cO(r) < 0.9) }), { sub: 'Mayor proporción de unidades debajo de 90% del ideal' }) +
+    '<div class="grid2">' + card('Casos: carga sin recorrido (' + csr.length + ')', table(ccols, csr, { sort: 'lts', limit: 8, onRow: x => ficha('ops', x.movil) }), { sub: 'Cargaron combustible pero no registran km' }) + card('Casos: recorrido sin carga (' + rsc.length + ')', table(ccols, rsc, { sort: 'km', limit: 8, onRow: x => ficha('ops', x.movil) }), { sub: 'Registran km sin cargas en el mes' }) + '</div>' +
     card('Análisis del mes', bullets(an), { cls: 'analysis-card' }) +
     compareBlock('opsRend', { mode: 'month', ds: ['ops_rend_d', 'ops_rend_g'], area: 'ops', story: (A, B) => storyRend('ops', A, B), compute: sel => { const r = opsRendRows(sel.v.slice(0, 7)); const s = opsStats(r); return { kpis: [{ l: 'Rendimiento real', v: s.rend, f: F.n3, good: 'up' }, { l: 'Cumplimiento', v: s.cump, f: F.pct, good: 'up' }, { l: 'Km', v: s.km, f: F.n0 }, { l: 'Litros', v: s.lts, f: F.n0, good: 'down' }, { l: 'Gasto', v: s.imp, f: F.money, good: 'down' }, { l: 'Precio por litro', v: s.precio, f: F.money2, good: 'down' }], groups: [{ t: 'Cumplimiento por región', k: 'Región', rows: aggOps(r, x => x.region).map(x => ({ n: x.n, v: x.cump })), f: F.pct, good: 'up' }, { t: 'Cumplimiento por marca', k: 'Marca', rows: aggOps(r, x => marcaOps(x.desc)).map(x => ({ n: x.n, v: x.cump })), f: F.pct, good: 'up' }, { t: 'Cumplimiento por sucursal', k: 'Sucursal', rows: aggOps(r, x => x.suc).filter(x => x.u >= 3).map(x => ({ n: x.n, v: x.cump })), f: F.pct, good: 'up', top: 15 }] }; } });
 }
@@ -1593,14 +1624,16 @@ function viewCargas(a) {
   }
   const ids = { d: cid(), p: cid(), fu: cid(), s: cid(), pf: cid(), ps: cid(), dw: cid(), v: cid() };
   const topS = byS.slice(0, 20);
+  const per = dLabel(f.desde) + ' – ' + dLabel(f.hasta);
+  const DC = (t, fn, src) => dCargas(a, t, (src || rows).filter(fn), per);
   later(() => {
-    vbar(document.getElementById(ids.d), { labels: days.map(dShort), tipLabels: days.map(d => DOW[new Date(d + 'T12:00:00').getDay()] + ' ' + dLabel(d)), series: [{ name: met === 'L' ? 'Litros' : met === '$' ? 'Importe' : 'Cargas', data: days.map(d => mv(byDay.get(d))) }], fmt: mfmt, height: 250 });
-    hbar(document.getElementById(ids.p), { labels: byP.slice(0, 15).map(x => x.n), series: [{ name: 'Litros', data: byP.slice(0, 15).map(x => x.lts) }], fmt: F.L, vfmt: v => short(v) + ' L', tipExtra: i => '<br>' + F.pct(byP[i].pct) + ' del total · ' + F.n0(byP[i].c) + ' cargas · ' + F.money2(byP[i].precio) + '/L' });
-    donut(document.getElementById(ids.fu), { labels: byF.map(x => x.n), data: byF.map(x => x.lts), fmt: F.L, center: F.pct0(st.pAuto), centerSub: 'autoconsumo' });
-    hbar(document.getElementById(ids.s), { labels: topS.map(x => x.n), series: [{ name: 'Litros', data: topS.map(x => x.lts) }], fmt: F.L, vfmt: v => short(v) + ' L', colors: i => rows.find(r => cg.sitio(r) === topS[i].n && cg.auto(r)) ? 'var(--s1)' : 'var(--s3)', tipExtra: i => '<br>' + F.pct(topS[i].pct) + ' del total · ' + F.money2(topS[i].precio) + '/L' });
+    vbar(document.getElementById(ids.d), { labels: days.map(dShort), tipLabels: days.map(d => DOW[new Date(d + 'T12:00:00').getDay()] + ' ' + dLabel(d)), series: [{ name: met === 'L' ? 'Litros' : met === '$' ? 'Importe' : 'Cargas', data: days.map(d => mv(byDay.get(d))) }], fmt: mfmt, height: 250, onClick: i => dCargas(a, 'Cargas del ' + dLabel(days[i]) + (f.cProv !== 'ALL' ? ' · ' + f.cProv : ''), byDay.get(days[i]) || []) });
+    hbar(document.getElementById(ids.p), { labels: byP.slice(0, 15).map(x => x.n), series: [{ name: 'Litros', data: byP.slice(0, 15).map(x => x.lts) }], fmt: F.L, vfmt: v => short(v) + ' L', tipExtra: i => '<br>' + F.pct(byP[i].pct) + ' del total · ' + F.n0(byP[i].c) + ' cargas · ' + F.money2(byP[i].precio) + '/L', onClick: i => DC('Proveedor ' + byP[i].n, r => cg.prov(r) === byP[i].n) });
+    donut(document.getElementById(ids.fu), { labels: byF.map(x => x.n), data: byF.map(x => x.lts), fmt: F.L, center: F.pct0(st.pAuto), centerSub: 'autoconsumo', onClick: i => DC(byF[i].n, r => cg.fuente(r) === byF[i].n) });
+    hbar(document.getElementById(ids.s), { labels: topS.map(x => x.n), series: [{ name: 'Litros', data: topS.map(x => x.lts) }], fmt: F.L, vfmt: v => short(v) + ' L', colors: i => rows.find(r => cg.sitio(r) === topS[i].n && cg.auto(r)) ? 'var(--s1)' : 'var(--s3)', tipExtra: i => '<br>' + F.pct(topS[i].pct) + ' del total · ' + F.money2(topS[i].precio) + '/L', onClick: i => DC('Sitio ' + topS[i].n, r => cg.sitio(r) === topS[i].n) });
     line(document.getElementById(ids.pf), { labels: days.map(dShort), tipLabels: days.map(dLabel), series: priceSeries, fmt: F.money2, axfmt: v => '$' + nf(2).format(v) });
     line(document.getElementById(ids.ps), { labels: days.map(dShort), tipLabels: days.map(dLabel), series: siteSeries, fmt: F.money2, axfmt: v => '$' + nf(2).format(v) });
-    vbar(document.getElementById(ids.dw), { labels: [1, 2, 3, 4, 5, 6, 0].map(i => DOW[i]), series: [{ name: 'Litros', data: [1, 2, 3, 4, 5, 6, 0].map(i => dow[i]) }], fmt: F.L, height: 200 });
+    vbar(document.getElementById(ids.dw), { labels: [1, 2, 3, 4, 5, 6, 0].map(i => DOW[i]), series: [{ name: 'Litros', data: [1, 2, 3, 4, 5, 6, 0].map(i => dow[i]) }], fmt: F.L, height: 200, onClick: i => { const d = [1, 2, 3, 4, 5, 6, 0][i]; DC('Cargas en ' + DOW[d], r => new Date(r.fecha + 'T12:00:00').getDay() === d); } });
   });
   const sAuto = byS.filter(s => rows.some(r => cg.sitio(r) === s.n && cg.auto(r)));
   const an = [
@@ -1618,14 +1651,14 @@ function viewCargas(a) {
     '<div class="kpis">' + kpi('Litros cargados', F.n0(st.lts), F.n0(st.c) + ' cargas', 'hero') + kpi('Importe', F.money(st.imp)) + kpi('Precio promedio', F.money2(st.precio) + '<small>/L</small>') + kpi('% autoconsumo', F.pct(st.pAuto), 'de los litros') + kpi('Unidades', F.n0(st.u), F.n1(div(st.c, st.u)) + ' cargas por unidad') + kpi('Litros por carga', F.n0(div(st.lts, st.c))) + '</div>' +
     card('Consumo general por día', '<div id="' + ids.d + '"></div>', { tools: provSel }) +
     '<div class="grid2">' + card('Cargas por proveedor', '<div id="' + ids.p + '"></div>') + card('Autoconsumo vs gasolinera', '<div id="' + ids.fu + '"></div>', { sub: 'Participación en litros' }) + '</div>' +
-    card('% de consumo por proveedor', table(pcols, byP, { sort: 'lts', limit: 10 })) +
-    '<div class="grid2">' + card('Cargas por sitio (top 20)', '<div id="' + ids.s + '"></div>', { sub: '<i class="sw" style="background:var(--s1)"></i> Autoconsumo · <i class="sw" style="background:var(--s3)"></i> Gasolinera' }) + card('% de consumo por sitio', table([{ k: 'n', l: 'Sitio' }, { k: 'c', l: 'Cargas', num: 1, f: F.n0 }, { k: 'lts', l: 'Litros', num: 1, f: F.n0 }, { k: 'pct', l: '% litros', num: 1, f: F.pct }, { k: 'precio', l: '$/L', num: 1, f: F.money2 }], byS, { sort: 'lts', limit: 12, search: true })) + '</div>' +
+    card('% de consumo por proveedor', table(pcols, byP, { sort: 'lts', limit: 10, onRow: x => DC('Proveedor ' + x.n, r => cg.prov(r) === x.n) })) +
+    '<div class="grid2">' + card('Cargas por sitio (top 20)', '<div id="' + ids.s + '"></div>', { sub: '<i class="sw" style="background:var(--s1)"></i> Autoconsumo · <i class="sw" style="background:var(--s3)"></i> Gasolinera' }) + card('% de consumo por sitio', table([{ k: 'n', l: 'Sitio' }, { k: 'c', l: 'Cargas', num: 1, f: F.n0 }, { k: 'lts', l: 'Litros', num: 1, f: F.n0 }, { k: 'pct', l: '% litros', num: 1, f: F.pct }, { k: 'precio', l: '$/L', num: 1, f: F.money2 }], byS, { sort: 'lts', limit: 12, search: true, onRow: x => DC('Sitio ' + x.n, r => cg.sitio(r) === x.n) })) + '</div>' +
     '<div class="grid2">' + card('Comportamiento del precio por fuente', '<div id="' + ids.pf + '"></div>', { sub: 'Precio promedio diario por litro' }) + card('Precio diario por autoconsumo', '<div id="' + ids.ps + '"></div>') + '</div>' +
-    card('Precio por sitio', table([{ k: 'n', l: 'Sitio' }, { k: 'fuente', l: 'Fuente' }, { k: 'prom', l: 'Promedio', num: 1, f: F.money2 }, { k: 'min', l: 'Mínimo', num: 1, f: F.money2 }, { k: 'max', l: 'Máximo', num: 1, f: F.money2 }, { k: 'ult', l: 'Último', num: 1, f: F.money2 }, { k: 'uf', l: 'Fecha último', f: dLabel }], priceTbl, { sort: 'prom', limit: 10, search: true })) +
+    card('Precio por sitio', table([{ k: 'n', l: 'Sitio' }, { k: 'fuente', l: 'Fuente' }, { k: 'prom', l: 'Promedio', num: 1, f: F.money2 }, { k: 'min', l: 'Mínimo', num: 1, f: F.money2 }, { k: 'max', l: 'Máximo', num: 1, f: F.money2 }, { k: 'ult', l: 'Último', num: 1, f: F.money2 }, { k: 'uf', l: 'Fecha último', f: dLabel }], priceTbl, { sort: 'prom', limit: 10, search: true, onRow: x => DC('Sitio ' + x.n, r => cg.sitio(r) === x.n) })) +
     cvc +
-    '<div class="grid2">' + card('Móviles con más cargas', table([{ k: 'n', l: 'Móvil' }, { k: 'reg', l: a === 'ops' ? 'Suc.' : 'Región' }, { k: 'c', l: 'Cargas', num: 1, f: F.n0 }, { k: 'dias', l: 'Días', num: 1, f: F.n0 }, { k: 'lts', l: 'Litros', num: 1, f: F.n0 }, { k: 'lc', l: 'L/carga', num: 1, f: F.n0 }, { k: 'imp', l: 'Importe', num: 1, f: F.money }], byV, { sort: 'c', limit: 12, search: true })) + card('Litros por día de la semana', '<div id="' + ids.dw + '"></div>') + '</div>' +
-    '<div class="grid2">' + card('Alertas de cargas', table([{ k: 'fecha', l: 'Fecha', f: dLabel }, { k: 'movil', l: 'Móvil' }, { k: 'sitio', l: 'Sitio' }, { k: 'lts', l: 'Litros', num: 1, f: F.n1 }, { k: 'precio', l: '$/L', num: 1, f: F.money2 }, { k: 'motivo', l: 'Motivo' }], alerts, { sort: 'lts', limit: 8 }), { sub: 'Precio o volumen fuera del patrón del periodo', cls: 'bad-edge' }) + card('Móviles con 3+ cargas en un día', table([{ k: 'n', l: 'Móvil' }, { k: 'maxDia', l: 'Máx. cargas en un día', num: 1, f: F.n0 }, { k: 'c', l: 'Cargas', num: 1, f: F.n0 }, { k: 'lts', l: 'Litros', num: 1, f: F.n0 }], multi, { sort: 'maxDia', limit: 8 }), { cls: 'bad-edge' }) + '</div>' +
-    (notas.length ? card('Cargas con dispositivo prestado (' + notas.length + ')', table([{ k: 'fecha', l: 'Fecha', f: dLabel }, { k: 'movil', l: 'Móvil' }, { k: 'sitio', l: 'Sitio' }, { k: 'lts', l: 'Litros', num: 1, f: F.n1 }, { k: 'nota', l: 'Nota' }], notas, { limit: 8 })) : '') +
+    '<div class="grid2">' + card('Móviles con más cargas', table([{ k: 'n', l: 'Móvil' }, { k: 'reg', l: a === 'ops' ? 'Suc.' : 'Región' }, { k: 'c', l: 'Cargas', num: 1, f: F.n0 }, { k: 'dias', l: 'Días', num: 1, f: F.n0 }, { k: 'lts', l: 'Litros', num: 1, f: F.n0 }, { k: 'lc', l: 'L/carga', num: 1, f: F.n0 }, { k: 'imp', l: 'Importe', num: 1, f: F.money }], byV, { sort: 'c', limit: 12, search: true, onRow: x => ficha(a, x.n) })) + card('Litros por día de la semana', '<div id="' + ids.dw + '"></div>') + '</div>' +
+    '<div class="grid2">' + card('Alertas de cargas', table([{ k: 'fecha', l: 'Fecha', f: dLabel }, { k: 'movil', l: 'Móvil' }, { k: 'sitio', l: 'Sitio' }, { k: 'lts', l: 'Litros', num: 1, f: F.n1 }, { k: 'precio', l: '$/L', num: 1, f: F.money2 }, { k: 'motivo', l: 'Motivo' }], alerts, { sort: 'lts', limit: 8, onRow: x => ficha(a, x.movil) }), { sub: 'Precio o volumen fuera del patrón del periodo', cls: 'bad-edge' }) + card('Móviles con 3+ cargas en un día', table([{ k: 'n', l: 'Móvil' }, { k: 'maxDia', l: 'Máx. cargas en un día', num: 1, f: F.n0 }, { k: 'c', l: 'Cargas', num: 1, f: F.n0 }, { k: 'lts', l: 'Litros', num: 1, f: F.n0 }], multi, { sort: 'maxDia', limit: 8, onRow: x => DC('Cargas del móvil ' + x.n, r => r.movil === x.n) }), { cls: 'bad-edge' }) + '</div>' +
+    (notas.length ? card('Cargas con dispositivo prestado (' + notas.length + ')', table([{ k: 'fecha', l: 'Fecha', f: dLabel }, { k: 'movil', l: 'Móvil' }, { k: 'sitio', l: 'Sitio' }, { k: 'lts', l: 'Litros', num: 1, f: F.n1 }, { k: 'nota', l: 'Nota' }], notas, { limit: 8, onRow: x => ficha(a, x.movil) })) : '') +
     card('Análisis', bullets(an), { cls: 'analysis-card' }) +
     compareBlock(a + 'Cargas', { mode: 'range', ds: [cg.ds], area: a, story: (A, B) => storyCargas(a, A, B), compute: sel => { const r = cargasRows(a, sel.from, sel.to); const s = cargasStats(a, r); return { kpis: [{ l: 'Litros', v: s.lts, f: F.n0 }, { l: 'Importe', v: s.imp, f: F.money, good: 'down' }, { l: 'Cargas', v: s.c, f: F.n0 }, { l: 'Precio por litro', v: s.precio, f: F.money2, good: 'down' }, { l: '% autoconsumo', v: s.pAuto, f: F.pct, good: 'up' }, { l: 'Litros por día', v: div(s.lts, s.dias), f: F.n0 }], groups: [{ t: 'Litros por proveedor', k: 'Proveedor', rows: aggC(a, r, cg.prov).map(x => ({ n: x.n, v: x.lts })), f: F.n0 }, { t: 'Precio por litro por sitio', k: 'Sitio', rows: aggC(a, r, cg.sitio).slice(0, 25).map(x => ({ n: x.n, v: x.precio })), f: F.money2, good: 'down' }] }; } });
 }
@@ -1668,12 +1701,14 @@ function viewRal(a) {
   const chMes = f.desde.slice(0, 7); const chRows = choferRows(a, chMes).filter(c => c.hm >= 20).sort((x, y) => y.pr - x.pr).slice(0, 60);
   const ids = { d: cid(), hm: cid(), pl: cid(), v: cid(), rg: cid() };
   const topV = byVeh.slice(0, 15);
+  const perR = dLabel(f.desde) + ' – ' + dLabel(f.hasta);
+  const DE = (t, fn) => dRal(a, t, rows.filter(fn), perR);
   later(() => {
-    vbar(document.getElementById(ids.d), { labels: days.map(dShort), tipLabels: days.map(d => DOW[new Date(d + 'T12:00:00').getDay()] + ' ' + dLabel(d)), series: [{ name: met === 'L' ? 'Litros' : met === 'E' ? 'Eventos' : 'Horas', data: days.map(d => mv(byDay.get(d))) }], fmt: met === 'L' ? F.L : met === 'E' ? F.n0 : F.h, height: 240 });
-    heat(document.getElementById(ids.hm), { rows: order.map(i => DOW[i]), cols: Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0')), values: order.map(i => heatV[i]), fmt: v => F.n0(v) + ' eventos' });
-    hbar(document.getElementById(ids.pl), { labels: byPlace.slice(0, 15).map(x => x.n), series: [{ name: 'Litros', data: byPlace.slice(0, 15).map(x => x.lts) }], fmt: F.L, vfmt: v => F.n0(v) + ' L', colors: i => /^Fuera/.test(byPlace[i].n) ? 'var(--s2)' : 'var(--s1)', tipExtra: i => '<br>' + byPlace[i].ev + ' eventos · ' + byPlace[i].veh + ' vehículos' });
-    hbar(document.getElementById(ids.v), { labels: topV.map(x => x.n + (x.reg ? ' · ' + x.reg : '')), series: [{ name: 'Litros', data: topV.map(x => x.lts) }], fmt: F.L, vfmt: v => F.n0(v) + ' L', tipExtra: i => '<br>' + topV[i].ev + ' eventos en ' + topV[i].dias + ' días · ' + F.h(topV[i].h) });
-    hbar(document.getElementById(ids.rg), { labels: byReg.map(x => x.n), series: [{ name: 'Litros', data: byReg.map(x => x.lts) }], fmt: F.L, vfmt: v => F.n0(v) + ' L', tipExtra: i => '<br>' + byReg[i].ev + ' eventos · ' + byReg[i].veh + ' vehículos' });
+    vbar(document.getElementById(ids.d), { labels: days.map(dShort), tipLabels: days.map(d => DOW[new Date(d + 'T12:00:00').getDay()] + ' ' + dLabel(d)), series: [{ name: met === 'L' ? 'Litros' : met === 'E' ? 'Eventos' : 'Horas', data: days.map(d => mv(byDay.get(d))) }], fmt: met === 'L' ? F.L : met === 'E' ? F.n0 : F.h, height: 240, onClick: i => dRal(a, 'Eventos del ' + dLabel(days[i]), byDay.get(days[i]) || []) });
+    heat(document.getElementById(ids.hm), { rows: order.map(i => DOW[i]), cols: Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0')), values: order.map(i => heatV[i]), fmt: v => F.n0(v) + ' eventos', onClick: (i, j) => DE('Eventos en ' + DOW[order[i]] + ' a las ' + String(j).padStart(2, '0') + ':00', r => new Date(r.fecha + 'T12:00:00').getDay() === order[i] && +(r.hora || '0').slice(0, 2) === j) });
+    hbar(document.getElementById(ids.pl), { labels: byPlace.slice(0, 15).map(x => x.n), series: [{ name: 'Litros', data: byPlace.slice(0, 15).map(x => x.lts) }], fmt: F.L, vfmt: v => F.n0(v) + ' L', colors: i => /^Fuera/.test(byPlace[i].n) ? 'var(--s2)' : 'var(--s1)', tipExtra: i => '<br>' + byPlace[i].ev + ' eventos · ' + byPlace[i].veh + ' vehículos', onClick: i => DE(byPlace[i].n, r => placeOf(r) === byPlace[i].n) });
+    hbar(document.getElementById(ids.v), { labels: topV.map(x => x.n + (x.reg ? ' · ' + x.reg : '')), series: [{ name: 'Litros', data: topV.map(x => x.lts) }], fmt: F.L, vfmt: v => F.n0(v) + ' L', tipExtra: i => '<br>' + topV[i].ev + ' eventos en ' + topV[i].dias + ' días · ' + F.h(topV[i].h), onClick: i => ficha(a, topV[i].n) });
+    hbar(document.getElementById(ids.rg), { labels: byReg.map(x => x.n), series: [{ name: 'Litros', data: byReg.map(x => x.lts) }], fmt: F.L, vfmt: v => F.n0(v) + ' L', tipExtra: i => '<br>' + byReg[i].ev + ' eventos · ' + byReg[i].veh + ' vehículos', onClick: i => DE('Región ' + byReg[i].n, r => regionOf(a, r.veh) === byReg[i].n) });
   });
   const an = [
     'Del ' + dLabel(f.desde) + ' al ' + dLabel(f.hasta) + ': <b>' + F.n0(st.ev) + ' eventos</b> de ralentí en ' + F.n0(st.veh) + ' vehículos, <b>' + F.L(st.lts) + '</b> y ' + F.h(st.h) + ' con motor encendido sin movimiento.',
@@ -1695,9 +1730,9 @@ function viewRal(a) {
     card('Consumo por día', '<div id="' + ids.d + '"></div>', { tools }) +
     '<div class="grid2">' + card('¿A qué hora ocurre?', '<div id="' + ids.hm + '"></div>', { sub: 'Eventos por día de la semana y hora de inicio' }) + card('Ralentí por región', '<div id="' + ids.rg + '"></div>') + '</div>' +
     '<div class="grid2">' + card('Ubicaciones más destacadas', '<div id="' + ids.pl + '"></div>', { sub: '<i class="sw" style="background:var(--s1)"></i> Geocerca · <i class="sw" style="background:var(--s2)"></i> Fuera de geocerca' }) + card('Móviles con mayor consumo', '<div id="' + ids.v + '"></div>') + '</div>' +
-    card('Eventos de mayor duración', table([{ k: 'fecha', l: 'Fecha', f: dLabel }, { k: 'hora', l: 'Hora' }, { k: 'veh', l: 'Vehículo' }, { k: 'reg', l: 'Región' }, { k: 'chofer', l: 'Chofer' }, { k: 'min', l: 'Duración', num: 1, f: hmm }, { k: 'lts', l: 'Litros', num: 1, f: F.n1 }, { k: 'lugar', l: 'Ubicación' }], longest, { sort: 'min', limit: 10 })) +
-    card('Móviles con reincidencia', table(vcols, reinc, { sort: 'dias', limit: 12, search: true }), { sub: 'Vehículos con eventos en varios días distintos del periodo', tools: diasSel, cls: 'bad-edge' }) +
-    card('Móviles con mayor consumo y eventos', table(vcols, byVeh, { sort: 'lts', limit: 12, search: true })) +
+    card('Eventos de mayor duración', table([{ k: 'fecha', l: 'Fecha', f: dLabel }, { k: 'hora', l: 'Hora' }, { k: 'veh', l: 'Vehículo' }, { k: 'reg', l: 'Región' }, { k: 'chofer', l: 'Chofer' }, { k: 'min', l: 'Duración', num: 1, f: hmm }, { k: 'lts', l: 'Litros', num: 1, f: F.n1 }, { k: 'lugar', l: 'Ubicación' }], longest, { sort: 'min', limit: 10, onRow: x => ficha(a, x.veh) })) +
+    card('Móviles con reincidencia', table(vcols, reinc, { sort: 'dias', limit: 12, search: true, onRow: x => DE('Eventos del vehículo ' + x.n, r => r.veh === x.n) }), { sub: 'Vehículos con eventos en varios días distintos del periodo', tools: diasSel, cls: 'bad-edge' }) +
+    card('Móviles con mayor consumo y eventos', table(vcols, byVeh, { sort: 'lts', limit: 12, search: true, onRow: x => ficha(a, x.n) })) +
     card('Choferes problema · % de ralentí del mes', chRows.length ? table([{ k: 'chofer', l: 'Chofer' }, { k: 'pr', l: '% ralentí', num: 1, f: v => F.n1(v) + '%' }, { k: 'hr', l: 'Horas ralentí', num: 1, f: F.n1 }, { k: 'hm', l: 'Horas motor', num: 1, f: F.n1 }, { k: 'rend', l: 'km/L', num: 1, f: F.n2 }], chRows, { sort: 'pr', limit: 10 }) : empty('Sin archivo de choferes para ' + perLabel(chMes)), { sub: 'Archivo de choferes · mínimo 20 h motor' }) +
     simulator(a) +
     card('Análisis', bullets(an), { cls: 'analysis-card' }) +
@@ -1773,10 +1808,11 @@ function viewChof(a) {
   const ids = { hr: cid(), hp: cid(), sc: cid() };
   const rmax = a === 'log' ? 4.5 : Math.min(20, Math.max(...rows.map(r => r.rend), 1));
   const step = a === 'log' ? 0.25 : 1; const bins = []; for (let b = a === 'log' ? 1 : 0; b < rmax; b += step) bins.push(b);
+  const DCh = (t, fn) => dChof(t + ' · ' + perLabel(p), rows.filter(fn));
   later(() => {
-    vbar(document.getElementById(ids.hr), { labels: bins.map(b => F.n2(b)), tipLabels: bins.map(b => F.n2(b) + '–' + F.n2(b + step) + ' km/L'), series: [{ name: 'Choferes', data: bins.map(b => rows.filter(r => r.rend >= b && r.rend < b + step).length) }], fmt: F.n0, xTitle: 'km/L' });
+    vbar(document.getElementById(ids.hr), { labels: bins.map(b => F.n2(b)), tipLabels: bins.map(b => F.n2(b) + '–' + F.n2(b + step) + ' km/L'), series: [{ name: 'Choferes', data: bins.map(b => rows.filter(r => r.rend >= b && r.rend < b + step).length) }], fmt: F.n0, xTitle: 'km/L', onClick: i => DCh('Choferes con ' + F.n2(bins[i]) + '–' + F.n2(bins[i] + step) + ' km/L', r => r.rend >= bins[i] && r.rend < bins[i] + step) });
     const pb = []; for (let b = 0; b < 60; b += 5) pb.push(b);
-    vbar(document.getElementById(ids.hp), { labels: pb.map(b => b + '%'), tipLabels: pb.map(b => b + '–' + (b + 5) + '% de ralentí'), series: [{ name: 'Choferes', data: pb.map(b => rows.filter(r => r.pr >= b && r.pr < b + 5).length) }], fmt: F.n0, colors: i => pb[i] >= 25 ? STC.bad : pb[i] >= 15 ? STC.warn : 'var(--s1)', xTitle: '% del tiempo de motor en ralentí' });
+    vbar(document.getElementById(ids.hp), { labels: pb.map(b => b + '%'), tipLabels: pb.map(b => b + '–' + (b + 5) + '% de ralentí'), series: [{ name: 'Choferes', data: pb.map(b => rows.filter(r => r.pr >= b && r.pr < b + 5).length) }], fmt: F.n0, colors: i => pb[i] >= 25 ? STC.bad : pb[i] >= 15 ? STC.warn : 'var(--s1)', xTitle: '% del tiempo de motor en ralentí', onClick: i => DCh('Choferes con ' + pb[i] + '–' + (pb[i] + 5) + '% de ralentí', r => r.pr >= pb[i] && r.pr < pb[i] + 5) });
     const sample = rows.length > 1500 ? rows.filter((_, i) => i % Math.ceil(rows.length / 1500) === 0) : rows;
     scatter(document.getElementById(ids.sc), { points: sample.map(r => ({ x: r.pr, y: r.rend, color: qcol[r.q], tip: '<b>' + esc(r.chofer) + '</b><br>' + F.n2(r.rend) + ' km/L · ' + F.n1(r.pr) + '% ralentí<br>' + F.km(r.km) })), xTitle: '% de ralentí', yTitle: 'km/L', vx: mp, vy: mr, xmin: 0, ymin: a === 'log' ? 0.8 : 0, ymax: a === 'log' ? 4.5 : undefined, legend: '<div class="legend">' + qOrder.map(q => '<span><i style="background:' + qcol[q] + '"></i>' + q + '</span>').join('') + '</div>' });
   });
@@ -1792,8 +1828,8 @@ function viewChof(a) {
   ];
   const tools = (a === 'log' ? '<label class="chk"><input type="checkbox" data-act="tg" data-k="logChofAtip"' + (atip ? ' checked' : '') + '> Excluir rendimientos atípicos</label>' : '');
   return '<div class="blockhead"><div><h2>Choferes · ' + perLabel(p) + '</h2><p class="sub">Archivo de Samsara por chofer' + (a === 'ops' ? ' · flota mixta (vans y camiones): compara rendimientos dentro del mismo tipo de unidad' : '') + (p !== f.mes ? ' (no hay archivo para ' + perLabel(f.mes) + '; se muestra el último)' : '') + '</p></div><div class="bh-tools">' + tools + '</div></div>' +
-    '<div class="kpis">' + kpi('Rendimiento ponderado', F.n2(st.rend) + '<small> km/L</small>', F.n0(st.n) + ' choferes', 'hero') + kpi('Km recorridos', F.n0(st.km)) + kpi('Litros', F.n0(st.lts)) + kpi('Horas motor', F.n0(st.hm)) + kpi('% de ralentí', F.pct(st.pr), F.n0(st.hr) + ' h en ralentí') + kpi('Choferes > 25% ralentí', F.n0(st.alto), F.pct(div(st.alto, st.n)) + ' del total') + '</div>' +
-    '<div class="quads">' + qOrder.map(q => { const x = qs.find(z => z.n === q) || { c: 0 }; return '<div class="quad" style="--qc:' + qcol[q] + '"><b>' + F.n0(x.c) + '</b><span>' + q + '</span><em>' + (x.c ? F.kml(x.rend) + ' · ' + F.pct(x.pr) + ' ralentí' : '—') + '</em></div>'; }).join('') + '</div>' +
+    '<div class="kpis">' + kpi('Rendimiento ponderado', F.n2(st.rend) + '<small> km/L</small>', F.n0(st.n) + ' choferes', 'hero') + kpi('Km recorridos', F.n0(st.km)) + kpi('Litros', F.n0(st.lts)) + kpi('Horas motor', F.n0(st.hm)) + kpi('% de ralentí', F.pct(st.pr), F.n0(st.hr) + ' h en ralentí') + '<div class="click kwrap"' + dr(() => DCh('Choferes con más de 25% de ralentí', r => r.pr > 25)) + '>' + kpi('Choferes > 25% ralentí', F.n0(st.alto), F.pct(div(st.alto, st.n)) + ' del total · clic para ver') + '</div>' + '</div>' +
+    '<div class="quads">' + qOrder.map(q => { const x = qs.find(z => z.n === q) || { c: 0 }; return '<div class="quad click" style="--qc:' + qcol[q] + '"' + dr(() => DCh(q, r => r.q === q)) + ' title="Clic para ver los choferes"><b>' + F.n0(x.c) + '</b><span>' + q + '</span><em>' + (x.c ? F.kml(x.rend) + ' · ' + F.pct(x.pr) + ' ralentí' : '—') + '</em></div>'; }).join('') + '</div>' +
     card('Rendimiento vs % de ralentí por chofer', '<div id="' + ids.sc + '"></div>', { sub: 'Las líneas punteadas son las medianas; cada punto es un chofer' }) +
     '<div class="grid2">' + card('Distribución de rendimiento', '<div id="' + ids.hr + '"></div>') + card('Distribución de % de ralentí', '<div id="' + ids.hp + '"></div>') + '</div>' +
     '<div class="grid2">' + card('Mejores choferes por rendimiento', table(ccols.slice(0, 8), byRend.slice(0, 50), { sort: 'rend', limit: 10 }), { cls: 'good-edge' }) + card('Choferes con menor rendimiento', table(ccols.slice(0, 8), byRend.slice(-50).reverse(), { sort: 'rend', dir: 1, limit: 10 }), { cls: 'bad-edge' }) + '</div>' +
@@ -2014,6 +2050,87 @@ function viewComparador(a) {
     '<div class="grid2">' + card('Rendimiento real vs ideal', '<div id="' + cid1 + '"></div>') + card('Costo por km y precio por litro', '<div id="' + cid2 + '"></div>') + '</div>' +
     card('Análisis comparativo', bullets(L), { cls: 'analysis-card' }) +
     card('Todos los indicadores', tbl, { sub: 'En verde, el mejor valor en indicadores por unidad o de eficiencia (los totales dependen del tamaño) · choferes no se incluye porque su archivo no trae móvil ni región' });
+}
+
+/* ===================== Detalle desplegable (drill-down) y ficha de móvil ===================== */
+const DSTACK = [];
+const DR = []; // funciones para elementos con data-drill
+function dr(fn) { DR.push(fn); return ' data-drill="' + (DR.length - 1) + '"'; }
+function openDrill(d) { DSTACK.push(d); showDrill(); }
+function closeDrill() { DSTACK.length = 0; $('#modal').classList.remove('open', 'drill'); }
+function showDrill() {
+  const d = DSTACK[DSTACK.length - 1]; if (!d) return closeDrill();
+  const m = $('#modal');
+  const tbl = d.cols ? table(d.cols, d.rows, { sort: d.sort, limit: 25, search: true, onRow: d.onRow }) : '';
+  m.innerHTML = '<div class="mbox wide"><header><div>' + (DSTACK.length > 1 ? '<button class="lnk back" data-act="dback">← Volver</button>' : '') + '<h3>' + esc(d.title) + '</h3>' + (d.sub ? '<p class="sub">' + d.sub + '</p>' : '') + '</div><div class="mtools">' + (d.cols ? '<span class="dcount">' + F.n0(d.rows.length) + ' ' + (d.unit || 'registros') + '</span><button class="btn xls sm" data-act="dxls">⬇ Excel</button>' : '') + '<button class="x" data-act="closeModal" aria-label="Cerrar">×</button></div></header><div class="mbody dbody">' + (d.head || '') + tbl + (d.foot || '') + '</div></div>';
+  m.classList.add('open', 'drill');
+  flush();
+}
+async function drillExcel() {
+  const d = DSTACK[DSTACK.length - 1]; if (!d || !d.cols) return;
+  const rows = d.rows.map(r => { const o = {}; d.cols.forEach(c => { let v = r[c.k]; if (c.x) v = c.x(r); o[c.l] = v === undefined ? null : v; }); return o; });
+  await downloadXLSX((d.title.replace(/[^\wÁÉÍÓÚáéíóúÑñ .-]/g, '').slice(0, 60) || 'detalle') + '.xlsx', [['Detalle', rows]]);
+}
+
+/* ---- Columnas ---- */
+const XC = { pct: v => v === null || v === undefined ? null : Math.round(v * 1000) / 1000 };
+function unitLog(r) { const rend = r.lts ? r.km / r.lts : null; return { eco: r.eco, marca: sm(r.marca), zona: r.zona, segmento: r.segmento, mod: modalidad(r), pf: r.full, km: r.km, lts: r.lts, rend, ideal: r.ideal, cump: r.ideal && rend ? rend / r.ideal : null, exc: r.ideal ? Math.max(0, r.lts - r.km / r.ideal) : null, imp: r.imp }; }
+function unitOps(r) { const id = idealOf(r); const rend = r.lts ? r.km / r.lts : null; return { movil: r.movil, suc: r.suc, region: r.region, desc: r.desc, comb: r.comb, caso: r.caso === 'N' ? '' : r.caso === 'CSR' ? 'Carga sin recorrido' : 'Recorrido sin carga', km: r.km, lts: r.lts, rend, ideal: id, cump: id && rend ? rend / id : null, exc: id ? Math.max(0, r.lts - r.km / id) : null, imp: r.imp }; }
+const COLS_LOG = [{ k: 'eco', l: 'Económico' }, { k: 'marca', l: 'Marca / motor' }, { k: 'zona', l: 'Región' }, { k: 'segmento', l: 'Segmento' }, { k: 'mod', l: 'Modalidad' }, { k: 'pf', l: '% Full', num: 1, f: F.pct0, x: r => XC.pct(r.pf) }, { k: 'km', l: 'Km', num: 1, f: F.n0 }, { k: 'lts', l: 'Litros', num: 1, f: F.n0 }, { k: 'rend', l: 'Real', num: 1, f: F.n2 }, { k: 'ideal', l: 'Ideal', num: 1, f: F.n2 }, { k: 'cump', l: 'Cumpl.', num: 1, html: r => r.cump ? badge(r.cump, F.pct0(r.cump)) : '—', x: r => XC.pct(r.cump) }, { k: 'exc', l: 'Litros de más', num: 1, f: F.n0 }, { k: 'imp', l: 'Gasto', num: 1, f: F.money }];
+const COLS_OPS = [{ k: 'movil', l: 'Móvil' }, { k: 'suc', l: 'Suc.' }, { k: 'region', l: 'Región' }, { k: 'desc', l: 'Tipo de unidad' }, { k: 'comb', l: 'Comb.' }, { k: 'km', l: 'Km', num: 1, f: F.n0 }, { k: 'lts', l: 'Litros', num: 1, f: F.n0 }, { k: 'rend', l: 'Real', num: 1, f: F.n2 }, { k: 'ideal', l: 'Ideal', num: 1, f: F.n2 }, { k: 'cump', l: 'Cumpl.', num: 1, html: r => r.cump ? badge(r.cump, F.pct0(r.cump)) : '—', x: r => XC.pct(r.cump) }, { k: 'exc', l: 'Litros de más', num: 1, f: F.n0 }, { k: 'imp', l: 'Gasto', num: 1, f: F.money }, { k: 'caso', l: 'Caso' }];
+function dUnits(a, title, rows, sub) {
+  const U = rows.map(a === 'log' ? unitLog : unitOps);
+  const km = sum(rows, 'km'), lts = sum(rows, 'lts');
+  openDrill({ title, unit: a === 'log' ? 'tractos' : 'unidades', sub: (sub ? sub + ' · ' : '') + F.km(km) + ' · ' + F.L(lts) + ' · rendimiento ' + F.kml(div(km, lts)) + ' · gasto ' + F.money(sum(rows, 'imp')) + ' · clic en un móvil para ver su ficha', cols: a === 'log' ? COLS_LOG : COLS_OPS, rows: U, sort: 'cump', onRow: u => ficha(a, a === 'log' ? u.eco : u.movil) });
+}
+function cargaRow(a, r) { const cg = CG[a]; return { fecha: r.fecha, hora: r.hora || '', movil: r.movil, sitio: cg.sitio(r), prov: cg.prov(r), fuente: cg.fuente(r), lts: r.lts, precio: div(cg.amt(r), r.lts), imp: cg.amt(r), nota: r.nota || '' }; }
+const COLS_CARGA = [{ k: 'fecha', l: 'Fecha', f: dLabel }, { k: 'hora', l: 'Hora' }, { k: 'movil', l: 'Móvil' }, { k: 'sitio', l: 'Sitio' }, { k: 'prov', l: 'Proveedor' }, { k: 'fuente', l: 'Fuente' }, { k: 'lts', l: 'Litros', num: 1, f: F.n1 }, { k: 'precio', l: '$/L', num: 1, f: F.money2 }, { k: 'imp', l: 'Importe', num: 1, f: F.money2 }, { k: 'nota', l: 'Nota' }];
+function dCargas(a, title, rows, sub) {
+  const R = rows.map(r => cargaRow(a, r)); const l = sum(R, 'lts'), $ = sum(R, 'imp');
+  openDrill({ title, unit: 'cargas', sub: (sub ? sub + ' · ' : '') + F.L(l) + ' · ' + F.money($) + ' · ' + F.money2(div($, l)) + '/L · ' + F.n0(new Set(R.map(r => r.movil)).size) + ' móviles · clic en una carga para ver la ficha del móvil', cols: COLS_CARGA, rows: R, sort: 'lts', onRow: r => ficha(a, r.movil) });
+}
+function ralRow(a, r) { return { fecha: r.fecha, hora: r.hora, veh: r.veh, reg: regionOf(a, r.veh), chofer: r.chofer, min: r.min, lts: r.lts, lugar: placeOf(r), ubic: r.ubic }; }
+const COLS_RAL = [{ k: 'fecha', l: 'Fecha', f: dLabel }, { k: 'hora', l: 'Hora' }, { k: 'veh', l: 'Vehículo' }, { k: 'reg', l: 'Región' }, { k: 'min', l: 'Duración', num: 1, f: hmm, x: r => r.min }, { k: 'lts', l: 'Litros', num: 1, f: F.n1 }, { k: 'lugar', l: 'Lugar' }, { k: 'ubic', l: 'Dirección' }];
+function dRal(a, title, rows, sub) {
+  const R = rows.map(r => ralRow(a, r));
+  openDrill({ title, unit: 'eventos', sub: (sub ? sub + ' · ' : '') + F.L(sum(R, 'lts')) + ' · ' + F.h(sum(R, 'min') / 60) + ' · ' + F.n0(new Set(R.map(r => r.veh)).size) + ' vehículos · clic en un evento para ver la ficha del vehículo', cols: COLS_RAL, rows: R, sort: 'min', onRow: r => ficha(a, r.veh) });
+}
+const COLS_CHOF = [{ k: 'num', l: 'Núm.' }, { k: 'chofer', l: 'Chofer' }, { k: 'km', l: 'Km', num: 1, f: F.n0 }, { k: 'lts', l: 'Litros', num: 1, f: F.n0 }, { k: 'rend', l: 'km/L', num: 1, f: F.n2 }, { k: 'hm', l: 'H. motor', num: 1, f: F.n1 }, { k: 'hr', l: 'H. ralentí', num: 1, f: F.n1 }, { k: 'pr', l: '% ralentí', num: 1, f: v => F.n1(v) + '%', x: r => r.pr }, { k: 'q', l: 'Segmento' }];
+function dChof(title, rows, sub) {
+  const st = chofStats(rows);
+  openDrill({ title, unit: 'choferes', sub: (sub ? sub + ' · ' : '') + 'rendimiento ' + F.kml(st.rend) + ' · ralentí ' + F.pct(st.pr) + ' del tiempo de motor', cols: COLS_CHOF, rows, sort: 'km' });
+}
+
+/* ---- Ficha de un móvil ---- */
+function ficha(a, veh) {
+  const mes = S.f[a].mes; const from = mes + '-01', to = monthEnd(mes);
+  const dsR = a === 'log' ? ['log_rend'] : ['ops_rend_d', 'ops_rend_g'];
+  const keyR = a === 'log' ? 'eco' : 'movil';
+  // historia de rendimiento
+  const hist = [];
+  const ps = Array.from(new Set(dsR.flatMap(periodsOf))).sort();
+  for (const p of ps) {
+    const rr = a === 'log' ? logRendRows(p, true) : opsRendRows(p, { ignoreRegion: true, allCasos: true });
+    const r = rr.find(x => x[keyR] === veh); if (r) hist.push({ p, r });
+  }
+  const cur = (hist.find(h => h.p === mes) || {}).r;
+  const u = cur ? (a === 'log' ? unitLog(cur) : unitOps(cur)) : null;
+  const C = rowsRange(CG[a].ds, from, to).filter(r => r.movil === veh).map(r => cargaRow(a, r));
+  const E = rowsRange(a + '_ral', from, to).filter(r => r.veh === veh).map(r => ralRow(a, r));
+  const info = cur ? (a === 'log' ? [cur.zona, sm(cur.marca), cur.modelo, cur.segmento, modalidad(cur) + (cur.full !== null ? ' (' + F.pct0(cur.full) + ' Full)' : '')] : [cur.suc, cur.region, cur.desc, cur.comb]).filter(Boolean).join(' · ') : (lookups().logU[veh] ? 'Logística' : '') ;
+  const lid = cid('fl');
+  later(() => {
+    const el = document.getElementById(lid); if (!el || hist.length < 2) { if (el) el.innerHTML = '<p class="muted">Se necesita más de un mes de rendimientos para ver la tendencia.</p>'; return; }
+    line(el, { labels: hist.map(h => perShort(h.p)), tipLabels: hist.map(h => perLabel(h.p)), series: [{ name: 'Real', data: hist.map(h => h.r.lts ? h.r.km / h.r.lts : null) }, { name: 'Ideal', data: hist.map(h => a === 'log' ? h.r.ideal : idealOf(h.r)), dash: true, color: 'var(--s7)' }], fmt: F.kml, height: 200 });
+  });
+  const k = (l, v, s) => '<div class="fk"><span>' + l + '</span><b>' + v + '</b>' + (s ? '<em>' + s + '</em>' : '') + '</div>';
+  const head = '<div class="fhead">' + '<p class="finfo">' + esc(info || 'Sin datos de rendimiento en ' + perLabel(mes)) + '</p>' +
+    '<div class="fks">' + (u ? k('Rendimiento', F.n2(u.rend) + ' km/L', 'ideal ' + F.n2(u.ideal)) + k('Cumplimiento', u.cump ? badge(u.cump, F.pct(u.cump)) : '—') + k('Km', F.n0(u.km)) + k('Litros', F.n0(u.lts), u.exc ? F.n0(u.exc) + ' L sobre ideal' : '') + k('Gasto', F.money(u.imp)) : '') +
+    k('Cargas', F.n0(C.length), F.L(sum(C, 'lts')) + ' · ' + F.money2(div(sum(C, 'imp'), sum(C, 'lts'))) + '/L') + k('Ralentí', F.L(sum(E, 'lts')), F.n0(E.length) + ' eventos · ' + F.h(sum(E, 'min') / 60)) + '</div>' +
+    '<h4>Rendimiento por mes</h4><div id="' + lid + '"></div>' +
+    '<h4>Cargas de ' + perLabel(mes) + '</h4>' + (C.length ? table(COLS_CARGA.filter(c => c.k !== 'movil'), C, { sort: 'fecha', dir: 1, limit: 10 }) : '<p class="muted">Sin cargas en el mes.</p>') +
+    '<h4>Eventos de ralentí de ' + perLabel(mes) + '</h4>' + (E.length ? table(COLS_RAL.filter(c => c.k !== 'veh' && c.k !== 'reg'), E, { sort: 'min', limit: 10 }) : '<p class="muted">Sin eventos de ralentí en el mes.</p>') + '</div>';
+  openDrill({ title: 'Ficha del móvil ' + veh, sub: AREA_NAME[a] + ' · ' + perLabel(mes), head });
 }
 
 /* ===================== Versión GitHub Pages: datos cifrados en data.enc.json ===================== */
@@ -2363,7 +2480,7 @@ function openSettings() {
 /* ---------- Router y eventos ---------- */
 function render() {
   const main = $('#main'); const r = (location.hash || '#inicio').slice(1) || 'inicio';
-  S.route = r; CID = 0; POST.length = 0;
+  S.route = r; CID = 0; POST.length = 0; DR.length = 0;
   for (const k in TBL) delete TBL[k];
   $$('.topnav a').forEach(a => a.classList.toggle('on', r.indexOf(a.getAttribute('href').slice(1)) === 0));
   let html;
@@ -2389,6 +2506,7 @@ function onFilter(el) {
 }
 function bindEvents() {
   document.addEventListener('click', async e => {
+    const dd = e.target.closest('[data-drill]'); if (dd && !e.target.closest('[data-act]')) { const fn = DR[+dd.getAttribute('data-drill')]; if (fn) fn(); return; }
     const t = e.target.closest('[data-act]'); if (!t) return;
     const act = t.getAttribute('data-act');
     if (act === 'route') { location.hash = t.getAttribute('data-to'); }
@@ -2411,7 +2529,9 @@ function bindEvents() {
       const y = window.scrollY; render(); window.scrollTo(0, y);
     }
     else if (act === 'settings') openSettings();
-    else if (act === 'closeModal') $('#modal').classList.remove('open');
+    else if (act === 'closeModal') closeDrill();
+    else if (act === 'dback') { DSTACK.pop(); showDrill(); }
+    else if (act === 'dxls') { t.disabled = true; try { await drillExcel(); } finally { t.disabled = false; } }
     else if (act === 'saveSettings') {
       $$('#modal [data-s]').forEach(i => { const k = i.getAttribute('data-s'); S.settings[k] = i.type === 'checkbox' ? i.checked : parseFloat(i.value); });
       try { await saveSettings(); toast('Ajustes guardados', 'ok'); } catch (err) { toast('No se pudieron guardar: ' + (err.code || err.message), 'warn'); }
@@ -2439,7 +2559,8 @@ function bindEvents() {
     const d = e.target.closest && e.target.closest('.drop'); if (!d) return; e.preventDefault();
     if (ev === 'drop') { d.classList.add('busy'); for (const f of Array.from(e.dataTransfer.files)) PEND.push(await readFile(f, d.getAttribute('data-area'))); render(); }
   }));
-  $('#modal').addEventListener('click', e => { if (e.target.id === 'modal') e.target.classList.remove('open'); });
+  $('#modal').addEventListener('click', e => { if (e.target.id === 'modal') closeDrill(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('#modal').classList.contains('open') && !comboInp) closeDrill(); });
   window.addEventListener('hashchange', () => { render(); window.scrollTo(0, 0); });
   let rt; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { const y = window.scrollY; render(); window.scrollTo(0, y); }, 250); });
 }
