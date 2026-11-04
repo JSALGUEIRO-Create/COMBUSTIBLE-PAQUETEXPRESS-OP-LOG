@@ -258,6 +258,26 @@ body.authed #login{display:none}
 .lbox.shake{animation:sh .35s}@keyframes sh{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
 
 .notice{background:rgba(242,169,0,.13);border:1px solid rgba(242,169,0,.45);color:var(--ink);padding:10px 14px;border-radius:12px;margin-bottom:14px;font-size:13px}
+
+details.cmp>summary{list-style:none;cursor:pointer;user-select:none;padding-bottom:14px}
+details.cmp>summary::-webkit-details-marker{display:none}
+details.cmp>summary:hover h3{color:var(--s1)}
+details.cmp .chev{font-size:18px;color:var(--muted);transition:transform .2s;transform:rotate(-90deg);padding-top:2px}
+details.cmp[open] .chev{transform:none}
+details.cmp[open]>summary{border-bottom:1px solid var(--line);margin-bottom:10px}
+.btn.sm{min-height:34px;padding:7px 12px;font-size:12.5px;text-decoration:none;display:inline-flex;align-items:center;margin-left:auto}
+.analysis.why{background:linear-gradient(135deg,rgba(42,120,214,.10),rgba(242,169,0,.08));border-left:4px solid var(--s1)}
+.eff{display:inline-block;min-width:92px;font-weight:800;font-variant-numeric:tabular-nums}
+.eff.up{color:var(--bad-ink)}.eff.down{color:var(--good-ink)}
+
+.cebar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.cepick{display:flex;align-items:center;gap:0;border:1px solid var(--line);border-left:5px solid var(--cc);border-radius:10px;background:var(--surface);padding-left:10px}
+.cepick span{font-weight:800;color:var(--muted);margin-right:6px}
+.cepick input{border:0;min-width:200px;background:transparent}
+.cepick .x{font-size:18px;padding:0 8px}
+.ceinfo{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--ink2)}
+table.cet tr.grp td{background:var(--surface2);font-weight:800;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+table.cet td.best{color:var(--good-ink);font-weight:800}
 .ghbar{background:#fff4d6;color:#7a5200;text-align:center;padding:8px;font-weight:700;font-size:13px}.ghbar .lnk{color:#0b2a5b;text-decoration:underline}</style>
 </head>
 <body>
@@ -1094,10 +1114,11 @@ function compareBlock(key, cfg) {
     else { st.a = months[0]; st.b = months[0]; }
   }
   CMP[key] = st;
-  later(() => drawCompare(id, key, cfg));
+  later(() => { const el = document.getElementById(id); if (!el) return; el.addEventListener('toggle', () => { st.open = el.open; if (el.open) drawCompare(id, key, cfg); }); if (st.open) drawCompare(id, key, cfg); });
   const sel = (w) => '<select data-w="' + w + '">' + opts.map(o => '<option value="' + o.v + '"' + (st[w] === o.v ? ' selected' : '') + '>' + esc(o.l) + '</option>').join('') + '</select>';
   const note = months.length < 2 ? '<p class="note">Solo hay un mes cargado' + (cfg.mode === 'range' ? '; por ahora se comparan quincenas. ' : '. ') + 'Al cargar más meses podrás comparar, por ejemplo, enero 2026 vs mayo 2026.</p>' : '';
-  return card('Comparativo de periodos', '<div class="cmpbar"><label>Periodo A ' + sel('a') + '</label><span class="vs">vs</span><label>Periodo B ' + sel('b') + '</label></div>' + note + '<div class="cmpout"></div>', { cls: 'cmp', id, sub: 'Elige dos periodos y obtén diferencias y análisis automático' });
+  const link = cfg.area ? '<a class="btn ghost sm" href="#' + (cfg.area === 'log' ? 'logistica' : 'operaciones') + '-comparador">Comparar móvil vs móvil, región vs región o marca vs marca →</a>' : '';
+  return '<details class="card cmp" id="' + id + '"' + (st.open ? ' open' : '') + '><summary class="ch"><div><h3>Comparativo de periodos</h3><p class="sub">Haz clic para abrir · compara dos periodos y explica por qué cambió el gasto</p></div><span class="chev">▾</span></summary><div class="cb"><div class="cmpbar"><label>Periodo A ' + sel('a') + '</label><span class="vs">vs</span><label>Periodo B ' + sel('b') + '</label>' + link + '</div>' + note + '<div class="cmpout"></div></div></details>';
 }
 function drawCompare(id, key, cfg) {
   const root = document.getElementById(id); if (!root) return;
@@ -1131,7 +1152,9 @@ function drawCompare(id, key, cfg) {
     later(() => hbar(document.getElementById(ch), { labels: top.map(r => r.n), series: [{ name: A.l, data: top.map(r => r.a), color: 'var(--s7)' }, { name: B.l, data: top.map(r => r.b), color: 'var(--s1)' }], fmt: g.f || F.n2 }));
   });
   if (rb.extra) s += rb.extra(ra);
-  out.innerHTML = '<div class="analysis"><h4>Lectura automática</h4>' + (notes.length ? bullets(notes) : '<p class="muted">Sin diferencias relevantes entre ambos periodos.</p>') + '</div>' + s;
+  let story = '';
+  if (cfg.story) { try { const st2 = cfg.story(A, B); if (st2 && st2.length) story = '<div class="analysis why"><h4>¿Por qué cambió? · ' + esc(A.l) + ' → ' + esc(B.l) + '</h4>' + bullets(st2) + '</div>'; } catch (e) { console.error(e); } }
+  out.innerHTML = story + '<div class="analysis"><h4>Lectura automática</h4>' + (notes.length ? bullets(notes) : '<p class="muted">Sin diferencias relevantes entre ambos periodos.</p>') + '</div>' + s;
   flush();
 }
 
@@ -1142,7 +1165,7 @@ const AREA_DS = {
 };
 const AREA_NAME = { log: 'Logística', ops: 'Operaciones' };
 const SLUG = { log: 'logistica', ops: 'operaciones' };
-const TABS = [['rendimientos', 'Rendimientos'], ['cargas', 'Cargas de combustible'], ['ralenti', 'Ralentí'], ['choferes', 'Choferes']];
+const TABS = [['rendimientos', 'Rendimientos'], ['cargas', 'Cargas de combustible'], ['ralenti', 'Ralentí'], ['choferes', 'Choferes'], ['comparador', 'Comparador']];
 
 function areaMonths(a) { const s = new Set(); const d = AREA_DS[a]; [].concat(d.rend, [d.cargas, d.ral, d.chof]).forEach(x => periodsOf(x).forEach(p => s.add(p))); return Array.from(s).sort(); }
 function latest(dsList) { const all = [].concat(dsList).flatMap(d => periodsOf(d)).sort(); return all[all.length - 1] || null; }
@@ -1280,7 +1303,7 @@ function viewLogRend() {
     '<div class="grid2">' + card('Segmentos con más kilometraje', table([{ k: 'n', l: 'Segmento' }, { k: 'u', l: 'Unid.', num: 1, f: F.n0 }, { k: 'km', l: 'Km', num: 1, f: F.n0 }, { k: 'rend', l: 'Real', num: 1, f: F.n2 }, { k: 'ideal', l: 'Ideal', num: 1, f: F.n2 }, { k: 'cump', l: 'Cumpl.', num: 1, html: r => badge(r.cump, F.pct0(r.cump)) }], segs, { sort: 'km', limit: 10, search: true })) +
     card('Diferencia manual vs Samsara', sams.length ? table([{ k: 'eco', l: 'Económico' }, { k: 'zona', l: 'Región' }, { k: 'rend', l: 'km/L manual', num: 1, f: F.n2 }, { k: 'rendS', l: 'km/L Samsara', num: 1, f: F.n2 }, { k: 'dif', l: 'Diferencia', num: 1, f: F.pct }], sams.map(r => ({ eco: r.eco, zona: r.zona, rend: r.rendM, rendS: r.rendS, dif: r.rendS / r.rendM - 1 })), { sort: 'dif', limit: 10 }) : empty('Sin diferencias mayores a 10%'), { sub: 'Unidades con más de 10% de diferencia' }) + '</div>' +
     card('Análisis del mes', bullets(an), { cls: 'analysis-card' }) +
-    compareBlock('logRend', { mode: 'month', ds: ['log_rend'], compute: sel => { const r = logRendRows(sel.v.slice(0, 7)); const s = logRendStats(r); return { kpis: [{ l: 'Rendimiento', v: s.rend, f: F.n3, good: 'up' }, { l: 'Cumplimiento', v: s.cump, f: F.pct, good: 'up' }, { l: 'Ideal ponderado', v: s.ideal, f: F.n3 }, { l: 'Km recorridos', v: s.km, f: F.n0 }, { l: 'Gasto', v: s.imp, f: F.money, good: 'down' }, { l: 'Precio por litro', v: s.precio, f: F.money2, good: 'down' }], groups: [{ t: 'Cumplimiento por región', k: 'Región', rows: aggLog(r, x => x.zona).map(x => ({ n: x.n, v: x.cump })), f: F.pct, good: 'up' }, { t: 'Cumplimiento por marca / motor', k: 'Marca', rows: aggLog(r, x => sm(x.marca)).map(x => ({ n: x.n, v: x.cump })), f: F.pct, good: 'up' }, { t: 'Cumplimiento por modalidad', k: 'Modalidad', rows: aggLog(r, modalidad).map(x => ({ n: x.n, v: x.cump })), f: F.pct, good: 'up' }] }; } });
+    compareBlock('logRend', { mode: 'month', ds: ['log_rend'], area: 'log', story: (A, B) => storyRend('log', A, B), compute: sel => { const r = logRendRows(sel.v.slice(0, 7)); const s = logRendStats(r); return { kpis: [{ l: 'Rendimiento', v: s.rend, f: F.n3, good: 'up' }, { l: 'Cumplimiento', v: s.cump, f: F.pct, good: 'up' }, { l: 'Ideal ponderado', v: s.ideal, f: F.n3 }, { l: 'Km recorridos', v: s.km, f: F.n0 }, { l: 'Gasto', v: s.imp, f: F.money, good: 'down' }, { l: 'Precio por litro', v: s.precio, f: F.money2, good: 'down' }], groups: [{ t: 'Cumplimiento por región', k: 'Región', rows: aggLog(r, x => x.zona).map(x => ({ n: x.n, v: x.cump })), f: F.pct, good: 'up' }, { t: 'Cumplimiento por marca / motor', k: 'Marca', rows: aggLog(r, x => sm(x.marca)).map(x => ({ n: x.n, v: x.cump })), f: F.pct, good: 'up' }, { t: 'Cumplimiento por modalidad', k: 'Modalidad', rows: aggLog(r, modalidad).map(x => ({ n: x.n, v: x.cump })), f: F.pct, good: 'up' }] }; } });
 }
 
 /* ---------- Rendimientos Operaciones ---------- */
@@ -1367,7 +1390,7 @@ function viewOpsRend() {
     card('Sucursales problema', table([{ k: 'n', l: 'Sucursal' }, { k: 'u', l: 'Unid.', num: 1, f: F.n0 }, { k: 'bajo', l: 'Unid. <90%', num: 1, f: F.n0 }, { k: 'pBajo', l: '% unid. <90%', num: 1, f: F.pct0 }, { k: 'cump', l: 'Cumplimiento', num: 1, html: r => badge(r.cump, F.pct(r.cump)) }, { k: 'lExc', l: 'Litros sobre ideal', num: 1, f: F.n0 }], probl, { sort: 'pBajo', limit: 10 }), { sub: 'Mayor proporción de unidades debajo de 90% del ideal' }) +
     '<div class="grid2">' + card('Casos: carga sin recorrido (' + csr.length + ')', table(ccols, csr, { sort: 'lts', limit: 8 }), { sub: 'Cargaron combustible pero no registran km' }) + card('Casos: recorrido sin carga (' + rsc.length + ')', table(ccols, rsc, { sort: 'km', limit: 8 }), { sub: 'Registran km sin cargas en el mes' }) + '</div>' +
     card('Análisis del mes', bullets(an), { cls: 'analysis-card' }) +
-    compareBlock('opsRend', { mode: 'month', ds: ['ops_rend_d', 'ops_rend_g'], compute: sel => { const r = opsRendRows(sel.v.slice(0, 7)); const s = opsStats(r); return { kpis: [{ l: 'Rendimiento real', v: s.rend, f: F.n3, good: 'up' }, { l: 'Cumplimiento', v: s.cump, f: F.pct, good: 'up' }, { l: 'Km', v: s.km, f: F.n0 }, { l: 'Litros', v: s.lts, f: F.n0, good: 'down' }, { l: 'Gasto', v: s.imp, f: F.money, good: 'down' }, { l: 'Precio por litro', v: s.precio, f: F.money2, good: 'down' }], groups: [{ t: 'Cumplimiento por región', k: 'Región', rows: aggOps(r, x => x.region).map(x => ({ n: x.n, v: x.cump })), f: F.pct, good: 'up' }, { t: 'Cumplimiento por marca', k: 'Marca', rows: aggOps(r, x => marcaOps(x.desc)).map(x => ({ n: x.n, v: x.cump })), f: F.pct, good: 'up' }, { t: 'Cumplimiento por sucursal', k: 'Sucursal', rows: aggOps(r, x => x.suc).filter(x => x.u >= 3).map(x => ({ n: x.n, v: x.cump })), f: F.pct, good: 'up', top: 15 }] }; } });
+    compareBlock('opsRend', { mode: 'month', ds: ['ops_rend_d', 'ops_rend_g'], area: 'ops', story: (A, B) => storyRend('ops', A, B), compute: sel => { const r = opsRendRows(sel.v.slice(0, 7)); const s = opsStats(r); return { kpis: [{ l: 'Rendimiento real', v: s.rend, f: F.n3, good: 'up' }, { l: 'Cumplimiento', v: s.cump, f: F.pct, good: 'up' }, { l: 'Km', v: s.km, f: F.n0 }, { l: 'Litros', v: s.lts, f: F.n0, good: 'down' }, { l: 'Gasto', v: s.imp, f: F.money, good: 'down' }, { l: 'Precio por litro', v: s.precio, f: F.money2, good: 'down' }], groups: [{ t: 'Cumplimiento por región', k: 'Región', rows: aggOps(r, x => x.region).map(x => ({ n: x.n, v: x.cump })), f: F.pct, good: 'up' }, { t: 'Cumplimiento por marca', k: 'Marca', rows: aggOps(r, x => marcaOps(x.desc)).map(x => ({ n: x.n, v: x.cump })), f: F.pct, good: 'up' }, { t: 'Cumplimiento por sucursal', k: 'Sucursal', rows: aggOps(r, x => x.suc).filter(x => x.u >= 3).map(x => ({ n: x.n, v: x.cump })), f: F.pct, good: 'up', top: 15 }] }; } });
 }
 
 /* ---------- Cargas de combustible (genérico) ---------- */
@@ -1464,7 +1487,7 @@ function viewCargas(a) {
     '<div class="grid2">' + card('Alertas de cargas', table([{ k: 'fecha', l: 'Fecha', f: dLabel }, { k: 'movil', l: 'Móvil' }, { k: 'sitio', l: 'Sitio' }, { k: 'lts', l: 'Litros', num: 1, f: F.n1 }, { k: 'precio', l: '$/L', num: 1, f: F.money2 }, { k: 'motivo', l: 'Motivo' }], alerts, { sort: 'lts', limit: 8 }), { sub: 'Precio o volumen fuera del patrón del periodo', cls: 'bad-edge' }) + card('Móviles con 3+ cargas en un día', table([{ k: 'n', l: 'Móvil' }, { k: 'maxDia', l: 'Máx. cargas en un día', num: 1, f: F.n0 }, { k: 'c', l: 'Cargas', num: 1, f: F.n0 }, { k: 'lts', l: 'Litros', num: 1, f: F.n0 }], multi, { sort: 'maxDia', limit: 8 }), { cls: 'bad-edge' }) + '</div>' +
     (notas.length ? card('Cargas con dispositivo prestado (' + notas.length + ')', table([{ k: 'fecha', l: 'Fecha', f: dLabel }, { k: 'movil', l: 'Móvil' }, { k: 'sitio', l: 'Sitio' }, { k: 'lts', l: 'Litros', num: 1, f: F.n1 }, { k: 'nota', l: 'Nota' }], notas, { limit: 8 })) : '') +
     card('Análisis', bullets(an), { cls: 'analysis-card' }) +
-    compareBlock(a + 'Cargas', { mode: 'range', ds: [cg.ds], compute: sel => { const r = cargasRows(a, sel.from, sel.to); const s = cargasStats(a, r); return { kpis: [{ l: 'Litros', v: s.lts, f: F.n0 }, { l: 'Importe', v: s.imp, f: F.money, good: 'down' }, { l: 'Cargas', v: s.c, f: F.n0 }, { l: 'Precio por litro', v: s.precio, f: F.money2, good: 'down' }, { l: '% autoconsumo', v: s.pAuto, f: F.pct, good: 'up' }, { l: 'Litros por día', v: div(s.lts, s.dias), f: F.n0 }], groups: [{ t: 'Litros por proveedor', k: 'Proveedor', rows: aggC(a, r, cg.prov).map(x => ({ n: x.n, v: x.lts })), f: F.n0 }, { t: 'Precio por litro por sitio', k: 'Sitio', rows: aggC(a, r, cg.sitio).slice(0, 25).map(x => ({ n: x.n, v: x.precio })), f: F.money2, good: 'down' }] }; } });
+    compareBlock(a + 'Cargas', { mode: 'range', ds: [cg.ds], area: a, story: (A, B) => storyCargas(a, A, B), compute: sel => { const r = cargasRows(a, sel.from, sel.to); const s = cargasStats(a, r); return { kpis: [{ l: 'Litros', v: s.lts, f: F.n0 }, { l: 'Importe', v: s.imp, f: F.money, good: 'down' }, { l: 'Cargas', v: s.c, f: F.n0 }, { l: 'Precio por litro', v: s.precio, f: F.money2, good: 'down' }, { l: '% autoconsumo', v: s.pAuto, f: F.pct, good: 'up' }, { l: 'Litros por día', v: div(s.lts, s.dias), f: F.n0 }], groups: [{ t: 'Litros por proveedor', k: 'Proveedor', rows: aggC(a, r, cg.prov).map(x => ({ n: x.n, v: x.lts })), f: F.n0 }, { t: 'Precio por litro por sitio', k: 'Sitio', rows: aggC(a, r, cg.sitio).slice(0, 25).map(x => ({ n: x.n, v: x.precio })), f: F.money2, good: 'down' }] }; } });
 }
 function rangeInputs(a) {
   const f = S.f[a]; return '<div class="range"><label>Desde <input type="date" data-act="f" data-k="desde" value="' + f.desde + '"></label><label>Hasta <input type="date" data-act="f" data-k="hasta" value="' + f.hasta + '"></label></div>';
@@ -1539,7 +1562,7 @@ function viewRal(a) {
     card('Choferes problema · % de ralentí del mes', chRows.length ? table([{ k: 'chofer', l: 'Chofer' }, { k: 'pr', l: '% ralentí', num: 1, f: v => F.n1(v) + '%' }, { k: 'hr', l: 'Horas ralentí', num: 1, f: F.n1 }, { k: 'hm', l: 'Horas motor', num: 1, f: F.n1 }, { k: 'rend', l: 'km/L', num: 1, f: F.n2 }], chRows, { sort: 'pr', limit: 10 }) : empty('Sin archivo de choferes para ' + perLabel(chMes)), { sub: 'Archivo de choferes · mínimo 20 h motor' }) + '</div>' +
     simulator(a) +
     card('Análisis', bullets(an), { cls: 'analysis-card' }) +
-    compareBlock(a + 'Ral', { mode: 'range', ds: [ds], compute: sel => { const r = ralRows(a, sel.from, sel.to); const s = ralStats(r); return { kpis: [{ l: 'Litros', v: s.lts, f: F.n0, good: 'down' }, { l: 'Eventos', v: s.ev, f: F.n0, good: 'down' }, { l: 'Horas', v: s.h, f: F.n1, good: 'down' }, { l: 'Vehículos', v: s.veh, f: F.n0, good: 'down' }, { l: 'Duración promedio (min)', v: s.prom, f: F.n0, good: 'down' }, { l: '% fuera de geocerca', v: s.pFuera, f: F.pct, good: 'down' }], groups: [{ t: 'Litros por región', k: 'Región', rows: Array.from(groupBy(r, x => regionOf(a, x.veh))).map(([n, g]) => ({ n, v: sum(g, 'lts') })), f: F.n1, good: 'down' }, { t: 'Litros por vehículo (principales)', k: 'Vehículo', rows: Array.from(groupBy(r, x => x.veh)).map(([n, g]) => ({ n, v: sum(g, 'lts') })), f: F.n1, good: 'down', top: 15 }] }; } });
+    compareBlock(a + 'Ral', { mode: 'range', ds: [ds], area: a, story: (A, B) => storyRal(a, A, B), compute: sel => { const r = ralRows(a, sel.from, sel.to); const s = ralStats(r); return { kpis: [{ l: 'Litros', v: s.lts, f: F.n0, good: 'down' }, { l: 'Eventos', v: s.ev, f: F.n0, good: 'down' }, { l: 'Horas', v: s.h, f: F.n1, good: 'down' }, { l: 'Vehículos', v: s.veh, f: F.n0, good: 'down' }, { l: 'Duración promedio (min)', v: s.prom, f: F.n0, good: 'down' }, { l: '% fuera de geocerca', v: s.pFuera, f: F.pct, good: 'down' }], groups: [{ t: 'Litros por región', k: 'Región', rows: Array.from(groupBy(r, x => regionOf(a, x.veh))).map(([n, g]) => ({ n, v: sum(g, 'lts') })), f: F.n1, good: 'down' }, { t: 'Litros por vehículo (principales)', k: 'Vehículo', rows: Array.from(groupBy(r, x => x.veh)).map(([n, g]) => ({ n, v: sum(g, 'lts') })), f: F.n1, good: 'down', top: 15 }] }; } });
 }
 
 /* ---------- Simulador de rendimiento sin ralentí ---------- */
@@ -1638,7 +1661,7 @@ function viewChof(a) {
     '<div class="grid2">' + card('Mayor % de ralentí', table(ccols.slice(0, 8), rows.slice().sort((x, y) => y.pr - x.pr).slice(0, 50), { sort: 'pr', limit: 10 }), { cls: 'bad-edge' }) + card('Más horas en ralentí', table(ccols.slice(0, 8), rows.slice().sort((x, y) => y.hr - x.hr).slice(0, 50), { sort: 'hr', limit: 10 })) + '</div>' +
     card('Todos los choferes · buscar', table(ccols, rows, { sort: 'km', limit: 12, search: true })) +
     card('Análisis', bullets(an), { cls: 'analysis-card' }) +
-    compareBlock(a + 'Chof', { mode: 'month', ds: [ds], compute: sel => { const r = choferRows(a, sel.v.slice(0, 7)).filter(x => x.km >= minKm && (!atip || (x.rend >= 0.8 && x.rend <= 6))); const s = chofStats(r); return { kpis: [{ l: 'Rendimiento', v: s.rend, f: F.n3, good: 'up' }, { l: '% ralentí', v: s.pr, f: F.pct, good: 'down' }, { l: 'Choferes', v: s.n, f: F.n0 }, { l: 'Km', v: s.km, f: F.n0 }, { l: 'Horas ralentí', v: s.hr, f: F.n0, good: 'down' }, { l: 'Choferes > 25% ralentí', v: s.alto, f: F.n0, good: 'down' }], groups: [{ t: 'Rendimiento de los choferes con más km', k: 'Chofer', rows: r.slice().sort((x, y) => y.km - x.km).slice(0, 40).map(x => ({ n: x.chofer, v: x.rend })), f: F.n2, good: 'up', top: 12 }, { t: '% de ralentí de los choferes con más horas de ralentí', k: 'Chofer', rows: r.slice().sort((x, y) => y.hr - x.hr).slice(0, 40).map(x => ({ n: x.chofer, v: x.pr })), f: F.n1, good: 'down', top: 12 }] }; } });
+    compareBlock(a + 'Chof', { mode: 'month', ds: [ds], area: a, story: (A, B) => storyChof(a, A, B, rr => rr.filter(x => x.km >= minKm && (!atip || (x.rend >= 0.8 && x.rend <= 6)))), compute: sel => { const r = choferRows(a, sel.v.slice(0, 7)).filter(x => x.km >= minKm && (!atip || (x.rend >= 0.8 && x.rend <= 6))); const s = chofStats(r); return { kpis: [{ l: 'Rendimiento', v: s.rend, f: F.n3, good: 'up' }, { l: '% ralentí', v: s.pr, f: F.pct, good: 'down' }, { l: 'Choferes', v: s.n, f: F.n0 }, { l: 'Km', v: s.km, f: F.n0 }, { l: 'Horas ralentí', v: s.hr, f: F.n0, good: 'down' }, { l: 'Choferes > 25% ralentí', v: s.alto, f: F.n0, good: 'down' }], groups: [{ t: 'Rendimiento de los choferes con más km', k: 'Chofer', rows: r.slice().sort((x, y) => y.km - x.km).slice(0, 40).map(x => ({ n: x.chofer, v: x.rend })), f: F.n2, good: 'up', top: 12 }, { t: '% de ralentí de los choferes con más horas de ralentí', k: 'Chofer', rows: r.slice().sort((x, y) => y.hr - x.hr).slice(0, 40).map(x => ({ n: x.chofer, v: x.pr })), f: F.n1, good: 'down', top: 12 }] }; } });
 }
 
 /* ---------- Excel mensual ---------- */
@@ -1668,6 +1691,190 @@ async function excelReport(a) {
   sheets.push(['Análisis', an]);
   toast('Generando reporte…');
   await downloadXLSX('Rendimientos_' + AREA_NAME[a] + '_' + p + '.xlsx', sheets);
+}
+
+/* ===================== Comparativos: explicación de causas y comparador de entidades ===================== */
+function money(v) { return (v < 0 ? '−' : '+') + '$' + nf(0).format(Math.abs(v)); }
+function effTag(v, isCost) { const cls = Math.abs(v) < 1 ? '' : (isCost ? (v > 0 ? 'up' : 'down') : (v > 0 ? 'down' : 'up')); return '<span class="eff ' + cls + '">' + money(v) + '</span>'; }
+function pctTxt(a, b) { if (!a) return ''; const p = (b - a) / Math.abs(a); return (p >= 0 ? '+' : '−') + nf(1).format(Math.abs(p) * 100) + '%'; }
+function selMonth(sel) { return sel.v.slice(0, 7); }
+
+/* ---- Rendimientos: ¿por qué gasté más o menos? ---- */
+function rendPeriodStats(a, p) {
+  const rows = a === 'log' ? logRendRows(p) : opsRendRows(p);
+  const st = a === 'log' ? logRendStats(rows) : opsStats(rows);
+  const lc = a === 'log' ? sum(rows, r => r.ltsCarg || 0) : 0;
+  const P = a === 'log' ? div(st.imp, lc || st.lts) : div(st.imp, st.lts);
+  const out = { rows, km: st.km, L: st.lts, rend: st.rend, ideal: st.ideal, cump: st.cump, G: st.imp, P, u: rows.length };
+  if (a === 'log') { const kmF = sum(rows, r => r.km * (r.full || 0)), kmS = sum(rows, r => r.km * (r.senc || 0)); out.pFull = div(kmF, kmF + kmS); }
+  else { out.pGas = div(sum(rows.filter(r => r.comb === 'GASOLINA'), 'km'), st.km); out.tipos = aggOps(rows, r => r.desc); }
+  const ral = ralRows(a, p + '-01', monthEnd(p), true); out.ralL = sum(ral, 'lts'); out.ralEv = ral.length; out.hasRal = periodsOf(a + '_ral').indexOf(p) >= 0;
+  const ch = choferRows(a, p); out.chH = sum(ch, 'hr'); out.chHm = sum(ch, 'hm'); out.hasCh = ch.length > 0;
+  return out;
+}
+function storyRend(a, A, B) {
+  const pa = selMonth(A), pb = selMonth(B);
+  const x = rendPeriodStats(a, pa), y = rendPeriodStats(a, pb);
+  if (!x.km || !y.km) return null;
+  const dG = y.G - x.G;
+  const ePrecio = (y.P - x.P) * y.L;
+  const eKm = (y.km - x.km) / x.rend * x.P;
+  const eRend = (y.km / y.rend - y.km / x.rend) * x.P;
+  // parte del rendimiento que se explica por la mezcla (modalidad / tipo de unidad) vía el ideal ponderado
+  const rendMix = x.ideal && y.ideal ? x.rend * y.ideal / x.ideal : x.rend;
+  const eMix = (y.km / rendMix - y.km / x.rend) * x.P;
+  const eEfic = eRend - eMix;
+  const eOtro = dG - ePrecio - eKm - eRend;
+  const L = [];
+  L.push('<b>El gasto ' + (dG >= 0 ? 'subió' : 'bajó') + ' $' + nf(0).format(Math.abs(dG)) + ' (' + pctTxt(x.G, y.G) + ')</b>, de ' + F.money(x.G) + ' a ' + F.money(y.G) + '. Así se reparte la diferencia:');
+  const parts = [
+    { v: ePrecio, t: '<b>Precio del diésel</b>: pasó de ' + F.money2(x.P) + ' a ' + F.money2(y.P) + ' por litro (' + pctTxt(x.P, y.P) + ').' },
+    { v: eKm, t: '<b>Kilómetros recorridos</b>: de ' + F.n0(x.km) + ' a ' + F.n0(y.km) + ' km (' + pctTxt(x.km, y.km) + ')' + (x.u !== y.u ? ', con ' + F.n0(x.u) + ' → ' + F.n0(y.u) + ' unidades' : '') + '. Más km implica más litros aunque el rendimiento no cambie.' },
+    { v: eMix, t: a === 'log' ? '<b>Modalidad (Full / Sencillo)</b>: los km en Full pasaron de ' + F.pct(x.pFull) + ' a ' + F.pct(y.pFull) + '; eso movió el ideal ponderado de ' + F.kml(x.ideal) + ' a ' + F.kml(y.ideal) + '. Más Full = rendimiento esperado menor.' : '<b>Mezcla de unidades</b>: cambió la participación de tipos de unidad' + (y.pGas !== null ? ' (gasolina ' + F.pct(x.pGas) + ' → ' + F.pct(y.pGas) + ' de los km)' : '') + '; el ideal ponderado pasó de ' + F.kml(x.ideal) + ' a ' + F.kml(y.ideal) + '.' },
+    { v: eEfic, t: '<b>Eficiencia de manejo y operación</b>: el cumplimiento contra el ideal pasó de ' + F.pct(x.cump) + ' a ' + F.pct(y.cump) + ' (rendimiento real ' + F.kml(x.rend) + ' → ' + F.kml(y.rend) + ').' },
+    { v: eOtro, t: '<b>Otros</b>: diferencia entre litros cargados y consumidos (inventario en tanque, cargas de otro mes, rentas) y redondeos.' }
+  ].sort((p, q) => Math.abs(q.v) - Math.abs(p.v));
+  parts.forEach(pt => { if (Math.abs(pt.v) >= 1) L.push(effTag(pt.v, true) + ' ' + pt.t); });
+  // ralentí
+  if (x.hasRal && y.hasRal) L.push('<b>Ralentí</b> (eventos registrados): ' + F.L(x.ralL) + ' → ' + F.L(y.ralL) + ' (' + pctTxt(x.ralL, y.ralL) + '); a ' + F.money2(y.P) + '/L equivale a ' + effTag((y.ralL - x.ralL) * y.P, true) + '.' + (x.hasCh && y.hasCh ? ' Según el archivo de choferes, el ralentí pasó de ' + F.pct(div(x.chH, x.chHm)) + ' a ' + F.pct(div(y.chH, y.chHm)) + ' del tiempo de motor.' : ''));
+  else if (x.hasCh && y.hasCh) L.push('<b>Ralentí</b> (archivo de choferes): pasó de ' + F.pct(div(x.chH, x.chHm)) + ' a ' + F.pct(div(y.chH, y.chHm)) + ' del tiempo de motor (' + F.n0(x.chH) + ' → ' + F.n0(y.chH) + ' h).');
+  else L.push('<span class="muted">Ralentí: no hay archivos de ralentí o choferes de ambos meses para medir su efecto.</span>');
+  // contribución por región
+  const key = a === 'log' ? (r => r.zona) : (r => r.region);
+  const gA = groupBy(x.rows, key), gB = groupBy(y.rows, key);
+  const regs = Array.from(new Set([...gA.keys(), ...gB.keys()])).map(n => ({ n, d: sum(gB.get(n) || [], 'imp') - sum(gA.get(n) || [], 'imp') })).sort((p, q) => Math.abs(q.d) - Math.abs(p.d)).slice(0, 3);
+  const onlyA = [...gA.keys()].filter(k => !gB.has(k)), onlyB = [...gB.keys()].filter(k => !gA.has(k));
+  if (regs.length) L.push('<b>Regiones que más movieron el gasto</b>: ' + regs.map(r => esc(r.n) + ' ' + money(r.d)).join(' · ') + '.' + (onlyA.length && onlyB.length ? ' <span class="muted">Ojo: los nombres de región cambian entre meses (' + onlyA.map(esc).join(', ') + ' vs ' + onlyB.map(esc).join(', ') + '), así que esas regiones no se comparan una contra otra.</span>' : ''));
+  if (a === 'ops' && x.tipos && y.tipos) {
+    const tA = new Map(x.tipos.map(t => [t.n, t])), ch = y.tipos.map(t => ({ n: t.n, d: t.imp - ((tA.get(t.n) || {}).imp || 0) })).sort((p, q) => Math.abs(q.d) - Math.abs(p.d)).slice(0, 3);
+    L.push('<b>Tipos de unidad que más movieron el gasto</b>: ' + ch.map(t => esc(t.n) + ' ' + money(t.d)).join(' · ') + '.');
+  }
+  const main = parts[0];
+  L.push('<b>Conclusión</b>: el factor de mayor peso fue ' + main.t.split('</b>')[0].replace('<b>', '').toLowerCase() + ' (' + money(main.v) + ')' + (Math.abs(ePrecio) > Math.abs(dG) * 0.5 ? '; el cambio en el gasto se explica sobre todo por el precio, que no depende de la operación.' : eEfic < 0 ? '; la mejora en eficiencia ayudó a contener el gasto.' : eEfic > 0 ? '; la pérdida de eficiencia es controlable y vale la pena atacarla con las unidades y regiones en área de oportunidad.' : '.'));
+  return L;
+}
+
+/* ---- Cargas ---- */
+function storyCargas(a, A, B) {
+  const ra = cargasRows(a, A.from, A.to), rb = cargasRows(a, B.from, B.to); const cg = CG[a];
+  const x = cargasStats(a, ra), y = cargasStats(a, rb); if (!x.lts || !y.lts) return null;
+  const pAuto = rr => div(sum(rr.filter(cg.auto), cg.amt), sum(rr.filter(cg.auto), 'lts')), pExt = rr => div(sum(rr.filter(r => !cg.auto(r)), cg.amt), sum(rr.filter(r => !cg.auto(r)), 'lts'));
+  const dG = y.imp - x.imp, eVol = (y.lts - x.lts) * x.precio;
+  const pMix = (x.pAuto || 0) * (pAuto(rb) || 0) + (1 - (x.pAuto || 0)) * (pExt(rb) || 0);
+  const ePrecioPuro = (pMix - x.precio) * y.lts, eMezcla = (y.precio - pMix) * y.lts;
+  const L = ['<b>El importe ' + (dG >= 0 ? 'subió' : 'bajó') + ' $' + nf(0).format(Math.abs(dG)) + ' (' + pctTxt(x.imp, y.imp) + ')</b>, de ' + F.money(x.imp) + ' a ' + F.money(y.imp) + ':'];
+  [{ v: eVol, t: '<b>Volumen</b>: ' + F.L(x.lts) + ' → ' + F.L(y.lts) + ' (' + pctTxt(x.lts, y.lts) + '); por día ' + F.n0(div(x.lts, x.dias)) + ' → ' + F.n0(div(y.lts, y.dias)) + ' L.' },
+   { v: ePrecioPuro, t: '<b>Precio del combustible</b>: autoconsumo ' + F.money2(pAuto(ra)) + ' → ' + F.money2(pAuto(rb)) + ', gasolineras ' + F.money2(pExt(ra)) + ' → ' + F.money2(pExt(rb)) + '.' },
+   { v: eMezcla, t: '<b>Mezcla autoconsumo / gasolinera</b>: el autoconsumo pasó de ' + F.pct(x.pAuto) + ' a ' + F.pct(y.pAuto) + ' de los litros. Cargar más en autoconsumo abarata el litro promedio.' }]
+    .sort((p, q) => Math.abs(q.v) - Math.abs(p.v)).forEach(p => { if (Math.abs(p.v) >= 1) L.push(effTag(p.v, true) + ' ' + p.t); });
+  const pa = aggC(a, ra, cg.prov), pb = aggC(a, rb, cg.prov); const mA = new Map(pa.map(p => [p.n, p]));
+  const top = pb.map(p => ({ n: p.n, d: p.imp - ((mA.get(p.n) || {}).imp || 0) })).sort((p, q) => Math.abs(q.d) - Math.abs(p.d)).slice(0, 3);
+  L.push('<b>Proveedores que más movieron el importe</b>: ' + top.map(t => esc(t.n) + ' ' + money(t.d)).join(' · ') + '.');
+  return L;
+}
+/* ---- Ralentí ---- */
+function storyRal(a, A, B) {
+  const ra = ralRows(a, A.from, A.to), rb = ralRows(a, B.from, B.to); const x = ralStats(ra), y = ralStats(rb); if (!x.ev && !y.ev) return null;
+  const L = ['<b>Los litros en ralentí ' + (y.lts >= x.lts ? 'subieron' : 'bajaron') + '</b> de ' + F.L(x.lts) + ' a ' + F.L(y.lts) + ' (' + pctTxt(x.lts, y.lts) + '). Litros = eventos × duración × consumo por hora:',
+    '<b>Eventos</b>: ' + F.n0(x.ev) + ' → ' + F.n0(y.ev) + ' (' + pctTxt(x.ev, y.ev) + ') en ' + F.n0(x.veh) + ' → ' + F.n0(y.veh) + ' vehículos.',
+    '<b>Duración promedio</b>: ' + hmm(x.prom || 0) + ' → ' + hmm(y.prom || 0) + ' (' + pctTxt(x.prom, y.prom) + ').',
+    '<b>Consumo por hora</b>: ' + F.n2(x.lph) + ' → ' + F.n2(y.lph) + ' L/h.',
+    '<b>Fuera de geocerca</b>: ' + F.pct(x.pFuera) + ' → ' + F.pct(y.pFuera) + ' de los eventos.'];
+  const vA = new Map(Array.from(groupBy(ra, r => r.veh)).map(([n, g]) => [n, sum(g, 'lts')]));
+  const ch = Array.from(groupBy(rb, r => r.veh)).map(([n, g]) => ({ n, d: sum(g, 'lts') - (vA.get(n) || 0) })).sort((p, q) => q.d - p.d).slice(0, 3);
+  if (ch.length) L.push('<b>Vehículos que más aumentaron</b>: ' + ch.map(c => esc(c.n) + ' +' + F.n0(c.d) + ' L').join(' · ') + '.');
+  return L;
+}
+/* ---- Choferes ---- */
+function storyChof(a, A, B, filt) {
+  const ra = filt(choferRows(a, selMonth(A))), rb = filt(choferRows(a, selMonth(B))); const x = chofStats(ra), y = chofStats(rb); if (!x.n || !y.n) return null;
+  const nA = new Map(ra.map(r => [r.chofer, r])); const both = rb.filter(r => nA.has(r.chofer)).map(r => ({ n: r.chofer, d: r.pr - nA.get(r.chofer).pr }));
+  const up = both.filter(b => b.d > 5).length, down = both.filter(b => b.d < -5).length;
+  return ['Rendimiento de los choferes: ' + F.kml(x.rend) + ' → ' + F.kml(y.rend) + ' (' + pctTxt(x.rend, y.rend) + ').',
+    '% de ralentí: ' + F.pct(x.pr) + ' → ' + F.pct(y.pr) + '; choferes arriba de 25%: ' + F.n0(x.alto) + ' → ' + F.n0(y.alto) + '.',
+    'De ' + F.n0(both.length) + ' choferes presentes en ambos meses, ' + F.n0(down) + ' bajaron su ralentí más de 5 puntos y ' + F.n0(up) + ' lo subieron.'];
+}
+
+/* ===================== Comparador de entidades (móvil vs móvil, región vs región, marca vs marca…) ===================== */
+S.ce = { log: { type: 'region' }, ops: { type: 'region' } };
+const CE_TYPES = { log: [['region', 'Región'], ['marca', 'Marca / motor'], ['movil', 'Móvil'], ['modalidad', 'Modalidad'], ['segmento', 'Segmento']], ops: [['region', 'Región'], ['sucursal', 'Sucursal'], ['marca', 'Marca'], ['tipo', 'Tipo de unidad'], ['movil', 'Móvil']] };
+function ceKey(a, type) {
+  if (a === 'log') return { region: r => r.zona, marca: r => sm(r.marca), movil: r => r.eco, modalidad: modalidad, segmento: r => r.segmento }[type];
+  return { region: r => r.region, sucursal: r => r.suc, marca: r => marcaOps(r.desc), tipo: r => r.desc, movil: r => r.movil }[type];
+}
+function ceMetrics(a, type, val, mes) {
+  const rr = a === 'log' ? logRendRows(mes, true) : opsRendRows(mes, { ignoreRegion: true });
+  const k = ceKey(a, type); const R = rr.filter(r => k(r) === val);
+  const veh = new Set(R.map(r => a === 'log' ? r.eco : r.movil)); if (type === 'movil') veh.add(val);
+  const from = mes + '-01', to = monthEnd(mes);
+  const C = rowsRange(CG[a].ds, from, to).filter(r => veh.has(r.movil));
+  const Rl = rowsRange(a + '_ral', from, to).filter(r => veh.has(r.veh));
+  const st = a === 'log' ? logRendStats(R) : opsStats(R); const cs = cargasStats(a, C); const rs = ralStats(Rl);
+  const m = { u: R.length, km: st.km, lts: st.lts, rend: st.rend, ideal: st.ideal, cump: st.cump, imp: st.imp, costKm: div(st.imp, st.km), kmU: div(st.km, R.length), impU: div(st.imp, R.length), precio: a === 'log' ? div(st.imp, sum(R, r => r.ltsCarg || 0) || st.lts) : div(st.imp, st.lts), lExc: a === 'log' ? st.lExc : (aggOps(R, () => 'T')[0] || {}).lExc,
+    cC: cs.c, cL: cs.lts, cImp: cs.imp, cP: cs.precio, cAuto: cs.pAuto, cU: div(cs.c, cs.u),
+    rEv: rs.ev, rL: rs.lts, rH: rs.h, rProm: rs.prom, rVeh: rs.veh, rLU: div(rs.lts, Math.max(1, veh.size)), rPct: div(rs.lts, st.lts) };
+  if (a === 'log') { const kf = sum(R, r => r.km * (r.full || 0)), ks = sum(R, r => r.km * (r.senc || 0)); m.pFull = div(kf, kf + ks); m.rendM = div(st.km, sum(R, r => r.ltsM)); }
+  if (type === 'movil' && R[0]) m.info = a === 'log' ? [R[0].zona, sm(R[0].marca), modalidad(R[0]), R[0].segmento].filter(Boolean).join(' · ') : [R[0].suc, R[0].region, R[0].desc, R[0].comb].join(' · ');
+  return m;
+}
+const CE_ROWS = {
+  log: [['Rendimiento', [['u', 'Unidades', F.n0], ['km', 'Kilómetros', F.n0], ['kmU', 'Km por unidad', F.n0], ['lts', 'Litros (Samsara)', F.n0], ['rend', 'Rendimiento km/L (Samsara)', F.n3, 'up'], ['rendM', 'Rendimiento manual (consulta)', F.n3, 'up'], ['pFull', '% km en Full', F.pct], ['ideal', 'Ideal ponderado km/L', F.n3], ['cump', 'Cumplimiento vs ideal', F.pct, 'up'], ['lExc', 'Litros sobre el ideal', F.n0]]],
+    ['Gasto', [['imp', 'Gasto diésel', F.money], ['impU', 'Gasto por unidad', F.money, 'down'], ['costKm', 'Costo por km', F.money2, 'down'], ['precio', 'Precio por litro', F.money2, 'down']]]],
+  ops: [['Rendimiento', [['u', 'Unidades', F.n0], ['km', 'Kilómetros', F.n0], ['kmU', 'Km por unidad', F.n0], ['lts', 'Litros', F.n0], ['rend', 'Rendimiento km/L', F.n3, 'up'], ['ideal', 'Ideal ponderado km/L', F.n3], ['cump', 'Cumplimiento vs ideal', F.pct, 'up'], ['lExc', 'Litros sobre el ideal', F.n0]]],
+    ['Gasto', [['imp', 'Gasto combustible', F.money], ['impU', 'Gasto por unidad', F.money, 'down'], ['costKm', 'Costo por km', F.money2, 'down'], ['precio', 'Precio por litro', F.money2, 'down']]]]
+};
+const CE_COMMON = [['Cargas de combustible', [['cC', 'Número de cargas', F.n0], ['cU', 'Cargas por unidad', F.n1], ['cL', 'Litros cargados', F.n0], ['cImp', 'Importe de cargas', F.money], ['cP', 'Precio promedio por litro', F.money2, 'down'], ['cAuto', '% en autoconsumo', F.pct, 'up']]],
+  ['Ralentí', [['rEv', 'Eventos', F.n0], ['rL', 'Litros en ralentí', F.n1], ['rH', 'Horas en ralentí', F.n1], ['rProm', 'Duración promedio (min)', F.n0, 'down'], ['rLU', 'Litros de ralentí por unidad', F.n1, 'down'], ['rPct', 'Ralentí / consumo', v => v === null || !isFinite(v) ? '—' : nf(2).format(v * 100) + '%', 'down']]]];
+
+function viewComparador(a) {
+  const f = S.f[a]; const ce = S.ce[a]; const mes = f.mes;
+  if (!mes) return empty('Sin datos');
+  const rr = a === 'log' ? logRendRows(mes, true) : opsRendRows(mes, { ignoreRegion: true });
+  if (!rr.length) return empty('Para comparar se necesita el archivo de rendimientos de ' + perLabel(mes) + '.');
+  const k = ceKey(a, ce.type);
+  const counts = new Map(); rr.forEach(r => { const v = k(r); if (v) counts.set(v, (counts.get(v) || 0) + 1); });
+  const opts = Array.from(counts.keys()).sort((x, y) => String(x).localeCompare(String(y), 'es'));
+  const ents = (ce.ents || []).filter(e => counts.has(e));
+  while (ents.length < 2 && opts.length > ents.length) { const byKm = aggLog ? Array.from(counts.keys()).sort((x, y) => counts.get(y) - counts.get(x)) : opts; const nx = byKm.find(o => ents.indexOf(o) < 0); if (!nx) break; ents.push(nx); }
+  ce.ents = ents;
+  const typeSel = '<div class="seg">' + CE_TYPES[a].map(([v, l]) => '<button data-act="ce-type" data-v="' + v + '" class="' + (ce.type === v ? 'on' : '') + '">' + l + '</button>').join('') + '</div>';
+  const dl = '<datalist id="ce-dl">' + opts.map(o => '<option value="' + esc(o) + '">').join('') + '</datalist>';
+  const pick = ents.map((e, i) => '<label class="cepick" style="--cc:' + PAL[i] + '"><span>' + String.fromCharCode(65 + i) + '</span><input list="ce-dl" data-act="ce-ent" data-i="' + i + '" value="' + esc(e) + '">' + (i > 1 ? '<button class="x" data-act="ce-rm" data-i="' + i + '" aria-label="Quitar">×</button>' : '') + '</label>').join('') + (ents.length < 4 ? '<button class="btn ghost sm" data-act="ce-add">+ Agregar</button>' : '');
+  const M = ents.map(e => ceMetrics(a, ce.type, e, mes));
+  const groups = CE_ROWS[a].concat(CE_COMMON);
+  let tbl = '<div class="tscroll"><table class="cet"><thead><tr><th>Indicador</th>' + ents.map((e, i) => '<th class="num"><i class="sw" style="background:' + PAL[i] + '"></i>' + esc(trunc(e, 26)) + '</th>').join('') + (ents.length === 2 ? '<th class="num">Diferencia B − A</th>' : '') + '</tr></thead><tbody>';
+  for (const [g, rows] of groups) {
+    tbl += '<tr class="grp"><td colspan="' + (ents.length + 2) + '">' + g + '</td></tr>';
+    for (const [key, lab, fmt, good] of rows) {
+      const vals = M.map(m => m[key]); if (vals.every(v => v === null || v === undefined || !isFinite(v))) continue;
+      const fin = vals.filter(v => v !== null && isFinite(v)); const best = good && fin.length > 1 ? (good === 'up' ? Math.max(...fin) : Math.min(...fin)) : null;
+      tbl += '<tr><td>' + lab + '</td>' + vals.map(v => '<td class="num' + (best !== null && v === best ? ' best' : '') + '">' + fmt(v) + '</td>').join('') + (ents.length === 2 ? '<td class="num">' + delta(vals[0], vals[1], good || null, fmt) + '</td>' : '') + '</tr>';
+    }
+  }
+  tbl += '</tbody></table></div>';
+  const info = M.some(m => m.info) ? '<div class="ceinfo">' + M.map((m, i) => m.info ? '<span><i class="sw" style="background:' + PAL[i] + '"></i><b>' + esc(ents[i]) + '</b> ' + esc(m.info) + '</span>' : '').join('') + '</div>' : '';
+  // narrativa
+  const L = []; const [x, y] = M; const [na, nb] = ents.map(e => '<b>' + esc(e) + '</b>');
+  if (x && y) {
+    if (x.rend && y.rend) { const bw = y.rend >= x.rend ? [nb, na, y, x] : [na, nb, x, y]; L.push(bw[0] + ' rinde más: ' + F.kml(bw[2].rend) + ' contra ' + F.kml(bw[3].rend) + ' de ' + bw[1] + ' (' + pctTxt(bw[3].rend, bw[2].rend) + ').'); }
+    if (x.cump && y.cump) L.push('Contra su propio ideal ponderado' + (a === 'log' ? ' (que depende de su mezcla Full/Sencillo: ' + F.pct0(x.pFull) + ' vs ' + F.pct0(y.pFull) + ' de km en Full)' : ' (según su mezcla de tipos de unidad)') + ', ' + na + ' cumple ' + F.pct(x.cump) + ' y ' + nb + ' ' + F.pct(y.cump) + '. ' + (Math.sign(y.rend - x.rend) !== Math.sign(y.cump - x.cump) ? 'Ojo: quien rinde más no es quien mejor cumple; la diferencia de rendimiento se debe a la modalidad o tipo de unidad, no a la operación.' : 'El de mejor rendimiento también es el más eficiente contra su ideal.'));
+    if (x.costKm && y.costKm) { const eP = Math.log(y.precio / x.precio), eR = Math.log(x.rend / y.rend), tot = Math.log(y.costKm / x.costKm); L.push('Costo por km: ' + na + ' ' + F.money2(x.costKm) + ' vs ' + nb + ' ' + F.money2(y.costKm) + ' (' + pctTxt(x.costKm, y.costKm) + '). ' + (Math.abs(tot) > 0.005 ? 'De esa diferencia, ' + F.pct0(Math.abs(eP) / (Math.abs(eP) + Math.abs(eR) || 1)) + ' se explica por el precio por litro (' + F.money2(x.precio) + ' vs ' + F.money2(y.precio) + ') y ' + F.pct0(Math.abs(eR) / (Math.abs(eP) + Math.abs(eR) || 1)) + ' por el rendimiento.' : '')); }
+    if (x.cL || y.cL) L.push('En cargas, ' + na + ' cargó ' + F.pct(x.cAuto) + ' en autoconsumo a ' + F.money2(x.cP) + '/L y ' + nb + ' ' + F.pct(y.cAuto) + ' a ' + F.money2(y.cP) + '/L.');
+    if (x.rEv || y.rEv) L.push('Ralentí: ' + na + ' ' + F.L(x.rL) + ' en ' + F.n0(x.rEv) + ' eventos (' + F.n1(x.rLU) + ' L por unidad) vs ' + nb + ' ' + F.L(y.rL) + ' en ' + F.n0(y.rEv) + ' (' + F.n1(y.rLU) + ' L por unidad).');
+    else L.push('<span class="muted">Sin eventos de ralentí registrados para estas selecciones en ' + perLabel(mes) + '.</span>');
+  }
+  // gráficas normalizadas
+  const cid1 = cid(), cid2 = cid();
+  later(() => {
+    const met = [['rend', 'km/L'], ['ideal', 'Ideal km/L']];
+    hbar(document.getElementById(cid1), { labels: ['Rendimiento real', 'Ideal ponderado'], series: ents.map((e, i) => ({ name: e, data: met.map(([k]) => M[i][k]), color: PAL[i] })), fmt: F.kml, vfmt: F.n2 });
+    hbar(document.getElementById(cid2), { labels: ['Costo por km', 'Precio por litro'], series: ents.map((e, i) => ({ name: e, data: [M[i].costKm, M[i].precio], color: PAL[i] })), fmt: F.money2, vfmt: F.money2 });
+  });
+  return dl + '<div class="blockhead"><div><h2>Comparador · ' + perLabel(mes) + '</h2><p class="sub">Compara móviles, regiones, marcas' + (a === 'ops' ? ', sucursales o tipos de unidad' : ', modalidades o segmentos') + ' con todo lo comparable: rendimiento, gasto, cargas y ralentí' + (a === 'ops' && f.comb !== 'ALL' ? ' · solo ' + f.comb.toLowerCase() : '') + '</p></div></div>' +
+    card('¿Qué quieres comparar?', '<div class="cebar">' + typeSel + '</div><div class="cebar picks">' + pick + '</div>' + info, { sub: 'Escribe o elige de la lista; puedes comparar hasta 4' }) +
+    '<div class="grid2">' + card('Rendimiento real vs ideal', '<div id="' + cid1 + '"></div>') + card('Costo por km y precio por litro', '<div id="' + cid2 + '"></div>') + '</div>' +
+    card('Análisis comparativo', bullets(L), { cls: 'analysis-card' }) +
+    card('Todos los indicadores', tbl, { sub: 'En verde, el mejor valor en indicadores por unidad o de eficiencia (los totales dependen del tamaño) · choferes no se incluye porque su archivo no trae móvil ni región' });
 }
 
 /* ===================== Versión GitHub Pages: datos cifrados en data.enc.json ===================== */
@@ -1864,6 +2071,7 @@ function viewArea(a, tab) {
   if (tab === 'rendimientos') body = a === 'log' ? viewLogRend() : viewOpsRend();
   else if (tab === 'cargas') body = viewCargas(a);
   else if (tab === 'ralenti') body = viewRal(a);
+  else if (tab === 'comparador') body = viewComparador(a);
   else body = viewChof(a);
   return '<div class="areahead ' + a + '"><div class="ah-t"><span class="ac-ico">' + (a === 'log' ? ICON.truck : ICON.van) + '</span><div><p class="crumb"><a href="#inicio">Inicio</a> / ' + AREA_NAME[a] + '</p><h1>' + AREA_NAME[a] + '</h1></div></div>' + fb + '</div>' + tabs + '<div class="tabbody">' + body + '</div>';
 }
@@ -2000,7 +2208,7 @@ function render() {
   for (const k in TBL) delete TBL[k];
   $$('.topnav a').forEach(a => a.classList.toggle('on', r.indexOf(a.getAttribute('href').slice(1)) === 0));
   let html;
-  const m = r.match(/^(logistica|operaciones)(?:-(rendimientos|cargas|ralenti|choferes))?$/);
+  const m = r.match(/^(logistica|operaciones)(?:-(rendimientos|cargas|ralenti|choferes|comparador))?$/);
   try {
     if (m) html = viewArea(m[1] === 'logistica' ? 'log' : 'ops', m[2] || 'rendimientos');
     else if (r === 'cargar') html = viewUpload();
@@ -2036,6 +2244,13 @@ function bindEvents() {
       try { await deletePeriod(ds, p); toast('Se eliminó ' + FP.LABEL[ds] + ' de ' + perLabel(p), 'ok'); } catch (err) { toast('No se pudo eliminar: ' + (err.code || err.message), 'warn'); }
       render();
     }
+    else if (act === 'ce-type' || act === 'ce-add' || act === 'ce-rm') {
+      const a = S.route.indexOf('operaciones') === 0 ? 'ops' : 'log'; const ce = S.ce[a];
+      if (act === 'ce-type') { ce.type = t.getAttribute('data-v'); ce.ents = []; }
+      else if (act === 'ce-add') { ce.ents.push(''); ce.ents = ce.ents.filter(Boolean); const k = ceKey(a, ce.type); const rr = a === 'log' ? logRendRows(S.f[a].mes, true) : opsRendRows(S.f[a].mes, { ignoreRegion: true }); const nx = Array.from(new Set(rr.map(k))).find(v => v && ce.ents.indexOf(v) < 0); if (nx) ce.ents.push(nx); }
+      else ce.ents.splice(+t.getAttribute('data-i'), 1);
+      const y = window.scrollY; render(); window.scrollTo(0, y);
+    }
     else if (act === 'settings') openSettings();
     else if (act === 'closeModal') $('#modal').classList.remove('open');
     else if (act === 'saveSettings') {
@@ -2051,6 +2266,7 @@ function bindEvents() {
   document.addEventListener('change', async e => {
     const t = e.target; const act = t.getAttribute && t.getAttribute('data-act');
     if (act === 'f') onFilter(t);
+    else if (act === 'ce-ent') { const a = S.route.indexOf('operaciones') === 0 ? 'ops' : 'log'; S.ce[a].ents[+t.getAttribute('data-i')] = t.value.trim(); const y = window.scrollY; render(); window.scrollTo(0, y); }
     else if (act === 'tg') { S.toggles[t.getAttribute('data-k')] = t.checked; const y = window.scrollY; render(); window.scrollTo(0, y); }
     else if (act === 'file') {
       const files = Array.from(t.files || []); const area = t.getAttribute('data-area');
