@@ -921,7 +921,8 @@ function comboInit() {
     else if (e.key === 'Enter') { const d = comboEl.querySelectorAll('.co')[comboIdx]; if (d) { e.preventDefault(); pick(d.getAttribute('data-v')); } }
     else if (e.key === 'Escape') close();
   });
-  window.addEventListener('scroll', () => { if (comboInp) close(); }, true);
+  window.addEventListener('scroll', e => { if (comboInp && e.target !== comboEl && !(comboEl.contains && e.target.nodeType === 1 && comboEl.contains(e.target))) close(); }, true);
+  window.addEventListener('resize', () => { if (comboInp) close(); });
 }
 
 /* ---------- Tooltip ---------- */
