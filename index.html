@@ -395,6 +395,11 @@ tr.rclick td:first-child{color:var(--s1);font-weight:700}
 .quad.click:hover,.kwrap.click:hover .kpi{box-shadow:0 0 0 2px var(--s1)}
 .kwrap{display:contents}
 .tclick{color:#9fc4ff;font-style:normal;font-size:11.5px}[data-theme="dark"] .tclick{color:#1d5fb8}
+
+.modnote{margin-top:12px;background:var(--surface2);border-left:4px solid var(--accent);border-radius:10px;padding:10px 14px;font-size:13px;color:var(--ink2)}
+.modnote .mn{display:flex;flex-wrap:wrap;gap:8px 22px;margin:8px 0 6px}
+.modnote .mn i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px}
+.modnote em{font-style:normal;font-size:12px;color:var(--muted)}
 .ghbar{background:#fff4d6;color:#7a5200;text-align:center;padding:8px;font-weight:700;font-size:13px}.ghbar .lnk{color:#0b2a5b;text-decoration:underline}</style>
 </head>
 <body>
@@ -2027,6 +2032,7 @@ function viewComparador(a) {
     }
   }
   tbl += '</tbody></table></div>';
+  const modNote = a === 'log' && ce.type === 'modalidad' ? '<div class="modnote"><b>¿Cómo se clasifica cada tracto?</b> Según el % de sus viajes del mes en el semáforo:<div class="mn"><span><b>FULL</b> 70% o más de viajes en Full</span><span><b>SENCILLO</b> 70% o más en Sencillo (30% Full o menos)</span><span><b>MIXTO</b> entre 30% y 70% Full</span></div><em>El ideal de cada tracto se pondera con su propia mezcla: Full ' + F.n2(setting('idealFull')) + ' km/L y Sencillo ' + F.n2(setting('idealSenc')) + ' km/L. Un tracto 50/50 tiene un ideal de ' + F.n2(1 / (0.5 / setting('idealFull') + 0.5 / setting('idealSenc'))) + ' km/L.</em></div>' : '';
   const info = M.some(m => m.info) ? '<div class="ceinfo">' + M.map((m, i) => m.info ? '<span><i class="sw" style="background:' + PAL[i] + '"></i><b>' + esc(ents[i]) + '</b> ' + esc(m.info) + '</span>' : '').join('') + '</div>' : '';
   // narrativa
   const L = []; const [x, y] = M; const [na, nb] = ents.map(e => '<b>' + esc(e) + '</b>');
@@ -2046,7 +2052,7 @@ function viewComparador(a) {
     hbar(document.getElementById(cid2), { labels: ['Costo por km', 'Precio por litro'], series: ents.map((e, i) => ({ name: e, data: [M[i].costKm, M[i].precio], color: PAL[i] })), fmt: F.money2, vfmt: F.money2 });
   });
   return dl + '<div class="blockhead"><div><h2>Comparador · ' + perLabel(mes) + '</h2><p class="sub">Compara móviles, regiones, marcas' + (a === 'ops' ? ', sucursales o tipos de unidad' : ', modalidades o segmentos') + ' con todo lo comparable: rendimiento, gasto, cargas y ralentí' + (a === 'ops' && f.comb !== 'ALL' ? ' · solo ' + f.comb.toLowerCase() : '') + '</p></div></div>' +
-    card('¿Qué quieres comparar?', '<div class="cebar">' + typeSel + '</div><div class="cebar picks">' + pick + '</div>' + info, { sub: 'Haz clic en un recuadro para ver la lista o escribe para buscar; puedes comparar hasta 4' }) +
+    card('¿Qué quieres comparar?', '<div class="cebar">' + typeSel + '</div><div class="cebar picks">' + pick + '</div>' + info + modNote, { sub: 'Haz clic en un recuadro para ver la lista o escribe para buscar; puedes comparar hasta 4' }) +
     '<div class="grid2">' + card('Rendimiento real vs ideal', '<div id="' + cid1 + '"></div>') + card('Costo por km y precio por litro', '<div id="' + cid2 + '"></div>') + '</div>' +
     card('Análisis comparativo', bullets(L), { cls: 'analysis-card' }) +
     card('Todos los indicadores', tbl, { sub: 'En verde, el mejor valor en indicadores por unidad o de eficiencia (los totales dependen del tamaño) · choferes no se incluye porque su archivo no trae móvil ni región' });
