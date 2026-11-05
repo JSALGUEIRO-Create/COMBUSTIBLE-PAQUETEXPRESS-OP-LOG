@@ -2823,7 +2823,7 @@ function viewHome() {
       '<div class="ac-kpis"><div><span>Rendimiento</span><b>' + (r ? F.n2(r.v) : '—') + '</b><em>km/L</em></div><div><span>' + 'Cumplimiento' + '</span><b>' + (r ? F.pct0(r.ratio) : '—') + '</b>' + (r ? badge(r.ratio) : '') + '</div><div><span>Gasto ' + (r ? perShort(r.p) : '') + '</span><b>' + (r ? '$' + short(r.imp) : '—') + '</b><em>' + (r ? F.n0(r.u) + ' unidades' : '') + '</em></div><div><span>Ralentí</span><b>' + (d.ral ? F.n0(d.ral.lts) : '—') + '</b><em>litros</em></div></div></button>';
   };
   // cobertura
-  const dsList = ['log_rend', 'log_cargas', 'log_ral', 'log_chof', 'ops_rend_d', 'ops_rend_g', 'ops_cargas', 'ops_ral', 'ops_chof'];
+  const dsList = ['log_rend', 'log_cargas', 'log_ral', 'log_chof', 'ops_rend_d', 'ops_rend_g', 'ops_cargas', 'ops_ral', 'ops_chof'].filter(canUp);
   const allP = Array.from(new Set(dsList.flatMap(periodsOf))).sort().slice(-8);
   const cov = '<div class="tscroll"><table class="cov"><thead><tr><th>Archivo</th>' + allP.map(p => '<th>' + perShort(p) + '</th>').join('') + '</tr></thead><tbody>' + dsList.map(ds => '<tr><td>' + FP.LABEL[ds] + '</td>' + allP.map(p => { const a = arrFor(ds, p); return '<td class="' + (a ? 'on' : '') + '">' + (a ? (FP.MONTHLY[ds] ? '✓' : covDays(ds, p)) : '·') + '</td>'; }).join('') + '</tr>').join('') + '</tbody></table></div>';
   const gauge = (ratio) => {
@@ -2858,7 +2858,7 @@ function viewHome() {
     (setting('excluirLog') ? '<p class="hx-foot">Ralentí de Operaciones sin contar unidades de Logística · Precio = importe ÷ litros del último mes con cargas</p>' : '') +
     '</section>' +
     '<h2 class="sect">¿A dónde quieres ir?</h2><div class="areas">' + tile(L) + tile(O) + '</div>' +
-    card('Información cargada', cov, { sub: 'Mensuales: ✓ · diarios: días con datos. Los archivos nuevos se suman a lo existente.', tools: S.canWrite && canUpAny() ? '<button class="btn ghost" data-act="route" data-to="cargar">⬆ Cargar archivos</button>' : '' });
+    (!canUpAny() ? '' : card(isAdmin() ? 'Información cargada' : 'Tu información cargada', cov, { sub: 'Mensuales: ✓ · diarios: días con datos. Los archivos nuevos se suman a lo existente.', tools: S.canWrite && canUpAny() ? '<button class="btn ghost" data-act="route" data-to="cargar">⬆ Cargar archivos</button>' : '' }));
 }
 function covDays(ds, p) { return new Set(rowsOf(ds, p).map(r => r.fecha)).size + ' d'; }
 
@@ -3040,6 +3040,7 @@ function render() {
   main.innerHTML = html; flush();
   if (r === 'cargar') loadHist();
   $('#upbtn').style.display = (S.canWrite || !S.db) && canUpAny() ? '' : 'none';
+  const sb = $('[data-act="settings"]'); if (sb) sb.style.display = isAdmin() ? '' : 'none';
   const uc = $('#userchip'); if (uc) { uc.textContent = (S.user_name || '') + ' · ' + (ROLE_LABEL[S.role || 'consulta']); }
 }
 function onFilter(el) {
@@ -3081,7 +3082,7 @@ function bindEvents() {
       else ce.ents.splice(+t.getAttribute('data-i'), 1);
       const y = window.scrollY; render(); window.scrollTo(0, y);
     }
-    else if (act === 'settings') openSettings();
+    else if (act === 'settings') { if (isAdmin()) openSettings(); }
     else if (act === 'closeModal') closeDrill();
     else if (act === 'dback') { DSTACK.pop(); showDrill(); }
     else if (act === 'dxls') { t.disabled = true; try { await drillExcel(); } finally { t.disabled = false; } }
