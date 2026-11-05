@@ -561,6 +561,12 @@ body.e3open{overflow:hidden}body.e3open .floatbtn{display:none}
 .lhist{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}.lhist div{flex:none;min-width:130px;background:var(--surface2);border-radius:12px;padding:10px 12px;border-top:4px solid #f2a900}.lhist div.on{background:linear-gradient(135deg,#fff4d6,#ffe7a3);color:#2a1800}.lhist span{display:block;font-size:11.5px;color:var(--muted);font-weight:700}.lhist b{display:block;font-size:14px}.lhist em{font-style:normal;font-size:12px}
 @media (max-width:860px){.lgin,.lfcorner{grid-template-columns:1fr}.lr{grid-template-columns:1fr 120px 1fr}.anhero{flex-direction:column}}
 .ropes i{opacity:.3}.lpd b,.lpd em{text-shadow:0 2px 6px rgba(0,0,0,.8)}
+.topbar .btn,.e360btn,#userchip{white-space:nowrap}
+#userchip{max-width:260px;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:1500px){.e360btn{font-size:12.5px;margin-left:6px}.e360btn span:last-child{max-width:110px}}
+@media (max-width:1380px){#userchip{max-width:230px}.e360btn span:last-child{display:none}.e360btn{padding:6px}}
+.topbar .ibtn{white-space:nowrap}
+@media (max-width:1500px){#upbtn{font-size:0;padding:0 12px}#upbtn:before{content:"⬆ Cargar";font-size:13.5px}}
 .ghbar{background:#fff4d6;color:#7a5200;text-align:center;padding:8px;font-weight:700;font-size:13px}.ghbar .lnk{color:#0b2a5b;text-decoration:underline}</style>
 </head>
 <body>
@@ -997,7 +1003,9 @@ const S = {
 /* ---------- Usuarios y permisos ---------- */
 const ROLE_DS = { admin: null, log_cargas: ['log_cargas'], ops_cargas: ['ops_cargas'], consulta: [] };
 const ROLE_LABEL = { admin: 'Administrador', log_cargas: 'Carga · Cargas Logística', ops_cargas: 'Carga · Cargas Operaciones', consulta: 'Consulta' };
-function setRole(u, role) { S.user_name = u; S.role = ROLE_DS[role] !== undefined ? role : 'consulta'; S.name = u || S.name; }
+const USER_NAMES = { jsalgueiro: 'José Luis Salgueiro', jruelas: 'Jesús Ruelas', yvazquez: 'Yolanda Vazquez', aoblea: 'Ana Karen Oblea', jherrera: 'Jair Herrera', eaguirre: 'Edgardo Aguirre', azazueta: 'Alejandro Zazueta', jsandoval: 'Joaquin Sandoval', mborbolla: 'Joel Borbolla', dvelarde: 'Daniel Velarde', fbarra: 'Fabian Barra', gacosta: 'Gilberto Acosta', logistica: 'Equipo de Logística', operaciones: 'Equipo de Operaciones', compras: 'Equipo de Compras' };
+function displayName(u) { return USER_NAMES[String(u || '').trim().toLowerCase()] || u || ''; }
+function setRole(u, role) { S.user_name = u; S.role = ROLE_DS[role] !== undefined ? role : 'consulta'; S.name = displayName(u) || S.name; }
 function isAdmin() { return (S.role || 'consulta') === 'admin'; }
 function canUp(ds) { const r = ROLE_DS[S.role || 'consulta']; return r === null || (r || []).indexOf(ds) >= 0; }
 function canUpAny() { const r = ROLE_DS[S.role || 'consulta']; return r === null || (r && r.length > 0); }
@@ -1059,7 +1067,7 @@ async function dbInit() {
     if (!c || !c.use) throw new Error('sin runtime');
     const [db, user] = await Promise.all([c.use('db'), c.use('user')]);
     S.user = user;
-    if (user) { try { const me = await user.me(); S.name = (me && me.name) || ''; } catch (e) { } }
+    if (user) { try { const me = await user.me(); if (!S.user_name) S.name = (me && me.name) || ''; } catch (e) { } }
     if (!db) { S.dbState = 'sin-db'; return; }
     S.db = db;
     let can = null; try { can = user ? await user.can('data.write') : null; } catch (e) { }
@@ -1129,7 +1137,7 @@ async function deletePeriod(ds, period) {
   invalidate();
 }
 async function logUpload(entry) {
-  if (window.GH) { entry.by = S.user_name || ''; GHS.ulog.push(entry); return; }
+  if (window.GH) { entry.by = S.name || S.user_name || ''; GHS.ulog.push(entry); return; }
   if (!S.db) return;
   try { let id = null; try { id = S.user ? await S.user.id() : null; } catch (e) { } entry.by = id; await S.db.collection('log').add(entry); } catch (e) { console.warn(e); }
 }
@@ -3542,7 +3550,7 @@ window.addEventListener('beforeunload', e => { if (GHS.dirty) { e.preventDefault
 
 /* ===================== Inicio, navegación, carga de archivos, ajustes ===================== */
 function greeting() { const h = new Date().getHours(); return h < 12 ? 'Buenos días' : h < 19 ? 'Buenas tardes' : 'Buenas noches'; }
-function firstName() { const n = (S.name || '').trim(); if (!n) return ''; const p = n.split(/\s+/)[0]; return p.charAt(0).toUpperCase() + p.slice(1).toLowerCase(); }
+function firstName() { const n = (S.name || '').trim(); if (!n) return ''; if (USER_NAMES[String(S.user_name || '').toLowerCase()]) return n; const p = n.split(/\s+/)[0]; return p.charAt(0).toUpperCase() + p.slice(1).toLowerCase(); }
 
 function priceSummary(a) {
   const cg = CG[a]; const p = latest(cg.ds); if (!p) return null;
@@ -3694,7 +3702,7 @@ function viewUpload() {
   const dsList = ['log_rend', 'log_cargas', 'log_ral', 'log_chof', 'ops_rend_d', 'ops_rend_g', 'ops_cargas', 'ops_ral', 'ops_chof'];
   const rows = []; dsList.forEach(ds => periodsOf(ds).forEach(p => { const m = S.meta[ds + '__' + p]; rows.push({ ds, n: FP.LABEL[ds], p, rows: arrFor(ds, p).length, src: m && !m.deleted ? 'Cargado ' + (m.at ? dLabel(m.at.slice(0, 10)) : '') : 'Base inicial', file: m && m.file ? m.file : '' }); }));
   const ptab = '<div class="tscroll"><table><thead><tr><th>Información</th><th>Periodo</th><th class="num">Registros</th><th>Origen</th><th>Archivo</th>' + (S.canWrite && isAdmin() ? '<th></th>' : '') + '</tr></thead><tbody>' + rows.map(r => '<tr><td>' + esc(r.n) + '</td><td>' + perLabel(r.p) + '</td><td class="num">' + F.n0(r.rows) + '</td><td>' + esc(r.src) + '</td><td class="muted">' + esc(r.file) + '</td>' + (S.canWrite && isAdmin() ? '<td><button class="lnk" data-act="del" data-ds="' + r.ds + '" data-p="' + r.p + '">Eliminar</button></td>' : '') + '</tr>').join('') + '</tbody></table></div>';
-  if (!canUpAny()) return empty('Tu usuario (<b>' + esc(S.user_name || '') + '</b>) es de <b>solo consulta</b>; no puede cargar información.');
+  if (!canUpAny()) return empty('Tu usuario (<b>' + esc(S.name || S.user_name || '') + '</b>) es de <b>solo consulta</b>; no puede cargar información.');
   return '<div class="areahead"><div class="ah-t"><div><p class="crumb"><a href="#inicio">Inicio</a> / Cargar archivos</p><h1>Cargar archivos</h1></div></div><p class="dbstate">' + stateMsg + '</p></div>' +
     '<p class="lead2">Arrastra o elige los archivos en su recuadro. El portal reconoce el tipo de archivo por sus encabezados. <b>Cargas y ralentí se suman</b> a lo que ya existe (los registros repetidos se ignoran); <b>rendimientos y choferes</b> se guardan por mes y reemplazan ese mes.</p>' +
     '<div class="upgrid"><div class="upcol log"><div class="upph"><img src="' + IMG.cascadia_caja + '" alt=""></div><h3>' + ICON.truck + ' Logística</h3>' + SLOTS.log.map(s => slot('log', s)).join('') + '</div><div class="upcol ops"><div class="upph"><img src="' + IMG.hino + '" alt=""></div><h3>' + ICON.van + ' Operaciones</h3>' + SLOTS.ops.map(s => slot('ops', s)).join('') + '</div></div>' +
@@ -3824,7 +3832,7 @@ function render() {
   if (r === 'cargar') loadHist();
   $('#upbtn').style.display = (S.canWrite || !S.db) && canUpAny() ? '' : 'none';
   const sb = $('[data-act="settings"]'); if (sb) sb.style.display = isAdmin() ? '' : 'none';
-  const uc = $('#userchip'); if (uc) { uc.textContent = (S.user_name || '') + ' · ' + (ROLE_LABEL[S.role || 'consulta']); }
+  const uc = $('#userchip'); if (uc) { uc.textContent = (S.name || S.user_name || '') + ' · ' + (ROLE_LABEL[S.role || 'consulta']); }
 }
 function onFilter(el) {
   const a = (S.route.indexOf('operaciones') === 0) ? 'ops' : 'log'; const f = S.f[a];
