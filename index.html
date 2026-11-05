@@ -505,6 +505,15 @@ body.pres-open .floatbtn{display:none}
 #e3f{flex:1;border:0;width:100%;background:#050f24}
 body.e3open{overflow:hidden}body.e3open .floatbtn{display:none}
 @media (max-width:860px){.e3bar b span:last-child{display:none}}
+.mbox.e3w{display:flex;flex-direction:column;max-height:calc(100vh - 40px)}
+.mbox.e3w .mbody{overflow-y:auto;flex:1;min-height:0}
+.mbox.e3w footer{position:sticky;bottom:0;background:var(--surface);border-radius:0 0 16px 16px;gap:12px}
+.mbox.e3w footer .e3hint{margin-right:auto;font-size:12.5px;color:var(--muted)}
+.e3w-sec>b{color:var(--logc)!important}
+.e3chip input:checked+span{background:#1c5cab!important;border-color:#1c5cab!important;color:#fff}
+.e3chip input:checked+span:before{content:"✓ ";font-weight:800}
+.e3w .pwa img{height:120px;object-fit:cover}
+@media (max-height:820px){.e3w .pwa img{height:84px}.e3w-sec{margin-bottom:10px}}
 .ghbar{background:#fff4d6;color:#7a5200;text-align:center;padding:8px;font-weight:700;font-size:13px}.ghbar .lnk{color:#0b2a5b;text-decoration:underline}</style>
 </head>
 <body>
@@ -2722,7 +2731,7 @@ function openE360Wizard() {
     '<div class="e3w-sec"><b>3 · Alcance</b><div class="e3w-grid"><label class="e3-rl">Región Logística<select id="e3rl">' + rOpt('log') + '</select></label><label class="e3-ro">Región Operaciones<select id="e3ro">' + rOpt('ops') + '</select></label><label class="e3-cb">Combustible (Operaciones)<select id="e3cb"><option value="ALL">Diésel y gasolina</option><option value="DIESEL">Solo diésel</option><option value="GASOLINA">Solo gasolina</option></select></label></div></div>' +
     '<div class="e3w-sec"><b>4 · Enfoque</b><div class="e3w-chips">' + E3_PILL.map(p => '<label class="e3chip"><input type="checkbox" name="e3p" value="' + p.k + '" checked><span>' + p.ic + ' ' + p.n + '</span></label>').join('') + '</div></div>' +
     '<div class="e3w-sec"><b>5 · Perfil del reporte</b><div class="e3w-grid"><label>Audiencia<select id="e3au"><option value="dir">Dirección · ejecutivo</option><option value="ger" selected>Gerencia · regional</option><option value="op">Operativo · detalle</option></select></label><label>Meta de cumplimiento<select id="e3m"><option value="0.95">95% (Aceptable)</option><option value="0.98">98%</option><option value="1" selected>100% (Óptimo)</option></select></label></div></div>' +
-    '<p class="note">La calificación 360 (0–100) pondera: Rendimiento 35%, Compra 20%, Ralentí 20%, Choferes 15% y Disciplina de flota 10%. Los pilares sin información no cuentan.</p></div><footer><button class="btn e3go" id="e3go">✨ Generar Evaluación 360</button></footer></div>';
+    '<p class="note">La calificación 360 (0–100) pondera: Rendimiento 35%, Compra 20%, Ralentí 20%, Choferes 15% y Disciplina de flota 10%. Los pilares sin información no cuentan.</p></div><footer><span class="e3hint">Elige tu perfil y da clic en Generar →</span><button class="btn ghost" data-act="closeModal">Cancelar</button><button class="btn e3go" id="e3go">✨ Generar Evaluación 360</button></footer></div>';
   m.classList.add('open');
   const sync = () => { const a = (m.querySelector('input[name=e3a]:checked') || {}).value; m.querySelector('.e3-rl').style.display = a === 'ops' ? 'none' : ''; m.querySelector('.e3-ro').style.display = a === 'log' ? 'none' : ''; m.querySelector('.e3-cb').style.display = a === 'log' ? 'none' : ''; };
   $$('input[name=e3a]', m).forEach(i => i.addEventListener('change', sync)); sync();
