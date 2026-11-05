@@ -478,6 +478,8 @@ body.pres-open .floatbtn{display:none}
 .userchip{font-size:12px;font-weight:700;color:#c9d7f2;background:rgba(255,255,255,.1);padding:5px 10px;border-radius:999px;white-space:nowrap}
 .drop.locked{opacity:.55;cursor:not-allowed;border-style:solid;background:var(--surface2)}
 @media (max-width:1200px){.userchip{display:none}}
+
+.flist{list-style:none;padding:0;margin:10px 0;display:grid;gap:6px}.flist li{background:var(--surface2);padding:8px 12px;border-radius:8px;font-weight:700;font-family:ui-monospace,monospace;font-size:13px}
 .ghbar{background:#fff4d6;color:#7a5200;text-align:center;padding:8px;font-weight:700;font-size:13px}.ghbar .lnk{color:#0b2a5b;text-decoration:underline}</style>
 </head>
 <body>
@@ -500,7 +502,7 @@ body.pres-open .floatbtn{display:none}
     <button class="ibtn" data-act="theme" title="Modo claro / oscuro" aria-label="Cambiar tema"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/></svg></button>
   </div>
 </div></header>
-<div id="ghbar" style="display:none" class="ghbar">Tienes cambios sin publicar · <button class="lnk" data-act="publish">Generar data.enc.json</button></div><main id="main"></main>
+<div id="ghbar" style="display:none" class="ghbar">Tienes cambios sin publicar · <button class="lnk" data-act="publish">Publicar cambios</button></div><main id="main"></main>
 <footer class="foot">Los cálculos se hacen en tu navegador con los archivos cargados. Rendimiento = km ÷ litros; ideal ponderado = km ÷ litros ideales de cada unidad.</footer>
 <div id="tip"></div><div id="modal"></div><div id="toasts"></div>
 <script>const BASE={data:{}};</script>
@@ -800,7 +802,7 @@ const SHOT={"area": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAwI
   // area: 'log' | 'ops'. payload: {sheets:{}} (xlsx) o {text:''} (csv). Devuelve {results:[{ds,period,rows}], kind, error}
   function parseFile(area, fileName, payload) {
     let sheets = payload.sheets;
-    if (payload.text !== undefined) sheets = { CSV: parseCSVText(payload.text) };
+    if (payload.text !== undefined) sheets = { CSV: parseCSVText(fixMoji(payload.text)) };
     const res = [];
     const all = Object.keys(sheets);
     const has = req => all.some(n => findHeader(sheets[n], req));
@@ -836,10 +838,31 @@ const SHOT={"area": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAwI
       default: return [r.fecha, r.hora, r.veh, r.min, r.lts].join('|');
     }
   }
+  // Texto mal decodificado (UTF-8 leído como Windows-1252): CuautitlÃ¡n -> Cuautitlán
+  const MOJI = { 'Ã¡': 'á', 'Ã©': 'é', 'Ã­': 'í', 'Ã³': 'ó', 'Ãº': 'ú', 'Ã±': 'ñ', 'Ã‘': 'Ñ', 'Ã‰': 'É', 'Ã“': 'Ó', 'Ãš': 'Ú', 'Ã¼': 'ü', 'Ãœ': 'Ü', 'Â°': '°', 'Ã\u0081': 'Á', 'Ã\u008d': 'Í' };
+  function fixMoji(s) { if (typeof s !== 'string' || s.indexOf('Ã') < 0 && s.indexOf('Â') < 0) return s; return s.replace(/Ã[\u0080-\u00BF¡-ÿ‘‰“šœ]|Â°/g, m => MOJI[m] || m); }
+  // Formato compacto por columnas con diccionario (para guardar y transmitir)
+  function encCols(rows) {
+    const n = rows.length, w = n ? rows[0].length : 0, c = [];
+    for (let j = 0; j < w; j++) {
+      let num = true; for (let i = 0; i < n; i++) { const v = rows[i][j]; if (v !== null && typeof v !== 'number') { num = false; break; } }
+      if (num) { c.push({ t: 'n', v: rows.map(r => r[j]) }); continue; }
+      const d = [], m = new Map(), v = new Array(n);
+      for (let i = 0; i < n; i++) { const x = rows[i][j]; const k = x === null ? '\u0000' : String(x); let id = m.get(k); if (id === undefined) { id = d.length; m.set(k, id); d.push(x); } v[i] = id; }
+      c.push({ t: 's', d, v });
+    }
+    return { n, w, c };
+  }
+  function decCols(o) {
+    if (Array.isArray(o)) return o;
+    const out = new Array(o.n);
+    for (let i = 0; i < o.n; i++) { const r = new Array(o.w); for (let j = 0; j < o.w; j++) { const c = o.c[j]; r[j] = c.t === 'n' ? c.v[i] : c.d[c.v[i]]; } out[i] = r; }
+    return out;
+  }
   function toArr(ds, rows) { const c = COLS[ds]; return rows.map(r => c.map(k => r[k] === undefined ? null : r[k])); }
   function fromArr(ds, arr) { const c = COLS[ds]; return arr.map(a => { const o = {}; for (let i = 0; i < c.length; i++) o[c[i]] = a[i]; return o; }); }
 
-  const API = { COLS, MONTHLY, LABEL, MESES, parseFile, rowKey, toArr, fromArr, periodFromText, norm, toDate, parseCSVText };
+  const API = { COLS, MONTHLY, LABEL, MESES, parseFile, rowKey, toArr, fromArr, encCols, decCols, fixMoji, periodFromText, norm, toDate, parseCSVText };
   if (typeof module !== 'undefined' && module.exports) module.exports = API; else root.FP = API;
 })(typeof window !== 'undefined' ? window : globalThis);
 
@@ -1007,7 +1030,7 @@ async function savePeriod(ds, period, objs, info) {
     void json;
   } else {
     S.meta[ds + '__' + period] = { ds, period, rows: arr.length, at: new Date().toISOString(), file: (info && info.file) || '', local: true };
-    if (window.GH) ghDirty();
+    if (window.GH) { ghDirty(); ghDirtyPart(ds, period); }
   }
   (S.dbd[ds] = S.dbd[ds] || {})[period] = arr;
   invalidate();
@@ -1021,7 +1044,7 @@ async function deletePeriod(ds, period) {
   }
   S.meta[ds + '__' + period] = meta;
   if (S.dbd[ds]) delete S.dbd[ds][period];
-  if (window.GH) ghDirty();
+  if (window.GH) { ghDirty(); ghDirtyPart(ds, period); }
   invalidate();
 }
 async function logUpload(entry) {
@@ -2668,7 +2691,9 @@ const MAN_CSS = '.mn{display:grid;grid-template-columns:400px 1fr;gap:30px;heigh
 /* ===================== Versión GitHub Pages: datos cifrados en data.enc.json ===================== */
 window.GH = true;
 const GH_ITER = 150000;
-const GHS = { key: null, users: null, dirty: false, ulog: [] };
+const GHS = { key: null, users: null, dirty: false, ulog: [], parts: {}, dirtyParts: new Set() };
+const GH_SPLIT = { log_ral: 1, ops_ral: 1, log_cargas: 1, ops_cargas: 1 };
+function partName(ds, p) { return 'parte_' + ds + '_' + p + '.bin'; }
 const b64 = { enc: u8 => { let s = ''; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); }, dec: s => Uint8Array.from(atob(s), c => c.charCodeAt(0)) };
 async function ghKey(pass, salt) {
   const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveKey']);
@@ -2680,19 +2705,45 @@ async function ghDecrypt(file, key) {
   const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64.dec(file.iv) }, key, b64.dec(file.data));
   return JSON.parse(new TextDecoder().decode(await gunzip(new Uint8Array(pt))));
 }
+async function ghDecryptBin(buf, iv, key) {
+  const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64.dec(iv) }, key || GHS.key, buf);
+  return JSON.parse(new TextDecoder().decode(await gunzip(new Uint8Array(pt))));
+}
+async function ghEncryptBin(obj) {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, GHS.key, await gzip(new TextEncoder().encode(JSON.stringify(obj))));
+  return { iv: b64.enc(iv), bytes: new Uint8Array(ct) };
+}
+async function ghLoadParts(file, key) {
+  const parts = file.parts || {}; const keys = Object.keys(parts); let done = 0;
+  const msg = document.querySelector('#login .lerr');
+  const out = {};
+  for (let i = 0; i < keys.length; i += 4) {
+    await Promise.all(keys.slice(i, i + 4).map(async k => {
+      const p = parts[k]; const r = await fetch(p.f + '?v=' + encodeURIComponent(p.iv), { cache: 'no-store' });
+      if (!r.ok) throw new Error('Falta el archivo ' + p.f + ' en el repositorio');
+      out[k] = FP.decCols(await ghDecryptBin(await r.arrayBuffer(), p.iv, key));
+      done++; if (msg) msg.textContent = 'Cargando información… ' + done + ' de ' + keys.length;
+    }));
+  }
+  return out;
+}
 async function ghEncrypt(obj) {
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, GHS.key, await gzip(new TextEncoder().encode(JSON.stringify(obj))));
-  return { v: 2, iter: GH_ITER, users: GHS.users, iv: b64.enc(iv), at: new Date().toISOString(), data: b64.enc(new Uint8Array(ct)) };
+  return { v: 3, iter: GH_ITER, users: GHS.users, parts: GHS.parts, iv: b64.enc(iv), at: new Date().toISOString(), data: b64.enc(new Uint8Array(ct)) };
 }
 async function ghFetch() {
   const r = await fetch('data.enc.json?t=' + Date.now(), { cache: 'no-store' });
   if (!r.ok) throw new Error('nofile');
   return r.json();
 }
-function ghApply(obj, file) {
+function ghApply(obj, file, partsData) {
   Object.keys(BASE.data).forEach(k => delete BASE.data[k]);
-  Object.assign(BASE.data, obj.data || {});
+  for (const ds in (obj.data || {})) { BASE.data[ds] = {}; for (const p in obj.data[ds]) BASE.data[ds][p] = FP.decCols(obj.data[ds][p]); }
+  for (const k in (partsData || {})) { const [ds, p] = k.split('__'); (BASE.data[ds] = BASE.data[ds] || {})[p] = partsData[k]; }
+  GHS.parts = Object.assign({}, file.parts || {}); GHS.dirtyParts = new Set();
+  if (file.v !== 3) for (const ds in GH_SPLIT) for (const p in (BASE.data[ds] || {})) GHS.dirtyParts.add(ds + '__' + p);
   if (obj.settings) Object.assign(S.settings, obj.settings);
   S.meta = obj.meta || {};
   GHS.ulog = obj.ulog || [];
@@ -2712,7 +2763,8 @@ async function ghTryStored(file) {
     const o = JSON.parse(v);
     const key = await crypto.subtle.importKey('raw', b64.dec(o.k), { name: 'AES-GCM' }, true, ['encrypt', 'decrypt']);
     const obj = await ghDecrypt(file, key);
-    GHS.key = key; GHS.users = file.users; ghApply(obj, file); setRole(o.u, o.role); return true;
+    const pd = await ghLoadParts(file, key);
+    GHS.key = key; GHS.users = file.users; ghApply(obj, file, pd); setRole(o.u, o.role); return true;
   } catch (e) { return false; }
 }
 function ghLogin() {
@@ -2733,7 +2785,9 @@ function ghLogin() {
         const w = JSON.parse(new TextDecoder().decode(pt));
         const key = await crypto.subtle.importKey('raw', b64.dec(w.dek), { name: 'AES-GCM' }, true, ['encrypt', 'decrypt']);
         const obj = await ghDecrypt(file, key);
-        GHS.key = key; GHS.users = file.users; ghApply(obj, file); setRole(w.u || u, w.role); ghRemember(fm.r.checked, w.u || u, w.role);
+        err.textContent = 'Cargando información…';
+        let pd; try { pd = await ghLoadParts(file, key); } catch (e2) { fail(e2.message); return; }
+        GHS.key = key; GHS.users = file.users; ghApply(obj, file, pd); setRole(w.u || u, w.role); ghRemember(fm.r.checked, w.u || u, w.role);
         err.textContent = ''; document.body.classList.add('authed'); res();
       } catch (er) { fail('Usuario o contraseña incorrectos'); }
     });
@@ -2741,21 +2795,38 @@ function ghLogin() {
     setTimeout(() => fm.u.focus(), 50);
   });
 }
+function ghDirtyPart(ds, p) { if (GH_SPLIT[ds]) GHS.dirtyParts.add(ds + '__' + p); }
 function ghDirty() { GHS.dirty = true; const b = document.getElementById('ghbar'); if (b) b.style.display = ''; }
 function saveBlob(filename, blob) {
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename; document.body.appendChild(a); a.click();
   setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
 }
 async function ghPublish() {
-  const data = {};
-  const dsList = Object.keys(FP.COLS);
-  for (const ds of dsList) for (const p of periodsOf(ds)) (data[ds] = data[ds] || {})[p] = arrFor(ds, p);
+  const core = {};
+  const files = [];
+  for (const ds of Object.keys(FP.COLS)) for (const p of periodsOf(ds)) {
+    const arr = arrFor(ds, p);
+    if (GH_SPLIT[ds]) {
+      const k = ds + '__' + p;
+      if (GHS.dirtyParts.has(k) || !GHS.parts[k]) { const enc = await ghEncryptBin(FP.encCols(arr)); GHS.parts[k] = { f: partName(ds, p), iv: enc.iv, n: arr.length }; files.push([partName(ds, p), enc.bytes]); }
+    } else (core[ds] = core[ds] || {})[p] = FP.encCols(arr);
+  }
+  // quitar partes de periodos eliminados
+  for (const k of Object.keys(GHS.parts)) { const [ds, p] = k.split('__'); if (!arrFor(ds, p)) delete GHS.parts[k]; }
   const meta = {}; for (const k in S.meta) if (!S.meta[k].deleted) meta[k] = S.meta[k];
-  const obj = { at: new Date().toISOString(), data, settings: S.settings, meta, ulog: GHS.ulog.slice(-300) };
+  const obj = { at: new Date().toISOString(), data: core, settings: S.settings, meta, ulog: GHS.ulog.slice(-300) };
   const file = await ghEncrypt(obj);
+  for (const [name, bytes] of files) { saveBlob(name, new Blob([bytes], { type: 'application/octet-stream' })); await new Promise(r => setTimeout(r, 450)); }
   saveBlob('data.enc.json', new Blob([JSON.stringify(file)], { type: 'application/json' }));
-  GHS.dirty = false; const b = document.getElementById('ghbar'); if (b) b.style.display = 'none';
-  toast('Se descargó data.enc.json: súbelo al repositorio reemplazando el anterior.', 'ok');
+  GHS.dirty = false; GHS.dirtyParts = new Set(); const b = document.getElementById('ghbar'); if (b) b.style.display = 'none';
+  const list = ['data.enc.json'].concat(files.map(f => f[0]));
+  toast('Se descargaron ' + list.length + ' archivo(s): súbelos juntos al repositorio.', 'ok');
+  ghShowPublished(list);
+}
+function ghShowPublished(list) {
+  const m = $('#modal'); DSTACK.length = 0; m.classList.remove('drill');
+  m.innerHTML = '<div class="mbox"><header><h3>Sube estos archivos a GitHub</h3><button class="x" data-act="closeModal" aria-label="Cerrar">×</button></header><div class="mbody"><p>Se descargaron <b>' + list.length + '</b> archivo(s). En el repositorio: <b>Add file → Upload files</b>, arrástralos <b>todos juntos</b> y da <b>Commit changes</b>.</p><ul class="flist">' + list.map(f => '<li>📄 ' + esc(f) + '</li>').join('') + '</ul><p class="note">Solo se descargan los meses que cambiaron; los demás archivos del repositorio se quedan como están. Si el navegador pregunta si permites descargar varios archivos, elige <b>Permitir</b>.</p></div><footer><button class="btn" data-act="closeModal">Entendido</button></footer></div>';
+  m.classList.add('open');
 }
 window.addEventListener('beforeunload', e => { if (GHS.dirty) { e.preventDefault(); e.returnValue = ''; } });
 
@@ -2917,7 +2988,7 @@ function viewUpload() {
     '<div class="upgrid"><div class="upcol log"><div class="upph"><img src="' + IMG.cascadia_caja + '" alt=""></div><h3>' + ICON.truck + ' Logística</h3>' + SLOTS.log.map(s => slot('log', s)).join('') + '</div><div class="upcol ops"><div class="upph"><img src="' + IMG.hino + '" alt=""></div><h3>' + ICON.van + ' Operaciones</h3>' + SLOTS.ops.map(s => slot('ops', s)).join('') + '</div></div>' +
     (pend ? card('Revisión antes de guardar', pend) : '') +
     card('Información disponible por periodo', ptab, { sub: 'Eliminar quita ese mes de ese archivo para todos' }) +
-    (window.GH ? card('Publicar cambios', '<p>Cuando termines de cargar, genera el archivo cifrado y súbelo a la raíz del repositorio (Add file → Upload files → Commit). En 1–2 minutos todos verán la información nueva al recargar.</p><button class="btn" data-act="publish">⬇ Generar data.enc.json</button>' + (GHS.dirty ? ' <span class="warn" style="color:#b07800;font-weight:700">Tienes cambios sin publicar</span>' : '')) + card('Historial de cargas', ghHist()) : '') +
+    (window.GH ? card('Publicar cambios', '<p>Cuando termines de cargar, da clic en <b>Publicar cambios</b>. Se descargan <b>data.enc.json</b> y un archivo <b>parte_….bin</b> por cada mes nuevo o modificado (ralentí y cargas). Súbelos <b>todos juntos</b> a la raíz del repositorio (Add file → Upload files → Commit). En 1–2 minutos todos verán la información nueva al recargar.</p><button class="btn" data-act="publish">⬇ Publicar cambios</button>' + (GHS.dirty ? ' <span class="warn" style="color:#b07800;font-weight:700">Tienes cambios sin publicar</span>' : '')) + card('Historial de cargas', ghHist()) : '') +
     (S.db ? card('Historial de cargas', '<div id="hist">Cargando…</div>') : '');
 }
 function pendCard(x, i) {
