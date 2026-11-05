@@ -312,7 +312,7 @@ section.hero:after{z-index:0}
 .abtxt h1{font-size:30px;font-weight:800;color:#fff}
 .abtxt p{margin:4px 0 0;color:#d6e2f7;font-size:13.5px}
 .abtxt .crumb,.abtxt .crumb a{color:#b9cbe9}
-.areahead{justify-content:flex-end}
+.areahead{justify-content:space-between;align-items:center}
 .ptiles{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
 .ptiles.three{grid-template-columns:repeat(3,1fr)}
 .ptile{position:relative;height:170px;border-radius:16px;overflow:hidden;box-shadow:var(--shadow)}
@@ -402,15 +402,14 @@ tr.rclick td:first-child{color:var(--s1);font-weight:700}
 .modnote em{font-style:normal;font-size:12px;color:var(--muted)}
 
 /* ===== Frases animadas en encabezados ===== */
-.slogans{position:absolute;z-index:2;left:55%;top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:12px;width:30%;pointer-events:none;background:rgba(8,24,56,.62);backdrop-filter:blur(6px);padding:10px 16px;border-radius:16px;border:1px solid rgba(255,255,255,.18);box-shadow:0 8px 24px rgba(0,0,0,.25)}
-.abanner.ops .slogans{background:rgba(6,40,32,.62)}
+.slogans{display:flex;align-items:center;gap:14px;flex:1;min-width:280px;max-width:640px;align-self:center;pointer-events:none;background:linear-gradient(90deg,rgba(242,169,0,.14),rgba(42,120,214,.06) 70%,transparent);border-left:4px solid var(--accent);padding:10px 16px;border-radius:12px}
 .slogans .sdrop{width:38px;height:38px;flex:none;animation:dropb 2.4s ease-in-out infinite;filter:drop-shadow(0 4px 10px rgba(242,169,0,.45))}
 .slogans .sdrop svg{width:100%;height:100%}
 .slogans .sl{position:relative;height:56px;flex:1}
-.slogans .sl span{position:absolute;left:0;top:50%;transform:translateY(-50%);opacity:0;color:#fff;font-weight:800;font-size:20px;line-height:1.15;letter-spacing:-.01em;text-shadow:0 2px 12px rgba(0,0,0,.35);animation:slog 24s infinite}
+.slogans .sl span{position:absolute;left:0;top:50%;transform:translateY(-50%);opacity:0;color:var(--ink);font-weight:800;font-size:22px;line-height:1.15;letter-spacing:-.01em;animation:slog 24s infinite;white-space:nowrap}
 @keyframes slog{0%{opacity:0;transform:translateY(-20%)}2.5%{opacity:1;transform:translateY(-50%)}14%{opacity:1;transform:translateY(-50%)}16.6%{opacity:0;transform:translateY(-80%)}100%{opacity:0}}
 @keyframes dropb{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-6px) scale(1.06)}}
-@media (max-width:1100px){.slogans{display:none}}
+@media (max-width:1100px){.slogans{display:none}.areahead{justify-content:flex-end}}
 @media (prefers-reduced-motion:reduce){.slogans .sl span{animation:none}.slogans .sl span:first-child{opacity:1}.slogans .sdrop{animation:none}}
 .tabs{align-items:center}.tabs .tabx{margin-left:auto}
 /* ===== Botones flotantes ===== */
@@ -2823,8 +2822,8 @@ function viewArea(a, tab) {
   const TAG = { rendimientos: 'Rendimiento contra el ideal, gasto y unidades con área de oportunidad', cargas: 'Cargas, proveedores, sitios y comportamiento del precio', ralenti: 'Eventos, ubicaciones, reincidencia y simulador sin ralentí', choferes: 'Desempeño y ralentí por conductor', comparador: 'Compara móviles, regiones y marcas con todo lo comparable' };
   const SLG = ['Cada litro cuenta', 'Hagamos uso eficiente del combustible', 'Menos ralentí, más kilómetros', 'Manejo suave, rendimiento ideal', 'Apaga el motor en cada parada', 'El precio no lo controlamos; su uso, sí'];
   const slog = '<div class="slogans" aria-hidden="true"><span class="sdrop"><svg viewBox="0 0 24 24"><path d="M12 2s-7 8-7 13a7 7 0 0 0 14 0c0-5-7-13-7-13z" fill="#f2a900"/><path d="M9 14a3 3 0 0 0 3 3" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg></span><div class="sl">' + SLG.map((t, i) => '<span style="animation-delay:' + (i * 4) + 's">' + t + '</span>').join('') + '</div></div>';
-  const banner = '<div class="abanner ' + a + (/^chofer/.test(PH[a][tab]) ? ' portrait' : '') + '"><img src="' + IMG[PH[a][tab]] + '" alt=""><div class="abtxt"><p class="crumb"><a href="#inicio">Inicio</a> / ' + AREA_NAME[a] + '</p><h1>' + AREA_NAME[a] + '</h1><p>' + (a === 'log' ? 'Tractocamiones · red troncal' : 'Unidades ligeras · recolección y entrega') + ' — ' + TAG[tab] + '</p></div>' + slog + '</div>';
-  return banner + '<div class="areahead ' + a + '">' + fb + '</div>' + tabs + '<div class="tabbody">' + body + '</div>';
+  const banner = '<div class="abanner ' + a + (/^chofer/.test(PH[a][tab]) ? ' portrait' : '') + '"><img src="' + IMG[PH[a][tab]] + '" alt=""><div class="abtxt"><p class="crumb"><a href="#inicio">Inicio</a> / ' + AREA_NAME[a] + '</p><h1>' + AREA_NAME[a] + '</h1><p>' + (a === 'log' ? 'Tractocamiones · red troncal' : 'Unidades ligeras · recolección y entrega') + ' — ' + TAG[tab] + '</p></div></div>';
+  return banner + '<div class="areahead ' + a + '">' + slog + fb + '</div>' + tabs + '<div class="tabbody">' + body + '</div>';
 }
 
 /* ---------- Cargar archivos ---------- */
