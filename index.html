@@ -514,6 +514,53 @@ body.e3open{overflow:hidden}body.e3open .floatbtn{display:none}
 .e3chip input:checked+span:before{content:"✓ ";font-weight:800}
 .e3w .pwa img{height:120px;object-fit:cover}
 @media (max-height:820px){.e3w .pwa img{height:84px}.e3w-sec{margin-bottom:10px}}
+
+/* Anomalías */
+.anhero{display:flex;gap:26px;align-items:center;border-radius:22px;padding:24px 28px;margin-bottom:16px;color:#fff;background:radial-gradient(600px 260px at 10% 50%,rgba(255,80,80,.35),transparent),linear-gradient(120deg,#3a0a12,#5c1020 50%,#1d0a2a);box-shadow:var(--shadow);overflow:hidden}
+.anhero .kick{font-size:11.5px;letter-spacing:.16em;font-weight:800;color:#ffb3b3}
+.anhero h2{margin:6px 0 4px;font-size:24px}.anhero p{margin:0;color:#f3caca;font-size:13.5px}
+.radar{position:relative;flex:none;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,rgba(255,90,90,.18) 0 30%,transparent 31%),repeating-radial-gradient(circle,rgba(255,140,140,.35) 0 1px,transparent 1px 25px);border:2px solid rgba(255,140,140,.6);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden}
+.radar i{position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 0deg,rgba(255,90,90,.55),transparent 25%);animation:sweep 3s linear infinite}
+@keyframes sweep{to{transform:rotate(360deg)}}
+.radar b{position:relative;font-size:38px;line-height:1}.radar span{position:relative;font-size:12px;color:#ffd0d0;font-weight:700}
+.anh-k{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}.anh-k div{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:8px 14px}.anh-k span{display:block;font-size:11px;font-weight:800;letter-spacing:.05em;color:#ffc9c9;text-transform:uppercase}.anh-k b{font-size:20px}
+.antypes{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin-bottom:16px}
+.antype{all:unset;cursor:pointer;display:grid;grid-template-columns:36px 1fr;grid-template-rows:auto auto;column-gap:8px;background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--s1);border-radius:12px;padding:10px 12px;transition:transform .12s,box-shadow .12s}
+.antype:hover{transform:translateY(-2px);box-shadow:var(--shadow)}.antype:focus-visible{outline:2px solid var(--accent)}
+.antype i{grid-row:1/3;font-style:normal;font-size:24px;align-self:center}.antype b{font-size:13px;line-height:1.25}.antype span{font-size:12px;color:var(--muted);font-weight:700}
+.antype.s3{border-left-color:#d03b3b}.antype.s2{border-left-color:#e8a200}.antype.s1{border-left-color:#2a78d6}.antype.on{background:var(--brand2);color:#fff;border-color:var(--brand2)}.antype.on span{color:#dbe6ff}
+.anrules{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px}.anrules div{display:grid;grid-template-columns:30px 1fr;column-gap:8px;background:var(--surface2);border-radius:10px;padding:8px 10px}.anrules i{grid-row:1/3;font-style:normal;font-size:20px}.anrules b{font-size:13px}.anrules span{font-size:12px;color:var(--muted)}
+/* Liga del Litro */
+.lgring{position:relative;border-radius:24px;overflow:hidden;margin-bottom:16px;color:#fff;background:radial-gradient(500px 300px at 75% 30%,rgba(255,210,80,.25),transparent),linear-gradient(135deg,#1a0408,#4a0a14 45%,#0b1f4a);box-shadow:var(--shadow)}
+.ropes{position:absolute;inset:0;pointer-events:none}.ropes i{position:absolute;left:-5%;right:-5%;height:5px;border-radius:5px;opacity:.55;background:repeating-linear-gradient(90deg,#d01f2f 0 40px,#fff 40px 60px,#1c4fbf 60px 100px)}.ropes i:nth-child(1){top:22%}.ropes i:nth-child(2){top:52%}.ropes i:nth-child(3){top:82%}
+.lgin{position:relative;display:grid;grid-template-columns:1.1fr 1fr;gap:20px;padding:26px 30px;align-items:end}
+.lgk{display:inline-flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.16em;font-weight:800;color:#ffd36b}.lgk svg{width:28px;height:28px}
+.lgl1 h2{font-size:40px;margin:6px 0}.lgl1 p{color:#f1d6d6;font-size:13.5px;max-width:520px}
+.belt{display:inline-flex;flex-direction:column;gap:2px;margin-top:10px;padding:14px 20px;border-radius:16px;background:linear-gradient(135deg,#b8860b,#ffd36b 45%,#b8860b);color:#2a1800;box-shadow:0 10px 30px rgba(242,169,0,.35)}
+.belt span{font-size:11.5px;font-weight:800;letter-spacing:.12em}.belt b{font-size:28px}.belt em{font-style:normal;font-weight:700;font-size:13px}.belt .lgcert{margin-top:6px;align-self:flex-start;background:#2a1800;color:#ffd36b}
+.lpodium{display:flex;align-items:flex-end;justify-content:center;gap:12px}
+.lpd{display:flex;flex-direction:column;align-items:center;text-align:center;width:160px;animation:lgup .7s both}
+@keyframes lgup{from{opacity:0;transform:translateY(30px)}}
+.lgl{width:62px;height:62px;animation:punch 1.8s ease-in-out infinite}.lpd.p1 .lgl{width:84px;height:84px}.lgl svg{width:100%;height:100%;filter:drop-shadow(0 6px 10px rgba(0,0,0,.4))}
+@keyframes punch{0%,100%{transform:rotate(0)}40%{transform:rotate(-14deg) translateX(-4px)}60%{transform:rotate(6deg) translateX(3px)}}
+.lpd b{font-size:15px;margin-top:4px}.lpd em{font-style:normal;font-size:11.5px;color:#f1d6d6;margin-bottom:6px}
+.lped{width:100%;border-radius:12px 12px 0 0;display:grid;place-items:center;font-size:30px;font-weight:800;color:#2a1800}.p1 .lped{height:120px;background:linear-gradient(180deg,#ffe08a,#f2a900)}.p2 .lped{height:88px;background:linear-gradient(180deg,#eef2f8,#9fb3d6)}.p3 .lped{height:64px;background:linear-gradient(180deg,#f3c39b,#c27a45)}
+.lgtbl td small{display:block;font-size:11px;color:var(--muted);font-weight:600}
+.lgtbl .lp{display:inline-block;min-width:30px;text-align:center;font-weight:800;border-radius:8px;padding:2px 6px;background:var(--surface2)}.lgtbl .lp.gold{background:linear-gradient(135deg,#ffd36b,#f2a900);color:#2a1800}
+.lgtbl .ltot{font-size:20px;color:var(--brand2)}.lgtbl tr.top1 td{background:rgba(242,169,0,.12)}.lgtbl tr.top2 td{background:rgba(159,179,214,.12)}.lgtbl tr.top3 td{background:rgba(194,122,69,.1)}.lgtbl tr.last td{background:rgba(208,59,59,.07)}
+.lmv{font-size:12px;font-weight:800;white-space:nowrap}.lmv.up{color:#0ca30c}.lmv.dn{color:#d03b3b}.lmv.eq{color:var(--muted)}.lmv.nw{color:var(--s1)}
+.lfight{border-radius:22px;margin:0 0 16px;padding:22px 26px;color:#fff;background:linear-gradient(90deg,#5c0a14 0%,#1a1030 50%,#0b2a6b 100%);box-shadow:var(--shadow)}
+.lfh{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.lfsel{display:flex;align-items:center;gap:10px}.lfsel select{padding:8px 10px;border-radius:10px;border:0;font:inherit;font-weight:700;min-width:170px}.lfsel .vs{font-size:22px;color:#ffd36b;font-style:italic}
+.lfcorner{display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:center;margin:18px 0 12px}
+.cr{border-radius:14px;padding:14px 18px}.cr b{display:block;font-size:24px}.cr span{font-size:12.5px;opacity:.85}.cr.red{background:rgba(208,31,47,.35);border:1px solid rgba(255,120,120,.5)}.cr.blue{background:rgba(28,79,191,.4);border:1px solid rgba(120,160,255,.5);text-align:right}
+.lfres{text-align:center}.lfres b{display:block;font-size:44px;line-height:1}.lfres span{display:block;font-weight:800;color:#ffd36b}.lfres em{display:block;font-style:normal;margin-top:4px}
+.lrounds{display:grid;gap:6px}.lr{display:grid;grid-template-columns:1fr 200px 1fr;align-items:center;background:rgba(255,255,255,.06);border-radius:10px;padding:8px 14px;animation:lgup .5s both}
+.lr .rn{text-align:center;font-size:11px;color:#c9d4ea}.lr .rn b{display:block;font-size:13.5px;color:#fff}.lr .rv{font-weight:800;font-size:15px}.lr .rv.b{text-align:right}
+.lr.w1 .rv.a,.lr.w2 .rv.b{color:#ffd36b}.lr.w1 .rv.a:before{content:"🥊 "}.lr.w2 .rv.b:after{content:" 🥊"}
+.lhist{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}.lhist div{flex:none;min-width:130px;background:var(--surface2);border-radius:12px;padding:10px 12px;border-top:4px solid #f2a900}.lhist div.on{background:linear-gradient(135deg,#fff4d6,#ffe7a3);color:#2a1800}.lhist span{display:block;font-size:11.5px;color:var(--muted);font-weight:700}.lhist b{display:block;font-size:14px}.lhist em{font-style:normal;font-size:12px}
+@media (max-width:860px){.lgin,.lfcorner{grid-template-columns:1fr}.lr{grid-template-columns:1fr 120px 1fr}.anhero{flex-direction:column}}
+.ropes i{opacity:.3}.lpd b,.lpd em{text-shadow:0 2px 6px rgba(0,0,0,.8)}
 .ghbar{background:#fff4d6;color:#7a5200;text-align:center;padding:8px;font-weight:700;font-size:13px}.ghbar .lnk{color:#0b2a5b;text-decoration:underline}</style>
 </head>
 <body>
@@ -1477,7 +1524,7 @@ const AREA_DS = {
 };
 const AREA_NAME = { log: 'Logística', ops: 'Operaciones' };
 const SLUG = { log: 'logistica', ops: 'operaciones' };
-const TABS = [['rendimientos', 'Rendimientos'], ['cargas', 'Cargas de combustible'], ['ralenti', 'Ralentí'], ['choferes', 'Choferes'], ['comparador', 'Comparador']];
+const TABS = [['rendimientos', 'Rendimientos'], ['cargas', 'Cargas de combustible'], ['ralenti', 'Ralentí'], ['choferes', 'Choferes'], ['comparador', 'Comparador'], ['anomalias', '🚨 Anomalías'], ['liga', '🥊 Liga del Litro']];
 
 function areaMonths(a) { const s = new Set(); const d = AREA_DS[a]; [].concat(d.rend, [d.cargas, d.ral, d.chof]).forEach(x => periodsOf(x).forEach(p => s.add(p))); return Array.from(s).sort(); }
 function latest(dsList) { const all = [].concat(dsList).flatMap(d => periodsOf(d)).sort(); return all[all.length - 1] || null; }
@@ -2561,13 +2608,22 @@ async function tabExcel(a, tab) {
     const rows = choferRows(a, p); const st = chofStats(rows.filter(r => r.km >= setting('minKmChof')));
     sheets.push(['Resumen', [{ Concepto: 'Mes', Valor: perLabel(p) }, { Concepto: 'Choferes (≥ km mínimos)', Valor: st.n }, { Concepto: 'Rendimiento', Valor: R3(st.rend) }, { Concepto: '% ralentí', Valor: R3(st.pr) }, { Concepto: 'Choferes > 25% ralentí', Valor: st.alto }]]);
     sheets.push(['Choferes', rows.map(r => ({ Numero: r.num, Chofer: r.chofer, Km: R3(r.km), Litros: R3(r.lts), 'km/L': R3(r.rend), 'Horas motor': R3(r.hm), 'Horas ralentí': R3(r.hr), '% ralentí': R3(r.pr) }))]);
+  } else if (tab === 'anomalias') {
+    const L = anomalies(a, f.desde, f.hasta).list;
+    sheets.push(['Resumen', Object.keys(AN_T).map(t => { const g = L.filter(x => x.t === t); return { Anomalia: AN_T[t].n, Casos: g.length, 'Monto en riesgo': R3(sum(g, 'monto')), Regla: AN_T[t].d }; })]);
+    sheets.push(['Anomalías', L.map(x => ({ Severidad: AN_SEV[x.sev].t, Anomalia: x.tn, Fecha: x.fecha, Hora: x.hora, Movil: x.veh, Region: x.reg, Sucursal: x.suc, Detalle: x.det, Litros: R3(x.lts), 'Monto en riesgo': R3(x.monto) }))]);
+  } else if (tab === 'liga') {
+    const T = ligaTable(a, f.mes, f.lgLvl || 'region') || [];
+    sheets.push(['Tabla general', T.map(t => { const o = { Posicion: t.pos, Nombre: t.n, Unidades: t.u, Puntos: t.pts, 'Categorías ganadas': t.wins }; LG_CAT.forEach(c => { o[c.n + ' (pts)'] = t.p[c.k]; o[c.n + ' (valor)'] = R3(t.v[c.k]); }); return o; })]);
+    const ps = periodsOf(a + '_chof'); const cp = arrFor(a + '_chof', f.mes) ? f.mes : ps[ps.length - 1];
+    if (cp) sheets.push(['Choferes', ligaChof(a, cp).map(c => ({ Posicion: c.pos, Chofer: c.chofer, Puntaje: R3(c.score), '% ralentí': R3(c.pr), 'km/L': R3(c.rend), Km: R3(c.km) }))]);
   } else if (tab === 'comparador') {
     const ce = S.ce[a]; const M = (ce.ents || []).map(e => ceMetrics(a, ce.type, e, f.mes));
     const groups = CE_ROWS[a].concat(CE_COMMON); const out = [];
     groups.forEach(([g, rows]) => rows.forEach(([k, l]) => { const o = { Grupo: g, Indicador: l }; (ce.ents || []).forEach((e, i) => { o[e] = R3(M[i][k]); }); out.push(o); }));
     sheets.push(['Comparador ' + (ce.type || ''), out]);
   }
-  await downloadXLSX(({ cargas: 'Cargas', ralenti: 'Ralenti', choferes: 'Choferes', comparador: 'Comparador' })[tab] + '_' + AREA_NAME[a] + '_' + (f.mes || '') + '.xlsx', sheets);
+  await downloadXLSX(({ cargas: 'Cargas', ralenti: 'Ralenti', choferes: 'Choferes', comparador: 'Comparador', anomalias: 'Anomalias', liga: 'Liga_del_Litro' })[tab] + '_' + AREA_NAME[a] + '_' + (f.mes || '') + '.xlsx', sheets);
 }
 
 /* ---------- Generador de presentaciones ---------- */
@@ -2677,10 +2733,10 @@ function presHTML(title, slides) {
   return '<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' + esc(title) + '</title><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet"><style>' + css + '</style></head><body><div class="deck">' + body + '</div><div class="nav"><button id="p" aria-label="Anterior">‹</button><span id="cnt"></span><button id="n" aria-label="Siguiente">›</button></div><script>' + js + '<\/script></body></html>';
 }
 let PRES = null;
-function showPresentation(html, filename) {
+function showPresentation(html, filename, label, hint) {
   PRES = { html, filename };
   const m = $('#modal'); DSTACK.length = 0; m.classList.remove('drill');
-  m.innerHTML = '<div class="presview"><div class="pvbar"><b>' + PPT_SVG + ' Presentación lista</b><span class="muted">Usa ← → o clic en la diapositiva para avanzar</span><div class="pvtools"><button class="btn xls sm" data-act="pdl">⬇ Descargar HTML</button><button class="btn sm" data-act="pfs">⛶ Pantalla completa</button><button class="x" data-act="closeModal" aria-label="Cerrar">×</button></div></div><iframe id="pvf" title="Presentación" sandbox="allow-scripts allow-same-origin"></iframe></div>';
+  m.innerHTML = '<div class="presview"><div class="pvbar"><b>' + PPT_SVG + ' ' + esc(label || 'Presentación lista') + '</b><span class="muted">' + esc(hint === undefined ? 'Usa ← → o clic en la diapositiva para avanzar' : hint) + '</span><div class="pvtools"><button class="btn xls sm" data-act="pdl">⬇ Descargar HTML</button><button class="btn sm" data-act="pfs">⛶ Pantalla completa</button><button class="x" data-act="closeModal" aria-label="Cerrar">×</button></div></div><iframe id="pvf" title="Presentación" sandbox="allow-scripts allow-same-origin"></iframe></div>';
   m.classList.add('open'); document.body.classList.add('pres-open');
   $('#pvf').srcdoc = html;
 }
@@ -3046,6 +3102,272 @@ async function e360Download() {
   try { await dl.save({ filename: E3.file, data: new Blob([E3.html], { type: 'text/html' }) }); toast('Evaluación descargada', 'ok'); } catch (e) { if (e && e.code !== 'declined') toast('No se pudo descargar (' + (e.code || e.message) + ')', 'warn'); }
 }
 
+/* ===================== Detector de anomalías · Liga del Litro ===================== */
+const AN_T = {
+  cap: { i: '🛢️', n: 'Carga mayor a la capacidad del tanque', d: 'Los litros de una sola carga superan lo que cabe en el tanque de ese tipo de unidad.' },
+  dia: { i: '📆', n: 'Litros del día arriba de lo posible', d: 'La suma de cargas de un día supera lo que la unidad puede consumir en una jornada.' },
+  multi: { i: '🔁', n: 'Tres o más cargas el mismo día', d: 'Muchas cargas en un mismo día para una sola unidad.' },
+  sitios: { i: '📍', n: 'Cargas en sitios distintos el mismo día', d: 'La misma unidad cargó en dos lugares diferentes el mismo día.' },
+  precio: { i: '💲', n: 'Precio por litro arriba de lo normal', d: 'Se pagó más que la mediana del mismo sitio y combustible en el periodo.' },
+  precioBajo: { i: '❓', n: 'Precio anormalmente bajo', d: 'Precio muy por debajo de lo normal: posible error de captura de litros o importe.' },
+  sinkm: { i: '🚫', n: 'Cargó sin recorrer kilómetros', d: 'La unidad tiene litros cargados pero 0 km en el semáforo del mes.' },
+  nosem: { i: '👻', n: 'Unidad con cargas que no está en el semáforo', d: 'Hay cargas para una unidad que no aparece en el semáforo de rendimientos de ese mes.' },
+  excede: { i: '⚖️', n: 'Cargó más de lo que consumió', d: 'Los litros cargados en el mes superan por mucho los litros consumidos.' },
+  rendBajo: { i: '📉', n: 'Rendimiento muy por debajo del ideal', d: 'Rinde menos del 55% de su ideal: consumo fuera de lo normal o posible fuga.' },
+  rendAlto: { i: '📈', n: 'Rendimiento imposible', d: 'Rinde más del 170% de su ideal: probable error en kilómetros o litros.' },
+  rsc: { i: '🧾', n: 'Recorrió sin registrar cargas', d: 'El semáforo marca recorrido sin carga (RSC).' },
+  tarjeta: { i: '💳', n: 'Tarjeta usada en 3 o más móviles', d: 'Una misma tarjeta EDENRED cargó combustible a varias unidades.' },
+  noche: { i: '🌙', n: 'Carga en horario nocturno', d: 'Carga en gasolinera entre las 22:00 y las 05:59.' },
+  domingo: { i: '🗓️', n: 'Carga externa en domingo', d: 'Carga en gasolinera externa en domingo.' },
+  ralLargo: { i: '⏱️', n: 'Evento de ralentí excesivo', d: 'Un solo evento de ralentí demasiado largo.' },
+  ralDia: { i: '🔥', n: 'Más de 6 h de ralentí en un día', d: 'La unidad acumuló más de 6 horas de ralentí en un mismo día.' },
+  ralNoche: { i: '🌑', n: 'Ralentí de madrugada fuera de geocerca', d: 'Ralentí entre 00:00 y 04:59 fuera de las instalaciones.' },
+  chof: { i: '👤', n: 'Chofer con más de 50% de ralentí', d: 'Más de la mitad del tiempo de motor encendido fue ralentí.' }
+};
+const AN_SEV = { 3: { t: 'Alta', c: 'bad' }, 2: { t: 'Media', c: 'warn' }, 1: { t: 'Baja', c: 'ok' } };
+function anCap(a, veh) {
+  if (a === 'log') return 950;
+  const u = lookups().opsU[veh]; if (!u) return null;
+  if (u.comb === 'GASOLINA') return 75;
+  const t = tamOps(u); return /Pesado/.test(t) ? 260 : /Mediano/.test(t) ? 165 : 95;
+}
+function monthsIn(from, to) { return e3span(from.slice(0, 7), to.slice(0, 7)); }
+function anomalies(a, from, to) {
+  const f = S.f[a]; const key = 'an|' + a + '|' + from + '|' + to + '|' + f.region + '|' + f.suc + '|' + f.comb;
+  if (S.cache[key]) return S.cache[key];
+  const out = []; const L = lookups(); const cg = CG[a];
+  const reg = v => regionOf(a, v), suc = v => a === 'ops' ? sucOf(v) : '';
+  const add = (t, sev, o) => out.push(Object.assign({ t, sev, tn: AN_T[t].n, fecha: '', hora: '', veh: '', reg: '', suc: '', det: '', lts: null, monto: 0 }, o, o.veh ? { reg: reg(o.veh), suc: suc(o.veh) } : {}));
+  const C = cargasRows(a, from, to); const cs = cargasStats(a, C); const P = cs.precio || 26;
+  const pr = r => r.lts ? cg.amt(r) / r.lts : null;
+  const fuel = r => a === 'log' ? 'D' : (combOf(r.movil) || '?');
+  // Capacidad
+  C.forEach(r => { const cap = anCap(a, r.movil); if (cap && r.lts > cap) add('cap', 3, { fecha: r.fecha, hora: r.hora || '', veh: r.movil, det: F.n0(r.lts) + ' L en una carga; capacidad estimada ' + F.n0(cap) + ' L · ' + cg.sitio(r), lts: r.lts, monto: (r.lts - cap) * (pr(r) || P) }); });
+  // Por unidad-día
+  for (const [k, g] of groupBy(C, r => r.movil + '|' + r.fecha)) {
+    const [veh, fecha] = k.split('|'); const tot = sum(g, 'lts'); const cap = anCap(a, veh); const lim = a === 'log' ? 1000 : cap ? cap * 1.6 : null;
+    if (lim && tot > lim && g.length > 1) add('dia', 3, { fecha, veh, det: g.length + ' cargas suman ' + F.n0(tot) + ' L (límite razonable ' + F.n0(lim) + ' L)', lts: tot, monto: (tot - lim) * P });
+    if (g.length >= 3) add('multi', 2, { fecha, veh, det: g.length + ' cargas: ' + g.map(r => (r.hora ? r.hora + ' ' : '') + F.n0(r.lts) + ' L').join(' · '), lts: tot });
+    const sites = new Set(g.map(cg.sitio));
+    if (sites.size > 1) {
+      let close = false; const hs = g.filter(r => r.hora).map(r => +r.hora.slice(0, 2) * 60 + +r.hora.slice(3, 5)).sort((x, y) => x - y); for (let i = 1; i < hs.length; i++) if (hs[i] - hs[i - 1] < 180) close = true;
+      add('sitios', close ? 3 : a === 'ops' ? 2 : 1, { fecha, veh, det: 'Cargó en ' + Array.from(sites).join(', ') + (close ? ' con menos de 3 h de diferencia' : ''), lts: tot });
+    }
+  }
+  // Precio
+  const hiA = a === 'log' ? 1.04 : 1.05, hiB = a === 'log' ? 1.08 : 1.10;
+  for (const [k, g] of groupBy(C.filter(r => r.lts > 0 && fuel(r) !== '?'), r => cg.sitio(r) + '|' + fuel(r))) {
+    if (g.length < 5) continue; const ps = g.map(pr).filter(v => v).sort((x, y) => x - y); const med = ps[Math.floor(ps.length / 2)];
+    g.forEach(r => { const p = pr(r); if (!p) return; const ex = (p - med) * r.lts;
+      if (p > med * hiA && ex > 50) add('precio', p > med * hiB ? 3 : 2, { fecha: r.fecha, hora: r.hora || '', veh: r.movil, det: F.money2(p) + '/L contra ' + F.money2(med) + '/L normal en ' + cg.sitio(r) + ' (+' + F.pct(p / med - 1) + ')', lts: r.lts, monto: ex });
+      else if (p < med * 0.85) add('precioBajo', 1, { fecha: r.fecha, hora: r.hora || '', veh: r.movil, det: F.money2(p) + '/L contra ' + F.money2(med) + '/L normal en ' + cg.sitio(r), lts: r.lts });
+    });
+  }
+  // Tarjetas, noche, domingo
+  if (a === 'ops') {
+    for (const [tj, g] of groupBy(C.filter(r => r.tipo === 'EDENRED' && String(r.tarjeta || '').trim()), r => String(r.tarjeta).trim())) { const vs = Array.from(new Set(g.map(r => r.movil))); if (vs.length >= 3) add('tarjeta', 2, { fecha: g[0].fecha, veh: vs[0], det: 'Tarjeta ' + tj + ' en ' + vs.length + ' móviles: ' + vs.slice(0, 6).join(', '), lts: sum(g, 'lts') }); }
+    C.forEach(r => { if (r.tipo === 'EDENRED' && r.hora && /^\d\d:/.test(r.hora)) { const h = +r.hora.slice(0, 2); if (h >= 22 || h < 6) add('noche', 2, { fecha: r.fecha, hora: r.hora, veh: r.movil, det: 'Carga a las ' + r.hora + ' en ' + r.sitio, lts: r.lts }); } });
+  }
+  C.forEach(r => { if (!cg.auto(r) && new Date(r.fecha + 'T12:00:00').getDay() === 0) add('domingo', 1, { fecha: r.fecha, hora: r.hora || '', veh: r.movil, det: 'Carga externa en domingo · ' + cg.sitio(r), lts: r.lts }); });
+  // Mensuales (semáforo)
+  const months = monthsIn(from, to);
+  months.forEach(p => {
+    const mLab = perLabel(p);
+    if (a === 'log') {
+      if (!arrFor('log_rend', p)) return;
+      const raw = rowsOf('log_rend', p).filter(r => f.region === 'ALL' || reg(r.eco) === f.region);
+      const inSem = new Set(raw.map(r => r.eco));
+      raw.forEach(r => {
+        if ((!r.km || r.km <= 0) && r.ltsCarg > 50) add('sinkm', 3, { fecha: p + '-01', veh: r.eco, det: mLab + ': ' + F.n0(r.ltsCarg) + ' L cargados y 0 km', lts: r.ltsCarg, monto: r.ltsCarg * P });
+        if (r.ltsCarg > 0 && r.lts > 0 && r.ltsCarg - r.lts > 150 && r.ltsCarg / r.lts > 1.25) add('excede', 3, { fecha: p + '-01', veh: r.eco, det: mLab + ': cargó ' + F.n0(r.ltsCarg) + ' L y consumió ' + F.n0(r.lts) + ' L (' + F.pct(r.ltsCarg / r.lts - 1) + ' más)', lts: r.ltsCarg - r.lts, monto: (r.ltsCarg - r.lts) * P });
+      });
+      const Cm = C.filter(r => r.fecha.slice(0, 7) === p);
+      for (const [veh, g] of groupBy(Cm, r => r.movil)) if (!inSem.has(veh)) add('nosem', 1, { fecha: p + '-01', veh, det: mLab + ': ' + g.length + ' cargas (' + F.n0(sum(g, 'lts')) + ' L) y la unidad no aparece en el semáforo', lts: sum(g, 'lts') });
+      logRendRows(p, false).forEach(r => { if (!r.ideal || !r.lts || r.km < setting('minKmLog')) return; const q = r.rend / r.ideal;
+        if (q < 0.55) add('rendBajo', 3, { fecha: p + '-01', veh: r.eco, det: mLab + ': ' + F.n2(r.rend) + ' km/L contra ideal ' + F.n2(r.ideal) + ' (' + F.pct(q) + ')', lts: r.lts - r.km / r.ideal, monto: (r.lts - r.km / r.ideal) * P });
+        else if (q > 1.7) add('rendAlto', 2, { fecha: p + '-01', veh: r.eco, det: mLab + ': ' + F.n2(r.rend) + ' km/L contra ideal ' + F.n2(r.ideal) + ' (' + F.pct(q) + ')' }); });
+    } else {
+      if (!arrFor('ops_rend_d', p) && !arrFor('ops_rend_g', p)) return;
+      const all = opsRendRows(p, { allCasos: true }); const inSem = new Set(AREA_DS.ops.rend.flatMap(ds => rowsOf(ds, p)).map(r => r.movil));
+      const Cm = C.filter(r => r.fecha.slice(0, 7) === p); const cByU = groupBy(Cm, r => r.movil); const cDays = new Set(Cm.map(r => r.fecha)).size;
+      all.forEach(r => {
+        if (r.caso === 'CSR') add('sinkm', 3, { fecha: p + '-01', veh: r.movil, det: mLab + ': carga sin recorrido · ' + F.n0(r.lts) + ' L', lts: r.lts, monto: (r.lts || 0) * P });
+        else if (r.caso === 'RSC') add('rsc', 1, { fecha: p + '-01', veh: r.movil, det: mLab + ': ' + F.n0(r.km) + ' km sin litros registrados' });
+        else { const id = idealOf(r); if (id && r.lts > 0 && r.km >= setting('minKmOps')) { const q = r.km / r.lts / id;
+          if (q < 0.55) add('rendBajo', 3, { fecha: p + '-01', veh: r.movil, det: mLab + ': ' + F.n2(r.km / r.lts) + ' km/L contra ideal ' + F.n2(id) + ' (' + F.pct(q) + ')', lts: r.lts - r.km / id, monto: (r.lts - r.km / id) * P });
+          else if (q > 1.7) add('rendAlto', 2, { fecha: p + '-01', veh: r.movil, det: mLab + ': ' + F.n2(r.km / r.lts) + ' km/L contra ideal ' + F.n2(id) + ' (' + F.pct(q) + ')' }); } }
+        if (cDays >= 20) { const g = cByU.get(r.movil); const cl = g ? sum(g, 'lts') : 0; if (r.lts > 0 && cl - r.lts > 60 && cl / r.lts > 1.3) add('excede', 3, { fecha: p + '-01', veh: r.movil, det: mLab + ': cargó ' + F.n0(cl) + ' L y el semáforo registra ' + F.n0(r.lts) + ' L consumidos', lts: cl - r.lts, monto: (cl - r.lts) * P }); }
+      });
+      for (const [veh, g] of cByU) if (!inSem.has(veh)) add('nosem', 1, { fecha: p + '-01', veh, det: mLab + ': ' + g.length + ' cargas (' + F.n0(sum(g, 'lts')) + ' L) y la unidad no aparece en el semáforo', lts: sum(g, 'lts') });
+    }
+    if (f.region === 'ALL' && f.suc === 'ALL') choferRows(a, p).forEach(c => { if (c.pr > 50 && c.hm >= 20) add('chof', 3, { fecha: p + '-01', veh: '', reg: '—', det: mLab + ': ' + c.chofer + ' · ' + F.n1(c.pr) + '% de ralentí (' + F.n0(c.hr) + ' h de ' + F.n0(c.hm) + ' h de motor)', chofer: c.chofer, monto: c.hr * 2.4 * P }); });
+  });
+  // Ralentí
+  const E = ralRows(a, from, to, true); const lim = a === 'log' ? 180 : 240;
+  E.forEach(r => {
+    if (r.min > lim) add('ralLargo', 2, { fecha: r.fecha, hora: r.hora, veh: r.veh, det: hmm(r.min) + ' continuas · ' + placeOf(r) + (r.chofer && !/sin chofer/i.test(r.chofer) ? ' · ' + r.chofer : ''), lts: r.lts, monto: r.lts * P });
+    const h = +(String(r.hora || '').slice(0, 2)); if (/fuera/i.test(r.geo) && h < 5 && r.min >= 30) add('ralNoche', 1, { fecha: r.fecha, hora: r.hora, veh: r.veh, det: hmm(r.min) + ' a las ' + r.hora + ' · ' + placeOf(r), lts: r.lts, monto: r.lts * P });
+  });
+  for (const [k, g] of groupBy(E, r => r.veh + '|' + r.fecha)) { const m = sum(g, 'min'); if (m > 360) { const [veh, fecha] = k.split('|'); add('ralDia', 2, { fecha, veh, det: hmm(m) + ' de ralentí en ' + g.length + ' eventos', lts: sum(g, 'lts'), monto: sum(g, 'lts') * P }); } }
+  out.forEach(x => { x.monto = Math.max(0, x.monto || 0); x.sevT = AN_SEV[x.sev].t; x.mes = MONTHLY_AN.has(x.t); });
+  const res = { list: out, cargas: C.length, precio: P, from, to };
+  S.cache[key] = res; return res;
+}
+const MONTHLY_AN = new Set(['sinkm', 'nosem', 'excede', 'rendBajo', 'rendAlto', 'rsc', 'chof', 'tarjeta']);
+function anFecha(x) { return !x.fecha ? '—' : x.mes ? (x.t === 'tarjeta' ? 'Periodo' : perLabel(x.fecha.slice(0, 7))) : dLabel(x.fecha); }
+function anBadge(s) { const v = AN_SEV[s]; return '<span class="badge b-' + v.c + '">' + (s === 3 ? '▲' : s === 2 ? '◆' : '●') + ' ' + v.t + '</span>'; }
+
+/* ---------- Vista: Anomalías ---------- */
+function viewAnom(a) {
+  const f = S.f[a]; f.anSev = f.anSev || 'ALL'; f.anTipo = f.anTipo || 'ALL';
+  if (!periodsOf(CG[a].ds).length && !periodsOf(a + '_ral').length) return empty('Aún no hay cargas ni ralentí para analizar.');
+  const R = anomalies(a, f.desde, f.hasta); const all = R.list;
+  const L = all.filter(x => (f.anSev === 'ALL' || x.sev === +f.anSev) && (f.anTipo === 'ALL' || x.t === f.anTipo));
+  const veh = new Set(L.filter(x => x.veh).map(x => x.veh)); const monto = sum(L, 'monto'); const alta = L.filter(x => x.sev === 3).length;
+  const cargasAl = new Set(all.filter(x => ['cap', 'precio', 'precioBajo', 'noche', 'domingo'].includes(x.t)).map(x => x.veh + x.fecha + x.hora + x.lts)).size;
+  const byT = Object.keys(AN_T).map(t => { const g = all.filter(x => x.t === t && (f.anSev === 'ALL' || x.sev === +f.anSev)); return { t, n: g.length, m: sum(g, 'monto'), s: g.length ? Math.max(...g.map(x => x.sev)) : 0 }; }).filter(x => x.n).sort((x, y) => y.s - x.s || y.m - x.m || y.n - x.n);
+  const units = Array.from(groupBy(L.filter(x => x.veh), x => x.veh)).map(([n, g]) => ({ n, reg: g[0].reg, suc: g[0].suc, al: g.length, alta: g.filter(x => x.sev === 3).length, tipos: new Set(g.map(x => x.t)).size, monto: sum(g, 'monto'), score: sum(g, x => x.sev * 10) + sum(g, 'monto') / 500, top: Array.from(new Set(g.map(x => AN_T[x.t].i))).join(' ') })).sort((x, y) => y.score - x.score);
+  const byReg = Array.from(groupBy(L.filter(x => x.reg && x.reg !== '—'), x => x.reg)).map(([n, g]) => ({ n, c: g.length, m: sum(g, 'monto') })).sort((x, y) => y.m - x.m || y.c - x.c);
+  const days = daysBetween(f.desde, f.hasta); const bd = groupBy(L.filter(x => !x.mes && x.fecha), x => x.fecha);
+  const ids = { d: cid(), r: cid(), u: cid() }; const per = dLabel(f.desde) + ' – ' + dLabel(f.hasta);
+  const drillL = (title, list) => anDrill(a, title, list, per);
+  later(() => {
+    vbar(document.getElementById(ids.d), { labels: days.map(dShort), tipLabels: days.map(dLabel), series: [[3, '#d03b3b'], [2, '#e8a200'], [1, '#2a78d6']].map(([s, c]) => ({ name: AN_SEV[s].t, color: c, data: days.map(d => (bd.get(d) || []).filter(x => x.sev === s).length) })), fmt: F.n0, height: 220, onClick: i => drillL('Anomalías del ' + dLabel(days[i]), bd.get(days[i]) || []) });
+    hbar(document.getElementById(ids.r), { labels: byReg.slice(0, 14).map(x => x.n), series: [{ name: 'Monto en riesgo', data: byReg.slice(0, 14).map(x => x.m) }], fmt: F.money, vfmt: F.money, colors: () => '#d03b3b', tipExtra: i => '<br>' + F.n0(byReg[i].c) + ' anomalías', onClick: i => drillL('Región ' + byReg[i].n, L.filter(x => x.reg === byReg[i].n)) });
+    const uC = units.slice().sort((x, y) => y.al - x.al || y.monto - x.monto).slice(0, 12);
+    hbar(document.getElementById(ids.u), { labels: uC.map(x => x.n + ' · ' + x.reg), series: [{ name: 'Anomalías', data: uC.map(x => x.al) }], fmt: F.n0, vfmt: v => F.n0(v), colors: () => 'var(--s2)', tipExtra: i => '<br>' + uC[i].alta + ' de severidad alta · ' + F.money(uC[i].monto) + ' en riesgo', onClick: i => ficha(a, uC[i].n) });
+  });
+  const sevSeg = '<div class="seg" role="group" aria-label="Severidad">' + [['ALL', 'Todas'], ['3', 'Alta'], ['2', 'Media'], ['1', 'Baja']].map(([v, l]) => '<button data-act="f" data-k="anSev" data-v="' + v + '" class="' + (f.anSev === v ? 'on' : '') + '">' + l + '</button>').join('') + '</div>';
+  const hero = '<section class="anhero"><div class="radar" aria-hidden="true"><i></i><b>' + F.n0(L.length) + '</b><span>anomalías</span></div><div class="anh-t"><span class="kick">CENTINELA DE COMBUSTIBLE · ' + AREA_NAME[a].toUpperCase() + '</span><h2>' + (alta ? alta + ' alertas de severidad alta requieren revisión' : L.length ? 'Sin alertas graves; revisa las de severidad media' : 'Todo en orden en este periodo') + '</h2><p>' + per + ' · revisamos ' + F.n0(R.cargas) + ' cargas, el semáforo y el ralentí contra ' + Object.keys(AN_T).length + ' reglas.</p><div class="anh-k"><div><span>Monto en riesgo</span><b>' + F.money(monto) + '</b></div><div><span>Unidades involucradas</span><b>' + F.n0(veh.size) + '</b></div><div><span>Severidad alta</span><b>' + F.n0(alta) + '</b></div><div><span>Cargas con alerta</span><b>' + F.pct(div(cargasAl, R.cargas)) + '</b></div></div></div></section>';
+  const types = '<div class="antypes"><button class="antype' + (f.anTipo === 'ALL' ? ' on' : '') + '" data-act="f" data-k="anTipo" data-v="ALL"><i>🔎</i><b>Todas</b><span>' + F.n0(all.length) + ' alertas</span></button>' + byT.map(x => '<button class="antype s' + x.s + (f.anTipo === x.t ? ' on' : '') + '" data-act="f" data-k="anTipo" data-v="' + x.t + '" title="' + esc(AN_T[x.t].d) + '"><i>' + AN_T[x.t].i + '</i><b>' + esc(AN_T[x.t].n) + '</b><span>' + F.n0(x.n) + (x.m ? ' · ' + F.money(x.m) : '') + '</span></button>').join('') + '</div>';
+  const cols = [{ k: 'sev', l: 'Severidad', html: x => anBadge(x.sev) }, { k: 'tn', l: 'Anomalía', html: x => AN_T[x.t].i + ' ' + esc(x.tn) }, { k: 'fecha', l: 'Fecha', html: anFecha, x: anFecha }, { k: 'hora', l: 'Hora' }, { k: 'veh', l: 'Móvil' }, { k: 'reg', l: 'Región' }].concat(a === 'ops' ? [{ k: 'suc', l: 'Suc.' }] : []).concat([{ k: 'det', l: 'Detalle' }, { k: 'lts', l: 'Litros', num: 1, f: F.n0 }, { k: 'monto', l: 'Monto en riesgo', num: 1, f: v => v ? F.money(v) : '—' }]);
+  const top = byT[0];
+  const an = [
+    L.length ? 'Se detectaron <b>' + F.n0(L.length) + ' anomalías</b> en ' + F.n0(veh.size) + ' unidades, con <b>' + F.money(monto) + '</b> en riesgo estimado.' : 'No se detectaron anomalías con los filtros actuales.',
+    top ? 'La más frecuente por severidad e impacto es <b>' + AN_T[top.t].i + ' ' + esc(AN_T[top.t].n) + '</b>: ' + F.n0(top.n) + ' casos' + (top.m ? ' y ' + F.money(top.m) : '') + '.' : null,
+    units[0] ? 'Unidad con más alertas: <b>' + esc(units[0].n) + '</b> (' + esc(units[0].reg) + ') con ' + units[0].al + ' anomalías de ' + units[0].tipos + ' tipos distintos' + (units[0].monto ? ' y ' + F.money(units[0].monto) + ' en riesgo' : '') + '.' : null,
+    byReg[0] ? 'La región con más dinero en riesgo es <b>' + esc(byReg[0].n) + '</b> (' + F.money(byReg[0].m) + ' en ' + F.n0(byReg[0].c) + ' alertas).' : null,
+    'Las alertas no son culpables por sí mismas: son focos de revisión. Confirma cada caso con el ticket, la tarjeta y el GPS antes de tomar acciones.'
+  ];
+  return '<div class="blockhead"><div><h2>🚨 Detector de anomalías</h2><p class="sub">Todo lo que se sale de lo normal en cargas, rendimiento, ralentí y choferes</p></div><div class="bh-tools">' + sevSeg + rangeInputs(a) + '</div></div>' + hero + types +
+    '<div class="grid2">' + card('Anomalías por día', '<div id="' + ids.d + '"></div>', { sub: '<i class="sw" style="background:#d03b3b"></i> Alta · <i class="sw" style="background:#e8a200"></i> Media · <i class="sw" style="background:#2a78d6"></i> Baja' }) + card('Dinero en riesgo por región', '<div id="' + ids.r + '"></div>') + '</div>' +
+    '<div class="grid2">' + card('Unidades con más alertas', '<div id="' + ids.u + '"></div>', { sub: 'Clic para abrir la ficha del móvil' }) + card('Expediente por unidad', table([{ k: 'n', l: 'Móvil' }, { k: 'reg', l: 'Región' }, { k: 'top', l: 'Tipos' }, { k: 'al', l: 'Alertas', num: 1, f: F.n0 }, { k: 'alta', l: 'Altas', num: 1, f: F.n0 }, { k: 'monto', l: 'En riesgo', num: 1, f: F.money }], units, { sort: 'alta', limit: 10, search: true, onRow: x => drillL('Expediente de ' + x.n, L.filter(z => z.veh === x.n)) })) + '</div>' +
+    card('Todas las anomalías' + (f.anTipo !== 'ALL' ? ' · ' + AN_T[f.anTipo].n : ''), table(cols, L, { sort: 'monto', limit: 15, search: true, onRow: x => x.veh ? ficha(a, x.veh) : null }), { sub: f.anTipo !== 'ALL' ? esc(AN_T[f.anTipo].d) : 'Ordenadas por monto en riesgo · clic en una fila para ver la ficha del móvil', cls: 'bad-edge' }) +
+    card('Cómo se detecta cada anomalía', '<div class="anrules">' + Object.keys(AN_T).map(t => '<div><i>' + AN_T[t].i + '</i><b>' + esc(AN_T[t].n) + '</b><span>' + esc(AN_T[t].d) + '</span></div>').join('') + '</div><p class="note">Capacidad estimada: tracto 950 L · camión pesado 260 L · mediano 165 L · ligero 95 L · gasolina 75 L. Límite diario: tracto 1,000 L; unidades de Operaciones 1.6 veces su tanque. Precio normal = mediana del mismo sitio y combustible en el periodo. Ralentí excesivo: más de ' + (a === 'log' ? '3' : '4') + ' h continuas.</p>', { sub: 'Reglas que aplica el centinela' }) +
+    card('Análisis', bullets(an), { cls: 'analysis-card' });
+}
+function anDrill(a, title, list, per) {
+  const cols = [{ k: 'sev', l: 'Severidad', html: x => anBadge(x.sev) }, { k: 'tn', l: 'Anomalía', html: x => AN_T[x.t].i + ' ' + esc(x.tn) }, { k: 'fecha', l: 'Fecha', html: anFecha, x: anFecha }, { k: 'hora', l: 'Hora' }, { k: 'veh', l: 'Móvil' }, { k: 'det', l: 'Detalle' }, { k: 'lts', l: 'Litros', num: 1, f: F.n0 }, { k: 'monto', l: 'En riesgo', num: 1, f: v => v ? F.money(v) : '—' }];
+  openDrill({ title, sub: per + ' · ' + F.money(sum(list, 'monto')) + ' en riesgo', cols: cols.map(c => Object.assign({}, c, { x: c.k === 'sev' ? r => AN_SEV[r.sev].t : c.k === 'tn' ? r => r.tn : undefined })), rows: list, sort: 'monto', unit: 'anomalías', onRow: x => x.veh ? ficha(a, x.veh) : null });
+}
+
+/* ---------- Liga del Litro ---------- */
+const GLOVE = '<svg viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="glv" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff5a5a"/><stop offset="1" stop-color="#b3121b"/></linearGradient></defs><path d="M18 30c-4-1-7 2-7 6s3 7 7 7h3l2-11z" fill="url(#glv)" stroke="#5c0a0f" stroke-width="2"/><path d="M20 22c0-9 7-15 17-15 9 0 15 6 15 15v12c0 6-4 10-10 10H26c-4 0-6-3-6-7z" fill="url(#glv)" stroke="#5c0a0f" stroke-width="2"/><path d="M27 15c3-3 8-4 12-3" stroke="#ffd0d0" stroke-width="3" stroke-linecap="round" fill="none" opacity=".75"/><rect x="23" y="44" width="25" height="12" rx="3" fill="#f5f5f5" stroke="#5c0a0f" stroke-width="2"/><path d="M27 48h17M27 52h17" stroke="#c9c9c9" stroke-width="2"/><path d="M21 34c4 2 8 1 10-2" stroke="#5c0a0f" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
+const LG_PTS = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1];
+const LG_CAT = [
+  { k: 'rend', n: 'Rendimiento', i: '⛽', d: 'Cumplimiento contra el ideal', hi: 1, f: F.pct },
+  { k: 'ral', n: 'Ralentí', i: '⏱️', d: 'Litros de ralentí por cada 100 L consumidos', hi: 0, f: v => F.n2(v) + ' L' },
+  { k: 'precio', n: 'Compra', i: '💲', d: 'Precio promedio pagado por litro', hi: 0, f: F.money2 },
+  { k: 'disc', n: 'Disciplina', i: '🎯', d: '% de unidades con 95% o más de su ideal', hi: 1, f: F.pct0 },
+  { k: 'mejora', n: 'Mejora', i: '🚀', d: 'Puntos de cumplimiento ganados contra el mes anterior', hi: 1, f: v => (v >= 0 ? '+' : '') + F.n1(v * 100) + ' pts' },
+  { k: 'limpio', n: 'Juego limpio', i: '🧼', d: 'Anomalías media/alta por cada 100 cargas', hi: 0, f: v => F.n1(v) }
+];
+const LG_SKIP = /^(SIN ZONA|NO CLASIFICADO|S\/D|#N\/A|N\/A|)$/;
+function ligaTable(a, p, lvl) {
+  const key = 'lg|' + a + '|' + p + '|' + lvl; if (S.cache[key]) return S.cache[key];
+  const res = e3withF(a, {}, () => {
+    const rows = a === 'log' ? logRendRows(p, true) : opsRendRows(p, { ignoreRegion: true });
+    if (!rows.length) return null;
+    const gk = a === 'log' ? r => r.zona : lvl === 'suc' ? r => r.suc : r => r.region;
+    const vk = a === 'log' ? v => regionOf('log', v) : lvl === 'suc' ? v => sucOf(v) : v => regionOf('ops', v);
+    const ag = a === 'log' ? aggLog(rows, gk) : aggOps(rows, gk);
+    const keyU = a === 'log' ? r => r.eco : r => r.movil; const minKm = a === 'log' ? setting('minKmLog') : setting('minKmOps');
+    const pp = prevPeriod(p); const prow = AREA_DS[a].rend.some(ds => arrFor(ds, pp)) ? (a === 'log' ? logRendRows(pp, true) : opsRendRows(pp, { ignoreRegion: true })) : [];
+    const pag = prow.length ? (a === 'log' ? aggLog(prow, gk) : aggOps(prow, gk)) : [];
+    const from = p + '-01', to = monthEnd(p);
+    const E = ralRows(a, from, to, true), C = cargasRows(a, from, to); const AN = anomalies(a, from, to).list.filter(x => x.sev >= 2 && x.veh);
+    const eG = groupBy(E, r => vk(r.veh)), cG = groupBy(C, r => vk(r.movil)), aG = groupBy(AN, x => vk(x.veh));
+    const T = ag.filter(x => !LG_SKIP.test(String(x.n || '').trim()) && x.u >= 3).map(x => {
+      const g = rows.filter(r => gk(r) === x.n); const U = (a === 'log' ? aggLog(g, keyU) : aggOps(g.filter(r => r.caso === 'N'), keyU)).filter(u => u.km >= minKm && u.cump && u.cump >= 0.3 && u.cump <= 2.5);
+      const pv = pag.find(y => y.n === x.n); const cc = cG.get(x.n) || [];
+      return { n: x.n, u: x.u, km: x.km, lts: x.lts, rend: x.rend, ideal: x.ideal, v: { rend: x.cump, ral: x.lts ? sum(eG.get(x.n) || [], 'lts') / x.lts * 100 : null, precio: cc.length >= 10 ? div(sum(cc, CG[a].amt), sum(cc, 'lts')) : null, disc: U.length ? U.filter(u => u.cump >= 0.95).length / U.length : null, mejora: pv && pv.cump && x.cump ? x.cump - pv.cump : null, limpio: cc.length >= 10 ? (aG.get(x.n) || []).length / cc.length * 100 : null } };
+    });
+    LG_CAT.forEach(c => {
+      const vals = T.filter(t => t.v[c.k] !== null && t.v[c.k] !== undefined && isFinite(t.v[c.k])).sort((x, y) => c.hi ? y.v[c.k] - x.v[c.k] : x.v[c.k] - y.v[c.k]);
+      let rank = 0, last = null; vals.forEach((t, i) => { if (last === null || Math.abs(t.v[c.k] - last) > 1e-9) rank = i; last = t.v[c.k]; t.p = t.p || {}; t.r = t.r || {}; t.p[c.k] = LG_PTS[rank] || 0; t.r[c.k] = rank + 1; });
+      T.forEach(t => { t.p = t.p || {}; t.r = t.r || {}; if (t.p[c.k] === undefined) { t.p[c.k] = 0; t.r[c.k] = null; } });
+    });
+    T.forEach(t => { t.pts = sum(LG_CAT, c => t.p[c.k]); t.wins = LG_CAT.filter(c => t.r[c.k] === 1).length; });
+    T.sort((x, y) => y.pts - x.pts || y.wins - x.wins || (y.v.rend || 0) - (x.v.rend || 0)); T.forEach((t, i) => t.pos = i + 1);
+    return T;
+  });
+  S.cache[key] = res; return res;
+}
+function ligaChof(a, p) {
+  const rows = choferRows(a, p).filter(r => r.km >= setting('minKmChof') && r.hm >= 20 && r.rend > 0);
+  if (rows.length < 5) return [];
+  const v = rows.map(r => r.rend).sort((x, y) => x - y); const med = v[Math.floor(v.length / 2)];
+  const ok = rows.filter(r => r.rend >= med * 0.5 && r.rend <= med * 1.8); const rs = ok.map(r => r.rend).sort((x, y) => x - y);
+  return ok.map(r => { let lo = 0; while (lo < rs.length && rs[lo] < r.rend) lo++; const pct = lo / Math.max(1, rs.length - 1); const ral = Math.max(0, Math.min(100, 100 - (r.pr - 5) * 3)); return Object.assign({}, r, { sRal: ral, sRend: pct * 100, score: ral * 0.6 + pct * 100 * 0.4 }); }).sort((x, y) => y.score - x.score).map((r, i) => Object.assign(r, { pos: i + 1 }));
+}
+function viewLiga(a) {
+  const f = S.f[a]; const months = Array.from(new Set(AREA_DS[a].rend.flatMap(periodsOf))).sort();
+  if (!months.length) return empty('Aún no hay rendimientos para armar la liga.');
+  const p = months.indexOf(f.mes) >= 0 ? f.mes : months[months.length - 1];
+  f.lgLvl = a === 'ops' ? (f.lgLvl || 'region') : 'region'; const lvl = f.lgLvl; const lvlN = a === 'log' ? 'Región' : lvl === 'suc' ? 'Sucursal' : 'Región';
+  const T = ligaTable(a, p, lvl); if (!T || !T.length) return empty('No hay suficientes datos para la liga de ' + perLabel(p) + '.');
+  const prevT = months.indexOf(prevPeriod(p)) >= 0 ? ligaTable(a, prevPeriod(p), lvl) : null;
+  const hist = months.filter(m => m <= p).slice(-12).map(m => { const t = ligaTable(a, m, lvl); return t && t[0] ? { m, ch: t[0].n, pts: t[0].pts } : null; }).filter(Boolean);
+  let streak = 0; for (let i = hist.length - 1; i >= 0 && hist[i].ch === T[0].n; i--) streak++;
+  const titles = {}; hist.forEach(h => titles[h.ch] = (titles[h.ch] || 0) + 1);
+  T.forEach(t => { const q = prevT && prevT.find(x => x.n === t.n); t.prev = q ? q.pos : null; t.mv = q ? q.pos - t.pos : null; });
+  const champ = T[0]; const CH = ligaChof(a, choferRows(a, p).length ? p : (periodsOf(a + '_chof').slice(-1)[0] || p)); const chP = choferRows(a, p).length ? p : periodsOf(a + '_chof').slice(-1)[0];
+  // Unidades
+  const rowsU = e3withF(a, {}, () => a === 'log' ? logRendRows(p, true) : opsRendRows(p, { ignoreRegion: true }));
+  const keyU = a === 'log' ? r => r.eco : r => r.movil; const minKm = a === 'log' ? setting('minKmLog') : setting('minKmOps');
+  const UU = (a === 'log' ? aggLog(rowsU, keyU) : aggOps(rowsU.filter(r => r.caso === 'N'), keyU)).filter(u => u.km >= minKm && u.cump && u.cump >= 0.5 && u.cump <= 1.6);
+  const pRows = AREA_DS[a].rend.some(ds => arrFor(ds, prevPeriod(p))) ? e3withF(a, {}, () => a === 'log' ? logRendRows(prevPeriod(p), true) : opsRendRows(prevPeriod(p), { ignoreRegion: true })) : [];
+  const PU = new Map((pRows.length ? (a === 'log' ? aggLog(pRows, keyU) : aggOps(pRows.filter(r => r.caso === 'N'), keyU)) : []).map(u => [u.n, u]));
+  const topU = UU.slice().sort((x, y) => y.cump - x.cump).slice(0, 10);
+  const prog = UU.map(u => { const q = PU.get(u.n); return q && q.cump && q.cump >= 0.5 && q.cump <= 1.6 ? Object.assign({}, u, { d: u.cump - q.cump, before: q.cump }) : null; }).filter(Boolean).sort((x, y) => y.d - x.d).slice(0, 10);
+  // Pelea estelar
+  if (!T.find(t => t.n === f.lgA)) f.lgA = T[0].n; if (!T.find(t => t.n === f.lgB) || f.lgB === f.lgA) f.lgB = (T[1] || T[0]).n;
+  const A = T.find(t => t.n === f.lgA), B = T.find(t => t.n === f.lgB);
+  const rounds = LG_CAT.map(c => { const va = A.v[c.k], vb = B.v[c.k]; let w = 0; if (va !== null && vb !== null && isFinite(va) && isFinite(vb) && Math.abs(va - vb) > 1e-9) w = (c.hi ? va > vb : va < vb) ? 1 : 2; return { c, va, vb, w }; });
+  const wa = rounds.filter(r => r.w === 1).length, wb = rounds.filter(r => r.w === 2).length; const winner = wa === wb ? (A.pts === B.pts ? null : A.pts > B.pts ? A : B) : wa > wb ? A : B; const wn = Math.max(wa, wb), ln = Math.min(wa, wb);
+  const verdict = wa === wb ? (winner ? 'Empate en rounds · gana por puntos de liga' : 'Empate técnico') : ln === 0 && wn >= 4 ? '¡Gana por KO!' : wn - ln >= 2 ? 'Gana por decisión unánime' : 'Gana por decisión dividida';
+  const opt = sel => T.map(t => '<option' + (t.n === sel ? ' selected' : '') + '>' + esc(t.n) + '</option>').join('');
+  const mvTag = t => t.mv === null ? '<span class="lmv nw">nuevo</span>' : t.mv > 0 ? '<span class="lmv up">▲ ' + t.mv + '</span>' : t.mv < 0 ? '<span class="lmv dn">▼ ' + (-t.mv) + '</span>' : '<span class="lmv eq">=</span>';
+  const lvlSeg = a === 'ops' ? '<div class="seg" role="group" aria-label="Nivel">' + [['region', 'Regiones'], ['suc', 'Sucursales']].map(([v, l]) => '<button data-act="f" data-k="lgLvl" data-v="' + v + '" class="' + (lvl === v ? 'on' : '') + '">' + l + '</button>').join('') + '</div>' : '';
+  const podium = [1, 0, 2].map(i => T[i] ? '<div class="lpd p' + (i + 1) + '" style="animation-delay:' + (0.15 * (2 - i)) + 's"><div class="lgl">' + GLOVE + '</div><b>' + esc(T[i].n) + '</b><em>' + T[i].pts + ' pts · ' + T[i].wins + (T[i].wins === 1 ? ' categoría ganada' : ' categorías ganadas') + '</em><div class="lped">' + (i + 1) + '</div></div>' : '').join('');
+  const hero = '<section class="lgring"><div class="ropes" aria-hidden="true"><i></i><i></i><i></i></div><div class="lgin"><div class="lgl1"><span class="lgk">' + GLOVE + ' LIGA DEL LITRO · ' + AREA_NAME[a].toUpperCase() + '</span><h2>' + perLabel(p) + '</h2><p>Las ' + (lvl === 'suc' ? 'sucursales' : 'regiones') + ' pelean en 6 categorías: rendimiento, ralentí, compra, disciplina, mejora y juego limpio. Puntos tipo F1: 25, 18, 15, 12, 10…</p><div class="belt"><span>🏆 CAMPEÓN DEL MES</span><b>' + esc(champ.n) + '</b><em>' + champ.pts + ' puntos' + (streak > 1 ? ' · 🔥 ' + streak + ' meses seguidos' : '') + (titles[champ.n] > 1 ? ' · ' + titles[champ.n] + ' títulos' : '') + '</em><button class="btn sm lgcert" data-act="lgCert" data-area="' + a + '" data-kind="reg">🎖 Reconocimiento</button></div></div><div class="lpodium">' + podium + '</div></div></section>';
+  const catHead = LG_CAT.map(c => '<th class="num" title="' + esc(c.d) + '">' + c.i + ' ' + c.n + '</th>').join('');
+  const tbl = '<div class="tscroll"><table class="lgtbl"><thead><tr><th>#</th><th>' + lvlN + '</th><th></th>' + catHead + '<th class="num">Puntos</th></tr></thead><tbody>' + T.map(t => '<tr class="' + (t.pos <= 3 ? 'top' + t.pos : '') + (t.pos === T.length && T.length > 3 ? ' last' : '') + '"><td><b>' + t.pos + '</b></td><td><b>' + esc(t.n) + '</b><small>' + F.n0(t.u) + ' unidades · ' + F.n2(t.rend) + ' km/L</small></td><td>' + mvTag(t) + '</td>' + LG_CAT.map(c => '<td class="num"><span class="lp' + (t.r[c.k] === 1 ? ' gold' : '') + '">' + t.p[c.k] + '</span><small>' + (t.v[c.k] === null || t.v[c.k] === undefined ? '—' : c.f(t.v[c.k])) + '</small></td>').join('') + '<td class="num"><b class="ltot">' + t.pts + '</b></td></tr>').join('') + '</tbody></table></div>';
+  const fight = '<section class="lfight"><div class="lfh"><span class="lgk">' + GLOVE + ' PELEA ESTELAR</span><div class="lfsel"><select data-act="f" data-k="lgA">' + opt(f.lgA) + '</select><b class="vs">VS</b><select data-act="f" data-k="lgB">' + opt(f.lgB) + '</select></div></div><div class="lfcorner"><div class="cr red"><b>' + esc(A.n) + '</b><span>Esquina roja · ' + A.pts + ' pts</span></div><div class="lfres"><b>' + wa + ' – ' + wb + '</b><span>' + verdict + '</span>' + (winner ? '<em>🏆 ' + esc(winner.n) + '</em>' : '') + '</div><div class="cr blue"><b>' + esc(B.n) + '</b><span>Esquina azul · ' + B.pts + ' pts</span></div></div><div class="lrounds">' + rounds.map((r, i) => '<div class="lr w' + r.w + '" style="animation-delay:' + (i * 0.12) + 's"><span class="rv a">' + (r.va === null || r.va === undefined ? '—' : r.c.f(r.va)) + '</span><span class="rn">Round ' + (i + 1) + '<b>' + r.c.i + ' ' + r.c.n + '</b></span><span class="rv b">' + (r.vb === null || r.vb === undefined ? '—' : r.c.f(r.vb)) + '</span></div>').join('') + '</div></section>';
+  const ids = { h: cid() };
+  const chTop = CH.slice(0, 10), chLow = CH.slice(-10).reverse();
+  const chCols = [{ k: 'pos', l: '#', num: 1 }, { k: 'chofer', l: 'Chofer' }, { k: 'score', l: 'Puntaje', num: 1, f: F.n1 }, { k: 'pr', l: '% ralentí', num: 1, f: v => F.n1(v) + '%' }, { k: 'rend', l: 'km/L', num: 1, f: F.n2 }, { k: 'km', l: 'Km', num: 1, f: F.n0 }];
+  const uCols = [{ k: 'n', l: 'Móvil' }, { k: 'rend', l: 'km/L', num: 1, f: F.n2 }, { k: 'ideal', l: 'Ideal', num: 1, f: F.n2 }, { k: 'cump', l: 'Cumplimiento', num: 1, html: x => badge(x.cump, F.pct(x.cump)) }, { k: 'km', l: 'Km', num: 1, f: F.n0 }];
+  const pCols = [{ k: 'n', l: 'Móvil' }, { k: 'before', l: 'Mes anterior', num: 1, f: F.pct }, { k: 'cump', l: 'Este mes', num: 1, f: F.pct }, { k: 'd', l: 'Mejora', num: 1, html: x => '<b style="color:#0ca30c">+' + F.n1(x.d * 100) + ' pts</b>' }];
+  const histH = hist.length ? '<div class="lhist">' + hist.map(h => '<div class="' + (h.m === p ? 'on' : '') + '"><span>' + perShort(h.m) + '</span><b>' + esc(h.ch) + '</b><em>' + h.pts + ' pts</em></div>').join('') + '</div>' : '';
+  return '<div class="blockhead"><div><h2>🥊 Liga del Litro</h2><p class="sub">Competencia mensual · se usa el mes seleccionado arriba</p></div><div class="bh-tools">' + lvlSeg + '</div></div>' + hero +
+    card('Tabla general · ' + perLabel(p), tbl, { sub: 'Puntos por categoría (el número grande) y el valor que lo explica (abajo). Dorado = ganó la categoría. Flechas = posiciones ganadas o perdidas contra el mes anterior.' }) +
+    fight +
+    card('Campeones por mes', histH, { sub: 'Quién se llevó el cinturón cada mes' }) +
+    (CH.length ? '<div class="grid2">' + card('🥇 Choferes · los mejores del ring', table(chCols, chTop, { sort: 'pos', dir: 1, limit: 10 }), { sub: perLabel(chP) + ' · puntaje = 60% ralentí bajo + 40% rendimiento', tools: '<button class="btn sm" data-act="lgCert" data-area="' + a + '" data-kind="chof">🎖 Reconocimiento</button>' }) + card('🥊 Choferes · a entrenar más', table(chCols, chLow, { sort: 'pos', dir: -1, limit: 10 }), { sub: 'Los puntajes más bajos del mes', cls: 'bad-edge' }) + '</div>' : '') +
+    '<div class="grid2">' + card('🏋️ Peso completo · mejores unidades', table(uCols, topU, { sort: 'cump', limit: 10, onRow: x => ficha(a, x.n) })) + card('🚀 Mejor progreso del mes', prog.length ? table(pCols, prog, { sort: 'd', limit: 10, onRow: x => ficha(a, x.n) }) : empty('Se necesita el mes anterior para medir el progreso.'), { sub: 'Unidades que más subieron su cumplimiento' }) + '</div>' +
+    card('Reglas de la liga', '<div class="anrules">' + LG_CAT.map(c => '<div><i>' + c.i + '</i><b>' + c.n + '</b><span>' + esc(c.d) + (c.hi ? ' · más alto gana' : ' · más bajo gana') + '</span></div>').join('') + '</div><p class="note">Participan ' + (lvl === 'suc' ? 'sucursales' : 'regiones') + ' con al menos 3 unidades. En cada categoría se reparten 25, 18, 15, 12, 10, 8, 6, 4, 2 y 1 puntos del 1.º al 10.º lugar. Gana quien más puntos sume; el desempate es por categorías ganadas.</p>');
+}
+function ligaCert(a, kind) {
+  const f = S.f[a]; const months = Array.from(new Set(AREA_DS[a].rend.flatMap(periodsOf))).sort(); const p = months.indexOf(f.mes) >= 0 ? f.mes : months[months.length - 1];
+  let who, line, sub;
+  if (kind === 'chof') { const cp = choferRows(a, p).length ? p : periodsOf(a + '_chof').slice(-1)[0]; const c = ligaChof(a, cp)[0]; if (!c) { toast('Sin choferes para reconocer', 'warn'); return; } who = c.chofer; line = 'Chofer campeón de la Liga del Litro'; sub = F.n1(c.pr) + '% de ralentí · ' + F.n2(c.rend) + ' km/L · ' + F.n0(c.km) + ' km'; }
+  else { const t = ligaTable(a, p, f.lgLvl || 'region')[0]; who = t.n; line = (f.lgLvl === 'suc' ? 'Sucursal' : 'Región') + ' campeona de la Liga del Litro'; sub = t.pts + ' puntos · ' + t.wins + (t.wins === 1 ? ' categoría ganada' : ' categorías ganadas') + ' · cumplimiento ' + F.pct(t.v.rend); }
+  const html = '<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><title>Reconocimiento</title><style>body{margin:0;background:#1a0505;font-family:Manrope,Segoe UI,system-ui,sans-serif;display:grid;place-items:center;min-height:100vh}.c{width:1100px;height:720px;position:relative;background:radial-gradient(700px 400px at 50% 0%,#3b0b10,#12040a);color:#fff;border-radius:18px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.6);text-align:center;padding:60px}.c:before{content:"";position:absolute;inset:18px;border:3px solid #f2c200;border-radius:12px;box-shadow:inset 0 0 0 6px rgba(242,194,0,.15)}.lg{height:52px;background:#003087;padding:6px 10px;border-radius:8px}.gl{width:120px;height:120px;margin:20px auto 0;animation:p 2s infinite}.gl svg{width:100%;height:100%}@keyframes p{50%{transform:rotate(-8deg) scale(1.05)}}h3{letter-spacing:.3em;color:#f2c200;font-size:16px;margin:14px 0 0}h1{font-size:64px;margin:10px 0;background:linear-gradient(90deg,#fff,#ffd36b);-webkit-background-clip:text;background-clip:text;color:transparent}h2{font-size:26px;margin:0;font-weight:700}p{color:#f0d3d3;font-size:18px}.by{position:absolute;left:0;right:0;bottom:46px;color:#d9b3b3;font-size:14px}@media print{body{background:#fff}}</style></head><body><div class="c"><img class="lg" src="data:image/png;base64,' + LOGO64 + '" alt="Paquetexpress"><div class="gl">' + GLOVE + '</div><h3>RECONOCIMIENTO · ' + esc(AREA_NAME[a].toUpperCase()) + '</h3><h1>' + esc(who) + '</h1><h2>' + line + ' · ' + perLabel(p) + '</h2><p>' + sub + '</p><p>Gracias por demostrar que cada litro cuenta.</p><div class="by">Portal de Combustible Paquetexpress · ' + new Date().toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' }) + '</div></div></body></html>';
+  showPresentation(html, 'Reconocimiento_' + String(who).replace(/[^A-Za-z0-9]+/g, '_').slice(0, 40) + '_' + p + '.html', '🥊 Reconocimiento listo', 'Descárgalo e imprímelo o compártelo con el equipo'); return;
+  showPresentation(html, 'Reconocimiento_' + String(who).replace(/[^A-Za-z0-9]+/g, '_').slice(0, 40) + '_' + p + '.html');
+}
+
 /* ===================== Manual de uso de la plataforma (diapositivas con capturas reales) ===================== */
 function manSlide(n, title, intro, steps, shot, tip) {
   return { html: '<div class="mn"><div class="mt"><span class="mnum">' + n + '</span><h2>' + title + '</h2><p class="mi">' + intro + '</p><ol>' + steps.map(s => '<li>' + s + '</li>').join('') + '</ol>' + (tip ? '<div class="mtip">💡 ' + tip + '</div>' : '') + '</div><div class="ms"><div class="frame"><i></i><i></i><i></i></div><img src="' + SHOT[shot] + '" alt=""></div></div>' };
@@ -3345,9 +3667,11 @@ function viewArea(a, tab) {
   else if (tab === 'cargas') body = viewCargas(a);
   else if (tab === 'ralenti') body = viewRal(a);
   else if (tab === 'comparador') body = viewComparador(a);
+  else if (tab === 'anomalias') body = viewAnom(a);
+  else if (tab === 'liga') body = viewLiga(a);
   else body = viewChof(a);
-  const PH = { log: { rendimientos: 'cascadia_caja', cargas: 'cascadias', ralenti: 'sencillo', choferes: 'chofer_log', comparador: 'cascadias' }, ops: { rendimientos: 'hinos_anden', cargas: 'hino', ralenti: 'sprinter', choferes: 'chofer_ops', comparador: 'hinos_anden' } };
-  const TAG = { rendimientos: 'Rendimiento contra el ideal, gasto y unidades con área de oportunidad', cargas: 'Cargas, proveedores, sitios y comportamiento del precio', ralenti: 'Eventos, ubicaciones, reincidencia y simulador sin ralentí', choferes: 'Desempeño y ralentí por conductor', comparador: 'Compara móviles, regiones y marcas con todo lo comparable' };
+  const PH = { log: { rendimientos: 'cascadia_caja', cargas: 'cascadias', ralenti: 'sencillo', choferes: 'chofer_log', comparador: 'cascadias', anomalias: 'sencillo', liga: 'cascadia_caja' }, ops: { rendimientos: 'hinos_anden', cargas: 'hino', ralenti: 'sprinter', choferes: 'chofer_ops', comparador: 'hinos_anden', anomalias: 'hino', liga: 'hinos_anden' } };
+  const TAG = { rendimientos: 'Rendimiento contra el ideal, gasto y unidades con área de oportunidad', cargas: 'Cargas, proveedores, sitios y comportamiento del precio', ralenti: 'Eventos, ubicaciones, reincidencia y simulador sin ralentí', choferes: 'Desempeño y ralentí por conductor', comparador: 'Compara móviles, regiones y marcas con todo lo comparable', anomalias: 'Centinela de combustible: todo lo que se sale de lo normal', liga: 'La competencia mensual por cada litro' };
   const SLG = ['Cada litro cuenta', 'Hagamos uso eficiente del combustible', 'Menos ralentí, más kilómetros', 'Manejo suave, rendimiento ideal', 'Apaga el motor en cada parada', 'El precio no lo controlamos; su uso, sí'];
   const slog = '<div class="slogans" aria-hidden="true"><span class="sdrop"><svg viewBox="0 0 24 24"><path d="M12 2s-7 8-7 13a7 7 0 0 0 14 0c0-5-7-13-7-13z" fill="#f2a900"/><path d="M9 14a3 3 0 0 0 3 3" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg></span><div class="sl">' + SLG.map((t, i) => '<span style="animation-delay:' + (i * 4) + 's">' + t + '</span>').join('') + '</div></div>';
   const banner = '<div class="abanner ' + a + (/^chofer/.test(PH[a][tab]) ? ' portrait' : '') + '"><img src="' + IMG[PH[a][tab]] + '" alt=""><div class="abtxt"><p class="crumb"><a href="#inicio">Inicio</a> / ' + AREA_NAME[a] + '</p><h1>' + AREA_NAME[a] + '</h1><p>' + (a === 'log' ? 'Tractocamiones · red troncal' : 'Unidades ligeras · recolección y entrega') + ' — ' + TAG[tab] + '</p></div></div>';
@@ -3490,7 +3814,7 @@ function render() {
   for (const k in TBL) delete TBL[k];
   $$('.topnav a').forEach(a => a.classList.toggle('on', r.indexOf(a.getAttribute('href').slice(1)) === 0));
   let html;
-  const m = r.match(/^(logistica|operaciones)(?:-(rendimientos|cargas|ralenti|choferes|comparador))?$/);
+  const m = r.match(/^(logistica|operaciones)(?:-(rendimientos|cargas|ralenti|choferes|comparador|anomalias|liga))?$/);
   try {
     if (m) html = viewArea(m[1] === 'logistica' ? 'log' : 'ops', m[2] || 'rendimientos');
     else if (r === 'cargar') html = viewUpload();
@@ -3522,6 +3846,7 @@ function bindEvents() {
     else if (act === 'xlsTab') { t.disabled = true; try { await tabExcel(t.getAttribute('data-area'), t.getAttribute('data-tab')); } catch (err) { toast('No se pudo generar el Excel: ' + err.message, 'warn'); } t.disabled = false; }
     else if (act === 'pdl') presDownload();
     else if (act === 'manual') openManual();
+    else if (act === 'lgCert') ligaCert(t.getAttribute('data-area'), t.getAttribute('data-kind'));
     else if (act === 'e360' || act === 'e360new') openE360Wizard();
     else if (act === 'e360close') closeE360();
     else if (act === 'e360dl') e360Download();
