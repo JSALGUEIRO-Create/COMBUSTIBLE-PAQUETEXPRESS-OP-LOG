@@ -706,6 +706,17 @@ body.e3open{overflow:hidden}body.e3open .floatbtn{display:none}
 main:has(.alay){max-width:1720px}
 .amain .kv{font-size:clamp(19px,1.55vw,24px)}
 @media (max-width:1350px){.amain .kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+/* ===== Barra superior fluida: todo cabe sin barra horizontal ===== */
+html,body{overflow-x:clip}
+.topin{max-width:none;gap:16px;padding:10px clamp(12px,1.6vw,28px)}
+.topnav{min-width:0;flex:0 1 auto}
+.tright{margin-left:auto;min-width:0;flex:0 1 auto}
+#userchip{min-width:0;flex:0 1 auto;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:1700px){.topin{gap:12px}.topnav a{padding:8px 10px}#userchip{max-width:200px}}
+@media (max-width:1560px){.logo small{display:none}.e360btn,.wabtn{margin-left:2px}#userchip{max-width:150px}}
+@media (max-width:1460px){#userchip{display:none}}
+@media (max-width:1250px){.logo .sep,.logo>span:not(.sep){display:none}}
 /* ===== Menú lateral tipo cabina (Logística / Operaciones) ===== */
 .alay{display:grid;grid-template-columns:272px minmax(0,1fr);gap:24px;align-items:start}
 .aside{position:sticky;top:72px;max-height:calc(100vh - 88px);overflow:auto;scrollbar-width:thin;background:linear-gradient(180deg,#071733,#0b2a5b);color:#fff;border-radius:20px;padding:16px 12px;display:flex;flex-direction:column;gap:6px;box-shadow:0 14px 40px rgba(5,20,50,.28)}
