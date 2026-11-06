@@ -4125,7 +4125,7 @@ function fuelShow() {
   const el = document.createElement('div'); el.id = 'fuel'; if (reduce) el.classList.add('rm');
   el.innerHTML = `<div class="fu-card">
   <svg class="fu-svg" viewBox="0 0 420 210" aria-hidden="true">
-    <defs><clipPath id="fuTk"><rect x="150" y="133" width="44" height="20" rx="5"/></clipPath>
+    <defs><clipPath id="fuTk"><rect x="104" y="152" width="64" height="11" rx="5"/></clipPath>
       <linearGradient id="fuSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b3f9e"/><stop offset="1" stop-color="#00266e"/></linearGradient></defs>
     <rect x="0" y="0" width="420" height="210" rx="16" fill="url(#fuSky)"/>
     <g opacity=".22" fill="#fff"><circle cx="40" cy="30" r="1.4"/><circle cx="120" cy="18" r="1"/><circle cx="210" cy="36" r="1.2"/><circle cx="380" cy="22" r="1.4"/><circle cx="300" cy="14" r="1"/></g>
@@ -4149,16 +4149,22 @@ function fuelShow() {
     <path class="fu-flow" d="M316 130 C 300 168, 240 172, 197 140" fill="none" stroke="#f2c94c" stroke-width="2" stroke-linecap="round" stroke-dasharray="2 9"/>
     <!-- camión -->
     <g class="fu-truck"><g class="fu-bob">
-      <rect x="30" y="86" width="150" height="72" rx="5" fill="#fff"/>
-      <rect x="30" y="118" width="150" height="10" fill="#003087"/><rect x="30" y="128" width="150" height="4" fill="#f2a900"/>
-      <text x="105" y="108" text-anchor="middle" font-size="13" font-weight="900" fill="#003087" font-style="italic">Paquetexpress</text>
-      <path d="M182 104 h34 q10 0 15 10 l12 22 v22 h-61 z" fill="#f2a900"/><rect x="182" y="136" width="61" height="6" fill="#003087"/>
-      <path d="M190 110 h24 q6 0 9 6 l9 16 h-42 z" fill="#9fd3ff" stroke="#0b2a5b" stroke-width="1.2"/>
-      <rect x="236" y="146" width="10" height="6" rx="2" fill="#ffe28a"/>
-      <rect x="150" y="133" width="44" height="20" rx="5" fill="#9aa7bd" stroke="#59657c" stroke-width="1.5"/>
-      <g clip-path="url(#fuTk)"><rect class="fu-tkfill" x="150" y="133" width="0" height="20" fill="#2bd46b"/></g>
-      <circle cx="196" cy="140" r="3" fill="#59657c"/>
-      <rect x="22" y="152" width="230" height="7" rx="3" fill="#1d2430"/></g>
+      <path d="M30 92 Q30 82 40 82 H198 Q210 82 218 94 L238 118 Q252 121 252 134 V150 H30 Z" fill="#ffffff" stroke="#c9d3e2" stroke-width="1.2"/>
+      <path d="M204 92 Q209 90 213 96 L231 118 H204 Z" fill="#26364d"/>
+      <rect x="186" y="94" width="14" height="22" rx="2" fill="#26364d"/>
+      <line x1="182" y1="88" x2="182" y2="148" stroke="#c9d3e2" stroke-width="1.2"/>
+      <line x1="118" y1="86" x2="118" y2="148" stroke="#dde3ee" stroke-width="1"/>
+      <rect x="31" y="116" width="3" height="16" rx="1" fill="#e5484d"/>
+      <rect x="40" y="96" width="5" height="25" fill="#1b2a5e"/>
+      <text x="49" y="113" font-family="Arial Black,Arial,sans-serif" font-size="14.5" font-weight="900" fill="#1b2a5e" textLength="122" lengthAdjust="spacingAndGlyphs">PAQUETEXPRESS</text>
+      <rect x="40" y="117" width="132" height="2.6" fill="#1b2a5e"/><rect x="47" y="121.5" width="125" height="1.6" fill="#1b2a5e"/>
+      <text x="186" y="131" font-family="Arial,sans-serif" font-size="5.2" font-weight="900" fill="#1b2a5e" textLength="34" lengthAdjust="spacingAndGlyphs">PAQUETEXPRESS</text>
+      <rect x="186" y="132.5" width="34" height="0.9" fill="#1b2a5e"/>
+      <rect x="244" y="124" width="7" height="6" rx="2" fill="#ffe28a"/>
+      <rect x="26" y="146" width="230" height="8" rx="3" fill="#1d2430"/>
+      <rect x="104" y="152" width="64" height="11" rx="5" fill="#9aa7bd" stroke="#59657c" stroke-width="1.2"/>
+      <g clip-path="url(#fuTk)"><rect class="fu-tkfill" x="104" y="152" width="0" height="11" fill="#2bd46b"/></g>
+      <circle cx="198" cy="140" r="3.2" fill="#59657c"/></g>
       <g class="fu-wh"><circle cx="70" cy="164" r="13" fill="#141a24"/><circle cx="70" cy="164" r="5.5" fill="#9aa7bd"/><rect x="68.5" y="153" width="3" height="22" fill="#5a6b8a" class="fu-sp"/></g>
       <g class="fu-wh"><circle cx="210" cy="164" r="13" fill="#141a24"/><circle cx="210" cy="164" r="5.5" fill="#9aa7bd"/><rect x="208.5" y="153" width="3" height="22" fill="#5a6b8a" class="fu-sp"/></g>
       <g class="fu-smoke" fill="#cfd8e8"><circle cx="18" cy="150" r="4"/><circle cx="8" cy="144" r="6"/></g>
@@ -4193,7 +4199,7 @@ function fuelShow() {
 }
 function fuelPaint(p) {
   const el = FUEL.el; if (!el) return; const q = s => el.querySelector(s);
-  q('.fu-tkfill').setAttribute('width', (44 * p).toFixed(2));
+  q('.fu-tkfill').setAttribute('width', (64 * p).toFixed(2));
   q('.fu-pbar').setAttribute('width', (40 * p).toFixed(2));
   q('.fu-lts').textContent = (FUEL_CAP * p).toFixed(1) + ' L';
   q('.fu-pct').textContent = Math.round(p * 100) + ' %';
