@@ -1346,7 +1346,7 @@ function loadXLSX() {
   XLSXP = new Promise((res, rej) => { const s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'; s.onload = () => res(window.XLSX); s.onerror = () => { XLSXP = null; rej(new Error('No se pudo cargar el lector de Excel')); }; document.head.appendChild(s); });
   return XLSXP;
 }
-async function downloadXLSX(filename, sheets) {
+async function downloadXLSXOld(filename, sheets) {
   const XLSX = await loadXLSX();
   const wb = XLSX.utils.book_new();
   for (const [name, rows] of sheets) {
@@ -3234,6 +3234,272 @@ function paqLocal(q) {
   catch (e) { console.error('Paquetín', e); return { html: 'Tuve un problema con esa consulta (' + esc(e.message || 'error') + '). ¿Me la dices de otra forma?', chips: ['¿Cómo vamos este mes?', 'Rendimiento por región', 'Precio del diésel por mes'] }; }
 }
 
+/* ===================== Excel ejecutivo (generador propio .xlsx con estilos y gráficas nativas) ===================== */
+const PXL = {
+  NAVY: 'FF003087', NAVY2: 'FF0B2A5B', BLUE: 'FF1D6CFF', GOLD: 'FFF2A900', INK: 'FF1F2937', MUTED: 'FF6B7A93', LINE: 'FFD9E1EC', ZEBRA: 'FFF4F7FC', WHITE: 'FFFFFFFF',
+  esc: s => String(s === null || s === undefined ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])).replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, ''),
+  col: n => { let s = ''; n++; while (n > 0) { const m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = Math.floor((n - 1) / 26); } return s; },
+  ref: (r, c) => PXL.col(c) + (r + 1),
+  abs: (sh, r1, c1, r2, c2) => "'" + sh.replace(/'/g, "''") + "'!$" + PXL.col(c1) + '$' + (r1 + 1) + ':$' + PXL.col(c2) + '$' + (r2 + 1)
+};
+function pxStyles() {
+  const S = { fonts: ['<font><sz val="10"/><color rgb="FF1F2937"/><name val="Calibri"/><family val="2"/></font>'], fills: ['<fill><patternFill patternType="none"/></fill>', '<fill><patternFill patternType="gray125"/></fill>'], borders: ['<border><left/><right/><top/><bottom/><diagonal/></border>'], numFmts: [], xfs: ['<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'], dxfs: [], map: {} };
+  const idx = (arr, x) => { let i = arr.indexOf(x); if (i < 0) { arr.push(x); i = arr.length - 1; } return i; };
+  S.get = o => {
+    o = o || {}; const key = JSON.stringify(o); if (S.map[key] !== undefined) return S.map[key];
+    const f = o.font || {};
+    const fontId = idx(S.fonts, '<font>' + (f.b ? '<b/>' : '') + (f.i ? '<i/>' : '') + (f.u ? '<u/>' : '') + '<sz val="' + (f.sz || 10) + '"/><color rgb="' + (f.color || PXL.INK) + '"/><name val="' + (f.name || 'Calibri') + '"/><family val="2"/></font>');
+    const fillId = o.fill ? idx(S.fills, '<fill><patternFill patternType="solid"><fgColor rgb="' + o.fill + '"/><bgColor indexed="64"/></patternFill></fill>') : 0;
+    let borderId = 0;
+    if (o.border) { const b = o.border; const sd = (n, st, c) => st ? '<' + n + ' style="' + st + '"><color rgb="' + (c || PXL.LINE) + '"/></' + n + '>' : '<' + n + '/>'; borderId = idx(S.borders, '<border>' + sd('left', b.l, b.lc || b.c) + sd('right', b.r, b.rc || b.c) + sd('top', b.t, b.tc || b.c) + sd('bottom', b.b, b.bc || b.c) + '<diagonal/></border>'); }
+    let numFmtId = 0;
+    if (o.fmt) { const bi = { '0': 1, '0.00': 2, '#,##0': 3, '#,##0.00': 4, '0%': 9, '0.00%': 10, '@': 49 }; if (bi[o.fmt] !== undefined) numFmtId = bi[o.fmt]; else numFmtId = 164 + idx(S.numFmts, o.fmt); }
+    const a = o.align || {};
+    const al = '<alignment vertical="' + (a.v || 'center') + '"' + (a.h ? ' horizontal="' + a.h + '"' : '') + (a.wrap ? ' wrapText="1"' : '') + (a.indent ? ' indent="' + a.indent + '"' : '') + '/>';
+    S.xfs.push('<xf numFmtId="' + numFmtId + '" fontId="' + fontId + '" fillId="' + fillId + '" borderId="' + borderId + '" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1">' + al + '</xf>');
+    return S.map[key] = S.xfs.length - 1;
+  };
+  S.dxf = (fill, color) => { S.dxfs.push('<dxf><font><b/><color rgb="' + color + '"/></font><fill><patternFill><bgColor rgb="' + fill + '"/></patternFill></fill></dxf>'); return S.dxfs.length - 1; };
+  S.xml = () => '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' + (S.numFmts.length ? '<numFmts count="' + S.numFmts.length + '">' + S.numFmts.map((f, i) => '<numFmt numFmtId="' + (164 + i) + '" formatCode="' + PXL.esc(f) + '"/>').join('') + '</numFmts>' : '') + '<fonts count="' + S.fonts.length + '">' + S.fonts.join('') + '</fonts><fills count="' + S.fills.length + '">' + S.fills.join('') + '</fills><borders count="' + S.borders.length + '">' + S.borders.join('') + '</borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="' + S.xfs.length + '">' + S.xfs.join('') + '</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles><dxfs count="' + S.dxfs.length + '">' + S.dxfs.join('') + '</dxfs><tableStyles count="0"/></styleSheet>';
+  return S;
+}
+function pxSheet(name) {
+  const W = { name, rows: new Map(), merges: [], cols: {}, heights: {}, cf: [], links: [], charts: [], pics: [], freeze: 0, filter: null, tab: null, maxR: 0, maxC: 0 };
+  W.set = (r, c, v, s, f) => { let row = W.rows.get(r); if (!row) { row = new Map(); W.rows.set(r, row); } row.set(c, { v, s, f }); if (r > W.maxR) W.maxR = r; if (c > W.maxC) W.maxC = c; };
+  W.merge = (r1, c1, r2, c2, v, s) => { W.merges.push(PXL.ref(r1, c1) + ':' + PXL.ref(r2, c2)); for (let r = r1; r <= r2; r++) for (let c = c1; c <= c2; c++) W.set(r, c, r === r1 && c === c1 ? v : null, s); };
+  W.xml = () => {
+    const o = ['<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheetPr>' + (W.tab ? '<tabColor rgb="' + W.tab + '"/>' : '') + '<pageSetUpPr fitToPage="1"/></sheetPr><dimension ref="A1:' + PXL.ref(W.maxR, W.maxC) + '"/><sheetViews><sheetView workbookViewId="0" showGridLines="0"' + (W.first ? ' tabSelected="1"' : '') + '>' + (W.freeze ? '<pane ySplit="' + W.freeze + '" topLeftCell="A' + (W.freeze + 1) + '" activePane="bottomLeft" state="frozen"/><selection pane="bottomLeft" activeCell="A' + (W.freeze + 1) + '" sqref="A' + (W.freeze + 1) + '"/>' : '') + '</sheetView></sheetViews><sheetFormatPr defaultRowHeight="15"/>'];
+    const cs = Object.keys(W.cols).map(Number).sort((a, b) => a - b); if (cs.length) o.push('<cols>' + cs.map(c => '<col min="' + (c + 1) + '" max="' + (c + 1) + '" width="' + W.cols[c] + '" customWidth="1"/>').join('') + '</cols>');
+    o.push('<sheetData>');
+    const rs = Array.from(W.rows.keys()).sort((a, b) => a - b);
+    for (const r of rs) {
+      const row = W.rows.get(r); const ht = W.heights[r];
+      const cells = []; Array.from(row.keys()).sort((a, b) => a - b).forEach(c => {
+        const x = row.get(c); const ref = PXL.ref(r, c); const s = x.s ? ' s="' + x.s + '"' : '';
+        if (x.f) cells.push('<c r="' + ref + '"' + s + '><f>' + PXL.esc(x.f) + '</f>' + (typeof x.v === 'number' && isFinite(x.v) ? '<v>' + x.v + '</v>' : '') + '</c>');
+        else if (x.v === null || x.v === undefined || x.v === '') cells.push('<c r="' + ref + '"' + s + '/>');
+        else if (typeof x.v === 'number') cells.push(isFinite(x.v) ? '<c r="' + ref + '"' + s + '><v>' + x.v + '</v></c>' : '<c r="' + ref + '"' + s + '/>');
+        else cells.push('<c r="' + ref + '"' + s + ' t="inlineStr"><is><t xml:space="preserve">' + PXL.esc(x.v) + '</t></is></c>');
+      });
+      o.push('<row r="' + (r + 1) + '"' + (ht ? ' ht="' + ht + '" customHeight="1"' : '') + '>' + cells.join('') + '</row>');
+    }
+    o.push('</sheetData>');
+    if (W.filter) o.push('<autoFilter ref="' + W.filter + '"/>');
+    if (W.merges.length) o.push('<mergeCells count="' + W.merges.length + '">' + W.merges.map(m => '<mergeCell ref="' + m + '"/>').join('') + '</mergeCells>');
+    W.cf.forEach(x => o.push(x));
+    if (W.links.length) o.push('<hyperlinks>' + W.links.map(l => '<hyperlink ref="' + l.ref + '" location="' + PXL.esc(l.loc) + '" display="' + PXL.esc(l.disp) + '"/>').join('') + '</hyperlinks>');
+    o.push('<pageMargins left="0.4" right="0.4" top="0.5" bottom="0.6" header="0.3" footer="0.3"/><pageSetup orientation="landscape" fitToWidth="1" fitToHeight="0"/><headerFooter><oddFooter>&amp;L&amp;8Paquetexpress · Portal de Combustible&amp;R&amp;8Página &amp;P de &amp;N</oddFooter></headerFooter>');
+    if (W.charts.length || W.pics.length) o.push('<drawing r:id="rIdDr"/>');
+    o.push('</worksheet>');
+    return o.join('');
+  };
+  return W;
+}
+function pxChartXml(ch) {
+  const ns = 'xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"';
+  const tx = (sz, b, col) => '<c:txPr><a:bodyPr/><a:lstStyle/><a:p><a:pPr><a:defRPr sz="' + sz + '"' + (b ? ' b="1"' : '') + '><a:solidFill><a:srgbClr val="' + (col || '4A5872') + '"/></a:solidFill><a:latin typeface="Calibri"/></a:defRPr></a:pPr><a:endParaRPr lang="es-MX"/></a:p></c:txPr>';
+  const n = ch.labels.length;
+  const strCache = '<c:strCache><c:ptCount val="' + n + '"/>' + ch.labels.map((l, i) => '<c:pt idx="' + i + '"><c:v>' + PXL.esc(l) + '</c:v></c:pt>').join('') + '</c:strCache>';
+  const numCache = '<c:numCache><c:formatCode>General</c:formatCode><c:ptCount val="' + n + '"/>' + ch.values.map((v, i) => v === null || !isFinite(v) ? '' : '<c:pt idx="' + i + '"><c:v>' + v + '</c:v></c:pt>').join('') + '</c:numCache>';
+  const dpt = (ch.colors || []).map((c, i) => c ? '<c:dPt><c:idx val="' + i + '"/><c:invertIfNegative val="0"/><c:bubble3D val="0"/><c:spPr><a:solidFill><a:srgbClr val="' + c + '"/></a:solidFill></c:spPr></c:dPt>' : '').join('');
+  const dl = '<c:dLbls><c:numFmt formatCode="' + PXL.esc(ch.fmt || '#,##0') + '" sourceLinked="0"/><c:spPr><a:noFill/><a:ln><a:noFill/></a:ln></c:spPr>' + tx(800, true, '1F2937') + (ch.bar ? '<c:dLblPos val="outEnd"/>' : '') + '<c:showLegendKey val="0"/><c:showVal val="1"/><c:showCatName val="0"/><c:showSerName val="0"/><c:showPercent val="0"/><c:showBubbleSize val="0"/></c:dLbls>';
+  const ser = '<c:ser><c:idx val="0"/><c:order val="0"/><c:tx><c:v>' + PXL.esc(ch.serie) + '</c:v></c:tx><c:spPr>' + (ch.line ? '<a:ln w="31750" cap="rnd"><a:solidFill><a:srgbClr val="1D6CFF"/></a:solidFill></a:ln>' : '<a:solidFill><a:srgbClr val="' + (ch.color || '1D6CFF') + '"/></a:solidFill>') + '</c:spPr>' + (ch.line ? '<c:marker><c:symbol val="circle"/><c:size val="6"/><c:spPr><a:solidFill><a:srgbClr val="F2A900"/></a:solidFill><a:ln><a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill></a:ln></c:spPr></c:marker>' : '<c:invertIfNegative val="0"/>') + dpt + ((ch.bar && n <= 40) || (!ch.bar && !ch.line && n <= 20) ? dl : '') + '<c:cat><c:strRef><c:f>' + PXL.esc(ch.catRef) + '</c:f>' + strCache + '</c:strRef></c:cat><c:val><c:numRef><c:f>' + PXL.esc(ch.valRef) + '</c:f>' + numCache + '</c:numRef></c:val>' + (ch.line ? '<c:smooth val="0"/>' : '') + '</c:ser>';
+  const plot = ch.line ? '<c:lineChart><c:grouping val="standard"/><c:varyColors val="0"/>' + ser + '<c:marker val="1"/><c:axId val="5001"/><c:axId val="5002"/></c:lineChart>' : '<c:barChart><c:barDir val="' + (ch.bar ? 'bar' : 'col') + '"/><c:grouping val="clustered"/><c:varyColors val="0"/>' + ser + '<c:gapWidth val="' + (ch.bar ? 45 : 60) + '"/><c:axId val="5001"/><c:axId val="5002"/></c:barChart>';
+  const catAx = '<c:catAx><c:axId val="5001"/><c:scaling><c:orientation val="' + (ch.bar ? 'maxMin' : 'minMax') + '"/></c:scaling><c:delete val="0"/><c:axPos val="' + (ch.bar ? 'l' : 'b') + '"/><c:numFmt formatCode="General" sourceLinked="0"/><c:majorTickMark val="none"/><c:minorTickMark val="none"/><c:tickLblPos val="nextTo"/><c:spPr><a:ln w="9525"><a:solidFill><a:srgbClr val="D9E1EC"/></a:solidFill></a:ln></c:spPr>' + tx(800, false) + '<c:crossAx val="5002"/><c:crosses val="autoZero"/><c:auto val="1"/><c:lblAlgn val="ctr"/><c:lblOffset val="100"/><c:noMultiLvlLbl val="0"/></c:catAx>';
+  const valAx = '<c:valAx><c:axId val="5002"/><c:scaling><c:orientation val="minMax"/>' + (ch.min !== undefined ? '<c:min val="' + ch.min + '"/>' : '') + '</c:scaling><c:delete val="' + (ch.bar ? 1 : 0) + '"/><c:axPos val="' + (ch.bar ? 'b' : 'l') + '"/>' + (ch.bar ? '' : '<c:majorGridlines><c:spPr><a:ln w="9525"><a:solidFill><a:srgbClr val="EEF2F8"/></a:solidFill></a:ln></c:spPr></c:majorGridlines>') + '<c:numFmt formatCode="' + PXL.esc(ch.fmt || '#,##0') + '" sourceLinked="0"/><c:majorTickMark val="none"/><c:minorTickMark val="none"/><c:tickLblPos val="nextTo"/><c:spPr><a:ln><a:noFill/></a:ln></c:spPr>' + tx(800, false) + '<c:crossAx val="5001"/><c:crosses val="autoZero"/><c:crossBetween val="between"/></c:valAx>';
+  return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><c:chartSpace ' + ns + '><c:roundedCorners val="0"/><c:chart><c:title><c:tx><c:rich><a:bodyPr/><a:lstStyle/><a:p><a:pPr><a:defRPr sz="1200" b="1"/></a:pPr><a:r><a:rPr lang="es-MX" sz="1200" b="1"><a:solidFill><a:srgbClr val="003087"/></a:solidFill><a:latin typeface="Calibri"/></a:rPr><a:t>' + PXL.esc(ch.title) + '</a:t></a:r></a:p></c:rich></c:tx><c:overlay val="0"/></c:title><c:autoTitleDeleted val="0"/><c:plotArea><c:layout/>' + plot + catAx + valAx + '<c:spPr><a:noFill/></c:spPr></c:plotArea><c:plotVisOnly val="1"/><c:dispBlanksAs val="gap"/></c:chart><c:spPr><a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill><a:ln w="12700"><a:solidFill><a:srgbClr val="D9E1EC"/></a:solidFill></a:ln></c:spPr></c:chartSpace>';
+}
+// ---- ZIP (deflate si el navegador lo permite) ----
+const PX_CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+function pxCrc(u8) { let c = 0xFFFFFFFF; for (let i = 0; i < u8.length; i++) c = PX_CRC[(c ^ u8[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+async function pxDeflate(u8) { if (typeof CompressionStream === 'undefined') return null; try { const cs = new CompressionStream('deflate-raw'); const w = cs.writable.getWriter(); w.write(u8); w.close(); return new Uint8Array(await new Response(cs.readable).arrayBuffer()); } catch (e) { return null; } }
+async function pxZip(files) {
+  const enc = new TextEncoder(); const parts = []; const central = []; let off = 0;
+  for (const [name, data] of files) {
+    const raw = typeof data === 'string' ? enc.encode(data) : data; const nm = enc.encode(name); const crc = pxCrc(raw);
+    const def = raw.length > 200 ? await pxDeflate(raw) : null; const useD = def && def.length < raw.length; const body = useD ? def : raw;
+    const h = new DataView(new ArrayBuffer(30)); h.setUint32(0, 0x04034b50, true); h.setUint16(4, 20, true); h.setUint16(6, 0x0800, true); h.setUint16(8, useD ? 8 : 0, true); h.setUint32(14, crc, true); h.setUint32(18, body.length, true); h.setUint32(22, raw.length, true); h.setUint16(26, nm.length, true);
+    parts.push(new Uint8Array(h.buffer), nm, body);
+    const c = new DataView(new ArrayBuffer(46)); c.setUint32(0, 0x02014b50, true); c.setUint16(4, 20, true); c.setUint16(6, 20, true); c.setUint16(8, 0x0800, true); c.setUint16(10, useD ? 8 : 0, true); c.setUint32(16, crc, true); c.setUint32(20, body.length, true); c.setUint32(24, raw.length, true); c.setUint16(28, nm.length, true); c.setUint32(42, off, true);
+    central.push(new Uint8Array(c.buffer), nm); off += 30 + nm.length + body.length;
+  }
+  const csz = central.reduce((s, x) => s + x.length, 0); const e = new DataView(new ArrayBuffer(22)); e.setUint32(0, 0x06054b50, true); e.setUint16(8, files.length, true); e.setUint16(10, files.length, true); e.setUint32(12, csz, true); e.setUint32(16, off, true);
+  return new Blob(parts.concat(central, [new Uint8Array(e.buffer)])).arrayBuffer();
+}
+// ---- Análisis de columnas ----
+function pxHdr(k) { return FP.norm(k); }
+function pxFmtFor(k, vals) {
+  const h = pxHdr(k); const nums = vals.filter(v => typeof v === 'number' && isFinite(v)); const mx = nums.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
+  if (/^#$|^NUMERO$|^NUM$|FOLIO|^ID$|ECONOMICO|^MOVIL$|^ANO$/.test(h)) return '0';
+  if (/^(CHOFERES|UNIDADES|VEHICULOS|CARGAS|EVENTOS|CASOS|REGISTROS|TRACTOS|DIAS|ALERTAS)\b/.test(h) && nums.every(v => Math.abs(v - Math.round(v)) < 1e-9)) return '#,##0';
+  if (/%|PCT|PORCENTAJE|CUMPLIM|PARTICIPACION|PROPORCION/.test(h)) return mx <= 3 ? '0.0%' : '0.0"%"';
+  if (/PRECIO|\$ ?\/ ?L|POR LITRO/.test(h)) return '"$"#,##0.00';
+  if (/IMPORTE|GASTO|COSTO|MONTO|DINERO|AHORRO|RIESGO|PESOS|\bTOTAL\b|EFECTO/.test(h)) return '"$"#,##0';
+  if (/KM ?\/ ?L|RENDIM|IDEAL|KML/.test(h)) return '0.00';
+  if (/HORA|HRS|MINUT|DURACION/.test(h)) return mx >= 1000 ? '#,##0' : '#,##0.0';
+  if (nums.length && (mx >= 1000 || nums.every(v => Math.abs(v - Math.round(v)) < 1e-9))) return '#,##0';
+  return mx < 10 ? '#,##0.000' : '#,##0.00';
+}
+function pxAdditive(k) { const h = pxHdr(k); return /LITROS|\bKM\b|KILOMETR|IMPORTE|GASTO|COSTO|MONTO|EVENTOS|CARGAS|HORAS|CASOS|REGISTROS|UNIDADES|VEHICULOS|AHORRO|RIESGO|EXCESO|SOBRE|DINERO|CHOFERES/.test(h) && !/%|PRECIO|PROM|RENDIM|IDEAL|CUMPL|KM ?\/ ?L|\/|POR (LITRO|KM)|MAS LARGO|MAX|MIN\b|^#$|ANTERIOR|DIAS DISTINTOS/.test(h); }
+function pxIsDate(v) { return typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v); }
+function pxDateSerial(s) { const [y, m, d] = s.split('-').map(Number); return (Date.UTC(y, m - 1, d) - Date.UTC(1899, 11, 30)) / 864e5; }
+function pxShortLab(v) { if (pxIsDate(v)) { const [y, m, d] = v.split('-'); return +d + ' ' + MES_C[+m - 1]; } if (typeof v === 'string' && /^\d{4}-\d{2}$/.test(v)) return perShort(v); return String(v === null || v === undefined ? '' : v).slice(0, 34); }
+function pxAnalyze(rows) {
+  const keys = Object.keys(rows[0] || {}); const samp = rows.slice(0, 600);
+  const C = keys.map(k => { const vals = samp.map(r => r[k]).filter(v => v !== null && v !== undefined && v !== ''); const num = vals.length > 0 && vals.every(v => typeof v === 'number'); const date = !num && vals.length > 0 && vals.every(pxIsDate); return { k, num, date, fmt: num ? pxFmtFor(k, vals) : date ? 'dd/mmm/yyyy' : null, add: num && pxAdditive(k), pct: num && /%|PCT|PORCENTAJE|CUMPLIM/.test(pxHdr(k)), mx: vals.length ? Math.max(...vals.map(v => String(v).length)) : 0 }; });
+  const txt = C.filter(c => !c.num && pxHdr(c.k) !== '#' && c.mx > 0).slice(0, 3); const dist = c => new Set(samp.map(r => r[c.k])).size; const lab = txt.length ? txt.reduce((b, c) => dist(c) > dist(b) ? c : b) : null;
+  const pri = [/SOBRE|EXCESO/, /^LITROS|LITROS$|LITROS EN|^LTS/, /IMPORTE|GASTO|COSTO|MONTO|RIESGO|EFECTO/, /CUMPLIM/, /RENDIM|KM ?\/ ?L/, /EVENTOS|CARGAS|CASOS/, /PRECIO/, /HORAS/, /%/];
+  let key = null; for (const re of pri) { key = C.find(c => c.num && re.test(pxHdr(c.k)) && !/ANTERIOR/.test(pxHdr(c.k))); if (key) break; }
+  if (!key) key = C.find(c => c.num && !/^#$|^NUMERO$|FOLIO|^ID$/.test(pxHdr(c.k)) && c.fmt !== '0');
+  const time = lab && (lab.date || samp.every(r => /^\d{4}-\d{2}(-\d{2})?$|^\d{2}:\d{2}$/.test(String(r[lab.k] || ''))));
+  return { keys, C, lab, key, time };
+}
+// ---- Constructor del libro ----
+async function pxBuild(title, sheets, meta) {
+  meta = meta || {}; const ST = pxStyles(); const WS = []; const charts = []; const used = new Set();
+  const sname = n => { let b = String(n || 'Hoja').replace(/[\[\]:*?\/\\]/g, ' ').trim().slice(0, 31) || 'Hoja'; let s = b, i = 2; while (used.has(s.toUpperCase())) { s = b.slice(0, 28) + ' ' + i++; } used.add(s.toUpperCase()); return s; };
+  const sTitle = ST.get({ font: { b: 1, sz: 16, color: PXL.WHITE }, fill: PXL.NAVY, align: { v: 'center', indent: 1 } });
+  const sSub = ST.get({ font: { sz: 10, color: 'FFCFE0FF' }, fill: PXL.NAVY, align: { v: 'center', indent: 1 } });
+  const sNavy = ST.get({ fill: PXL.NAVY });
+  const sGold = ST.get({ fill: PXL.GOLD });
+  const sHead = ST.get({ font: { b: 1, sz: 10, color: PXL.WHITE }, fill: PXL.NAVY2, align: { h: 'center', v: 'center', wrap: 1 }, border: { b: 'medium', bc: PXL.GOLD } });
+  const sNote = ST.get({ font: { i: 1, sz: 9, color: PXL.MUTED } });
+  const sSec = ST.get({ font: { b: 1, sz: 12, color: PXL.NAVY } , border: { b: 'medium', bc: PXL.GOLD } });
+  const cell = (fmt, z, extra) => ST.get(Object.assign({ fmt, fill: z ? PXL.ZEBRA : null, border: { b: 'hair', c: PXL.LINE }, align: { v: 'center', h: extra && extra.h } , font: extra && extra.font }, {}));
+  const now = new Date(); const genTxt = 'Generado el ' + now.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' }) + ' ' + now.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }) + (S && S.name ? ' · ' + S.name : '');
+  const info = [];
+  // Hojas de datos
+  sheets.forEach(([nm, rows0]) => {
+    const rows = rows0 && rows0.length ? rows0 : [{ Aviso: 'Sin datos para este periodo o filtro' }];
+    const W = pxSheet(sname(nm)); W.tab = PXL.NAVY; const A = pxAnalyze(rows); const nk = A.keys.length;
+    const kv = nk === 2 && /CONCEPTO|INDICADOR|FACTOR/.test(pxHdr(A.keys[0]));
+    const lastC = Math.max(nk - 1, 5);
+    W.heights[0] = 30; W.heights[1] = 18; W.heights[2] = 6;
+    W.merge(0, 0, 0, lastC, nm, sTitle); W.merge(1, 0, 1, lastC, title + ' · ' + F.n0(rows0 ? rows0.length : 0) + ' registros · ' + genTxt, sSub);
+    for (let c = 0; c <= lastC; c++) W.set(2, c, null, sGold);
+    const HR = 3; W.heights[HR] = 32; W.freeze = HR + 1;
+    A.keys.forEach((k, c) => W.set(HR, c, k, sHead));
+    const big = rows.length > 4000;
+    const colSt = A.C.map(c => [cell(c.fmt, false, { h: c.num ? 'right' : 'left' }), cell(c.fmt, !big, { h: c.num ? 'right' : 'left' })]);
+    const kvSt = kv ? rows.map(r => { const v = r[A.keys[1]]; return typeof v === 'number' ? pxFmtFor(String(r[A.keys[0]]), [v]) : null; }) : null;
+    rows.forEach((r, i) => { const R = HR + 1 + i; A.C.forEach((c, j) => { let v = r[c.k]; if (c.date && pxIsDate(v)) v = pxDateSerial(v); let s = colSt[j][i % 2]; if (kv && j === 1) s = ST.get({ fmt: kvSt[i], fill: i % 2 ? PXL.ZEBRA : null, border: { b: 'hair', c: PXL.LINE }, font: { b: 1, sz: 12, color: PXL.NAVY }, align: { h: 'right' } }); if (kv && j === 0) s = ST.get({ fill: i % 2 ? PXL.ZEBRA : null, border: { b: 'hair', c: PXL.LINE }, font: { sz: 11 }, align: { indent: 1 } }); W.set(R, j, v === undefined ? null : v, s); }); if (kv) W.heights[R] = 22; });
+    const lastR = HR + rows.length;
+    // Totales
+    if (!kv && rows.length > 1 && A.C.some(c => c.add)) {
+      const TR = lastR + 1; W.heights[TR] = 22;
+      A.C.forEach((c, j) => { const s = ST.get({ fmt: c.add ? c.fmt : null, font: { b: 1, color: PXL.NAVY }, fill: 'FFFFF4D6', border: { t: 'medium', tc: PXL.GOLD, b: 'thin', bc: PXL.GOLD }, align: { h: c.num ? 'right' : 'left' } }); if (j === 0) W.set(TR, j, 'TOTAL', s); else if (c.add) { const tot = rows.reduce((t, r) => t + (typeof r[c.k] === 'number' ? r[c.k] : 0), 0); W.set(TR, j, tot, s, 'SUBTOTAL(109,' + PXL.col(j) + (HR + 2) + ':' + PXL.col(j) + (lastR + 1) + ')'); } else W.set(TR, j, null, s); });
+    }
+    if (!kv) W.filter = PXL.ref(HR, 0) + ':' + PXL.ref(lastR, nk - 1);
+    // Anchos
+    A.C.forEach((c, j) => { W.cols[j] = kv ? (j ? 26 : 44) : Math.min(46, Math.max(10, String(c.k).length * 0.95 + 3, Math.min(c.mx, 60) * 1.05 + 2, c.num ? 13 : 8)); });
+    // Formato condicional
+    if (!kv && rows.length > 1) {
+      let pr = 1; const rg = j => PXL.col(j) + (HR + 2) + ':' + PXL.col(j) + (lastR + 1);
+      A.C.forEach((c, j) => {
+        const h = pxHdr(c.k);
+        if (c.num && /CUMPLIM/.test(h) && c.fmt === '0.0%') W.cf.push('<conditionalFormatting sqref="' + rg(j) + '"><cfRule type="iconSet" priority="' + (pr++) + '"><iconSet iconSet="3TrafficLights1"><cfvo type="num" val="0"/><cfvo type="num" val="0.9"/><cfvo type="num" val="0.95"/></iconSet></cfRule></conditionalFormatting>');
+        else if (c.num && (c === A.key || /^LITROS|IMPORTE|GASTO/.test(h)) && c.add) W.cf.push('<conditionalFormatting sqref="' + rg(j) + '"><cfRule type="dataBar" priority="' + (pr++) + '"><dataBar><cfvo type="min"/><cfvo type="max"/><color rgb="FF7FB0FF"/></dataBar></cfRule></conditionalFormatting>');
+        else if (c.num && /% ?RALENTI|RALENTI ?%|PCT_RALENTI|% FUERA/.test(h)) W.cf.push('<conditionalFormatting sqref="' + rg(j) + '"><cfRule type="colorScale" priority="' + (pr++) + '"><colorScale><cfvo type="min"/><cfvo type="percentile" val="50"/><cfvo type="max"/><color rgb="FFE7F7EF"/><color rgb="FFFFF1C2"/><color rgb="FFFFC9C9"/></colorScale></cfRule></conditionalFormatting>');
+      });
+    }
+    // Gráfica + tabla auxiliar
+    let ch = null;
+    if (!kv && A.lab && A.key && rows.length >= 2 && rows.length <= 6000 && !/DETALLE|EVENTOS$|CARGAS$/.test(pxHdr(nm))) {
+      const kc = A.key.k, lc = A.lab.k; let pts = rows.filter(r => typeof r[kc] === 'number' && isFinite(r[kc]) && r[lc] !== null && r[lc] !== undefined && r[lc] !== '');
+      if (pts.length >= 2) {
+        const isT = !!A.time; const isPct = A.key.fmt === '0.0%';
+        if (isT) pts = pts.slice().sort((x, y) => String(x[lc]) < String(y[lc]) ? -1 : 1).slice(-62); else pts = pts.slice().sort((x, y) => y[kc] - x[kc]).slice(0, 12);
+        const c0 = nk + 1; W.cols[c0] = 22; W.cols[c0 + 1] = 14; for (let c = c0 + 2; c <= c0 + 9; c++) W.cols[c] = W.cols[c] || 9.5;
+        const hs = ST.get({ font: { b: 1, sz: 10, color: PXL.WHITE }, fill: PXL.BLUE, align: { h: 'center' } });
+        W.set(HR, c0, isT ? 'Serie' : 'Top ' + pts.length, hs); W.set(HR, c0 + 1, kc, hs);
+        const lbS = ST.get({ font: { sz: 9 }, border: { b: 'hair', c: PXL.LINE } }), vS = ST.get({ fmt: A.key.fmt, font: { sz: 9, b: 1 }, border: { b: 'hair', c: PXL.LINE }, align: { h: 'right' } });
+        pts.forEach((r, i) => { W.set(HR + 1 + i, c0, pxShortLab(r[lc]), lbS); W.set(HR + 1 + i, c0 + 1, r[kc], vS); });
+        const vals = pts.map(r => r[kc]); const mxI = vals.indexOf(Math.max(...vals));
+        const colors = isPct ? vals.map(v => v >= 1 ? '16A34A' : v >= 0.95 ? '22C58B' : v >= 0.9 ? 'F2A900' : 'E5484D') : isT ? vals.map((v, i) => i === mxI ? 'F2A900' : null) : vals.map((v, i) => i === 0 ? 'F2A900' : null);
+        ch = { title: (isT ? kc + ' por ' + String(lc).toLowerCase() : 'Top ' + pts.length + ' · ' + kc + ' por ' + String(lc).toLowerCase()), serie: kc, labels: pts.map(r => pxShortLab(r[lc])), values: vals, colors, fmt: A.key.fmt === '0.0"%"' ? '0.0' : A.key.fmt, min: vals.every(v => v >= 0) ? 0 : undefined, bar: !isT, line: isT && pts.length > 24, catRef: PXL.abs(W.name, HR + 1, c0, HR + pts.length, c0), valRef: PXL.abs(W.name, HR + 1, c0 + 1, HR + pts.length, c0 + 1), at: { c: c0 + 2, r: HR }, w: 640, h: isT ? 340 : Math.max(300, 46 + pts.length * 26) };
+        W.charts.push(ch); charts.push(ch);
+      }
+    }
+    if (rows.length > 1 && !kv) W.set(lastR + (A.C.some(c => c.add) ? 3 : 2), 0, 'Tip: usa los filtros del encabezado para buscar; la fila TOTAL se recalcula con lo que filtres.', sNote);
+    info.push({ W, A, rows: rows0 || [], kv, ch });
+    WS.push(W);
+  });
+  // Portada
+  const P = pxSheet(sname('Portada')); P.first = true; P.tab = PXL.GOLD;
+  [3, 16, 16, 16, 16, 16, 16, 16, 16, 3].forEach((w, c) => { P.cols[c] = w; });
+  for (let r = 0; r <= 6; r++) { P.heights[r] = r === 3 ? 34 : r === 4 ? 20 : 16; for (let c = 0; c <= 9; c++) P.set(r, c, null, sNavy); }
+  P.set(3, 4, title, ST.get({ font: { b: 1, sz: 22, color: PXL.WHITE }, fill: PXL.NAVY }));
+  P.set(4, 4, meta.sub || 'Portal de Combustible · Logística y Operaciones', ST.get({ font: { sz: 11, color: 'FFFFD36B' }, fill: PXL.NAVY }));
+  P.set(5, 4, genTxt, ST.get({ font: { sz: 9, color: 'FFCFE0FF' }, fill: PXL.NAVY }));
+  for (let c = 0; c <= 9; c++) P.set(7, c, null, sGold); P.heights[7] = 5;
+  P.pics.push({ at: { c: 1, r: 1 }, w: 236, h: 60, img: 'logo' });
+  let r = 9;
+  // KPIs
+  const kvI = info.find(x => x.kv); let kpis = [];
+  if (kvI) kpis = kvI.rows.filter(x => x[kvI.A.keys[1]] !== null && x[kvI.A.keys[1]] !== '' && x[kvI.A.keys[1]] !== undefined).slice(0, 8).map(x => ({ l: String(x[kvI.A.keys[0]]), v: x[kvI.A.keys[1]] }));
+  else { const d = info.find(x => !x.kv && x.rows.length); if (d) { kpis.push({ l: 'Registros', v: d.rows.length }); d.A.C.filter(c => c.add && !/^REGISTROS$/.test(pxHdr(c.k))).slice(0, 5).forEach(c => kpis.push({ l: c.k, v: d.rows.reduce((t, x) => t + (typeof x[c.k] === 'number' ? x[c.k] : 0), 0) })); const pc = d.A.C.find(c => c.pct || /PRECIO|RENDIM/.test(pxHdr(c.k))); if (pc) { const v = d.rows.map(x => x[pc.k]).filter(v => typeof v === 'number'); if (v.length) kpis.push({ l: pc.k + ' (promedio)', v: v.reduce((a, b) => a + b, 0) / v.length }); } } }
+  if (kpis.length) {
+    P.merge(r, 1, r, 8, 'Indicadores clave', sSec); P.heights[r] = 24; r += 2;
+    kpis.forEach((k, i) => {
+      const col = 1 + (i % 4) * 2, row = r + Math.floor(i / 4) * 4;
+      const fmt = typeof k.v === 'number' ? pxFmtFor(k.l, [k.v]) : null;
+      const box = { fill: 'FFF4F7FC', border: { l: 'thin', r: 'thin', c: PXL.LINE } };
+      P.merge(row, col, row, col + 1, k.l.toUpperCase(), ST.get(Object.assign({}, box, { font: { b: 1, sz: 8, color: PXL.MUTED }, align: { indent: 1, v: 'bottom', wrap: 1 }, border: { l: 'thin', r: 'thin', t: 'thin', c: PXL.LINE } })));
+      P.merge(row + 1, col, row + 1, col + 1, k.v, ST.get(Object.assign({}, box, { fmt, font: { b: 1, sz: 18, color: PXL.NAVY }, align: { indent: 1, h: 'left' } })));
+      P.merge(row + 2, col, row + 2, col + 1, null, ST.get({ fill: 'FFF4F7FC', border: { l: 'thin', r: 'thin', b: 'thick', c: PXL.LINE, bc: PXL.GOLD } }));
+      P.heights[row] = 26; P.heights[row + 1] = 32; P.heights[row + 2] = 6;
+    });
+    r += Math.ceil(kpis.length / 4) * 4 + 1;
+  }
+  // Gráfica principal
+  const main = charts.find(c => !c.line && c.bar) || charts[0];
+  if (main) { P.merge(r, 1, r, 8, 'Gráfica principal', sSec); P.heights[r] = 24; r += 1; const mc = Object.assign({}, main, { at: { c: 1, r: r }, w: 1000, h: Math.max(320, main.h) }); P.charts.push(mc); charts.push(mc); r += Math.ceil(mc.h / 20) + 2; }
+  // Contenido
+  P.merge(r, 1, r, 8, 'Contenido del reporte', sSec); P.heights[r] = 24; r += 1;
+  const lk = ST.get({ font: { u: 1, color: 'FF1D6CFF', sz: 11, b: 1 }, border: { b: 'hair', c: PXL.LINE }, align: { indent: 1 } }); const ds = ST.get({ font: { sz: 10, color: PXL.MUTED }, border: { b: 'hair', c: PXL.LINE } });
+  info.forEach((x, i) => { P.heights[r] = 20; P.merge(r, 1, r, 3, '▸ ' + x.W.name, lk); P.links.push({ ref: PXL.ref(r, 1), loc: "'" + x.W.name.replace(/'/g, "''") + "'!A1", disp: x.W.name }); P.merge(r, 4, r, 8, x.kv ? 'Resumen de indicadores' : F.n0(x.rows.length) + ' registros' + (x.ch ? ' · con gráfica' : ''), ds); r++; });
+  r += 1; P.merge(r, 1, r, 8, 'Cada litro cuenta · Paquetexpress', ST.get({ font: { b: 1, i: 1, sz: 11, color: 'FFC98A00' }, align: { h: 'center' } }));
+  P.maxC = Math.max(P.maxC, 9);
+  const all = [P].concat(WS);
+  // Partes del paquete
+  const files = []; let chartN = 0, drawN = 0; const rels = []; const ctypes = [];
+  const logo = Uint8Array.from(atob(LOGO64), c => c.charCodeAt(0)); let needLogo = false;
+  all.forEach((W, i) => {
+    const sid = i + 1; files.push(['xl/worksheets/sheet' + sid + '.xml', W.xml()]); ctypes.push('<Override PartName="/xl/worksheets/sheet' + sid + '.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>');
+    if (!W.charts.length && !W.pics.length) return;
+    drawN++; const dr = []; const drr = []; let rid = 0;
+    const anchor = (at, w, h, inner) => '<xdr:oneCellAnchor><xdr:from><xdr:col>' + at.c + '</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>' + at.r + '</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:from><xdr:ext cx="' + Math.round(w * 9525) + '" cy="' + Math.round(h * 9525) + '"/>' + inner + '<xdr:clientData/></xdr:oneCellAnchor>';
+    W.charts.forEach((ch, k) => { chartN++; rid++; files.push(['xl/charts/chart' + chartN + '.xml', pxChartXml(ch)]); ctypes.push('<Override PartName="/xl/charts/chart' + chartN + '.xml" ContentType="application/vnd.openxmlformats-officedocument.drawingml.chart+xml"/>'); drr.push('<Relationship Id="rId' + rid + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart" Target="../charts/chart' + chartN + '.xml"/>'); dr.push(anchor(ch.at, ch.w, ch.h, '<xdr:graphicFrame macro=""><xdr:nvGraphicFramePr><xdr:cNvPr id="' + (rid + 1) + '" name="Gráfica ' + rid + '"/><xdr:cNvGraphicFramePr/></xdr:nvGraphicFramePr><xdr:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/></xdr:xfrm><a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/chart"><c:chart xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" r:id="rId' + rid + '"/></a:graphicData></a:graphic></xdr:graphicFrame>')); });
+    W.pics.forEach(p => { rid++; needLogo = true; drr.push('<Relationship Id="rId' + rid + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="../media/logo.png"/>'); dr.push(anchor(p.at, p.w, p.h, '<xdr:pic><xdr:nvPicPr><xdr:cNvPr id="' + (rid + 1) + '" name="Logo"/><xdr:cNvPicPr><a:picLocks noChangeAspect="1"/></xdr:cNvPicPr></xdr:nvPicPr><xdr:blipFill><a:blip r:embed="rId' + rid + '"/><a:stretch><a:fillRect/></a:stretch></xdr:blipFill><xdr:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="' + Math.round(p.w * 9525) + '" cy="' + Math.round(p.h * 9525) + '"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></xdr:spPr></xdr:pic>')); });
+    files.push(['xl/drawings/drawing' + drawN + '.xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">' + dr.join('') + '</xdr:wsDr>']);
+    files.push(['xl/drawings/_rels/drawing' + drawN + '.xml.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' + drr.join('') + '</Relationships>']);
+    ctypes.push('<Override PartName="/xl/drawings/drawing' + drawN + '.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/>');
+    files.push(['xl/worksheets/_rels/sheet' + sid + '.xml.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rIdDr" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing" Target="../drawings/drawing' + drawN + '.xml"/></Relationships>']);
+  });
+  if (needLogo) files.push(['xl/media/logo.png', logo]);
+  const dn = []; all.forEach((W, i) => { if (W.filter) dn.push('<definedName name="_xlnm._FilterDatabase" localSheetId="' + i + '" hidden="1">\'' + PXL.esc(W.name.replace(/\'/g, "''")) + '\'!$' + W.filter.replace(/([A-Z]+)(\d+):([A-Z]+)(\d+)/, '$1$$$2:$$$3$$$4') + '</definedName>'); if (W.freeze) dn.push('<definedName name="_xlnm.Print_Titles" localSheetId="' + i + '">\'' + PXL.esc(W.name.replace(/\'/g, "''")) + '\'!$' + W.freeze + ':$' + W.freeze + '</definedName>'); });
+  files.push(['xl/workbook.xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><bookViews><workbookView activeTab="0"/></bookViews><sheets>' + all.map((W, i) => '<sheet name="' + PXL.esc(W.name) + '" sheetId="' + (i + 1) + '" r:id="rId' + (i + 1) + '"/>').join('') + '</sheets>' + (dn.length ? '<definedNames>' + dn.join('') + '</definedNames>' : '') + '<calcPr calcId="191029" fullCalcOnLoad="1"/></workbook>']);
+  files.push(['xl/_rels/workbook.xml.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' + all.map((W, i) => '<Relationship Id="rId' + (i + 1) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet' + (i + 1) + '.xml"/>').join('') + '<Relationship Id="rIdSt" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>']);
+  files.push(['xl/styles.xml', ST.xml()]);
+  const iso = new Date().toISOString().replace(/\.\d+Z$/, 'Z');
+  files.push(['docProps/core.xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dc:title>' + PXL.esc(title) + '</dc:title><dc:creator>Portal de Combustible · Paquetexpress</dc:creator><dcterms:created xsi:type="dcterms:W3CDTF">' + iso + '</dcterms:created><dcterms:modified xsi:type="dcterms:W3CDTF">' + iso + '</dcterms:modified></cp:coreProperties>']);
+  files.push(['docProps/app.xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties"><Application>Microsoft Excel</Application><Company>Paquetexpress</Company></Properties>']);
+  files.push(['_rels/.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docProps/app.xml"/></Relationships>']);
+  files.unshift(['[Content_Types].xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="png" ContentType="image/png"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/><Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/><Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/>' + ctypes.join('') + '</Types>']);
+  return pxZip(files);
+}
+function pxTitle(filename) { return String(filename || 'Reporte').replace(/\.xlsx$/i, '').replace(/_/g, ' ').replace(/\s+/g, ' ').trim(); }
+async function downloadXLSX(filename, sheets) {
+  let buf = null;
+  try { buf = await pxBuild(pxTitle(filename), sheets); }
+  catch (e) { console.warn('Excel ejecutivo no disponible, uso formato simple', e); const XLSX = await loadXLSX(); const wb = XLSX.utils.book_new(); for (const [name, rows] of sheets) { const ws = XLSX.utils.json_to_sheet(rows.length ? rows : [{ '': 'Sin datos' }]); XLSX.utils.book_append_sheet(wb, ws, String(name).slice(0, 31)); } buf = XLSX.write(wb, { bookType: 'xlsx', type: 'array' }); }
+  if (window.GH) { saveBlob(filename, new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })); toast('Reporte listo: ' + filename, 'ok'); return; }
+  let dl = null; try { dl = await window.claude.use('downloads'); } catch (e) { }
+  if (!dl) { toast('La descarga no está disponible en esta vista. Abre el portal desde claude.ai.', 'warn'); return; }
+  try { await dl.save({ filename, data: new Blob([buf]) }); toast('Reporte listo: ' + filename, 'ok'); }
+  catch (e) { if (e && e.code !== 'declined') toast('No se pudo descargar (' + (e.code || e.message) + ')', 'warn'); }
+}
+
 /* ---------- Excel por pestaña ---------- */
 async function tabExcel(a, tab) {
   if (tab === 'rendimientos') return excelReport(a);
@@ -4465,13 +4731,12 @@ function buildEml(cfg, subject, html, xlsx) {
   return s + '--' + M + '--\r\n';
 }
 async function mailXlsx(cfg, X) {
-  const XLSX = await loadXLSX(); const wb = XLSX.utils.book_new(); const a = cfg.a;
-  const add = (name, rows) => { const ws = XLSX.utils.json_to_sheet(rows.length ? rows : [{ '': 'Sin datos' }]); const keys = Object.keys(rows[0] || {}); ws['!cols'] = keys.map(k => ({ wch: Math.min(46, Math.max(10, k.length + 2)) })); XLSX.utils.book_append_sheet(wb, ws, name); };
+  const a = cfg.a; const SH = []; const add = (name, rows) => SH.push([name, rows]);
   add('Vehículos', X.veh.map((v, i) => ({ '#': i + 1, Vehiculo: v.n, Region: v.reg, Sucursal: v.suc, 'Chofer principal': v.ch, Litros: mR3(v.lts), 'Costo estimado': mR3(v.lts * X.P), Horas: mR3(v.h), Eventos: v.ev, 'Evento más largo (min)': mR3(v.max), 'Días con ralentí': v.dias, '% fuera de geocerca': mR3(v.pF * 100), 'Lugar más frecuente': v.lugar })));
   add('Choferes', X.chof.map((c, i) => ({ '#': i + 1, Chofer: c.n, Region: c.reg, Vehiculos: c.veh, Litros: mR3(c.lts), Horas: mR3(c.h), Eventos: c.ev })));
   add('Por ' + X.glab.toLowerCase(), X.groups.map(g => ({ [X.glab]: g.n, Litros: mR3(g.lts), 'Costo estimado': mR3(g.lts * X.P), Horas: mR3(g.h), Eventos: g.ev, Vehiculos: g.veh, '% fuera': mR3(g.pF * 100), 'Cambio vs periodo anterior %': g.d === null ? '' : mR3(g.d * 100) })));
   add('Eventos', X.R.slice().sort((x, y) => x.fecha < y.fecha ? -1 : x.fecha > y.fecha ? 1 : String(x.hora).localeCompare(String(y.hora))).map(r => ({ Fecha: r.fecha, Hora: r.hora, Vehiculo: r.veh, Region: regionOf(a, r.veh), Sucursal: a === 'ops' ? sucOf(r.veh) : '', Chofer: r.chofer, 'Duración (min)': mR3(r.min), Litros: mR3(r.lts), Geocerca: r.geo, Ubicacion: r.ubic })));
-  return XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+  return pxBuild('Ralentí ' + AREA_NAME[a] + ' · detalle del correo', SH, { sub: 'Reporte de ralentí · Portal de Combustible' });
 }
 async function buildMailRal(cfg) {
   const X = mailCalc(cfg); const a = cfg.a;
