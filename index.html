@@ -632,6 +632,10 @@ body.e3open{overflow:hidden}body.e3open .floatbtn{display:none}
 .tabs .tabx{flex:none;margin-left:0;height:44px;border-radius:14px}
 @media (max-width:1300px){.tabs .tabrail a{padding:10px 12px;font-size:13px}}
 @media (max-width:1100px){.tabs .tabrail a span{display:none}.tabs .tabrail a.on span{display:inline}}
+
+#ghbad{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:200;max-width:760px;width:calc(100% - 40px);background:#fff4e5;color:#5c3b00;border:1px solid #f2a900;border-left:6px solid #d97706;border-radius:14px;padding:14px 44px 14px 18px;box-shadow:0 20px 50px rgba(0,0,0,.25);font-size:13.5px;line-height:1.5}
+#ghbad ul{margin:6px 0;padding-left:18px}#ghbad code{background:#fff;border:1px solid #f2d39b;border-radius:6px;padding:1px 6px;font-weight:700}
+#ghbad button{position:absolute;right:10px;top:8px;border:0;background:none;font-size:22px;cursor:pointer;color:#5c3b00}
 .ghbar{background:#fff4d6;color:#7a5200;text-align:center;padding:8px;font-weight:700;font-size:13px}.ghbar .lnk{color:#0b2a5b;text-decoration:underline}</style>
 </head>
 <body>
@@ -3473,7 +3477,7 @@ function newsData() {
   }));
   // Ralentí por mes (ambas áreas)
   const rm = Array.from(new Set(periodsOf('log_ral').concat(periodsOf('ops_ral')))).sort();
-  D.ral = rm.map(p => { const o = { p, log: 0, ops: 0 }; ['log', 'ops'].forEach(a => e3withF(a, {}, () => { o[a] = ralStats(ralRows(a, p + '-01', monthEnd(p), true)).lts || 0; })); o.tot = o.log + o.ops; return o; });
+  D.ral = rm.map(p => { const o = { p, log: 0, ops: 0 }; const fs = new Set(); ['log', 'ops'].forEach(a => e3withF(a, {}, () => { const R = ralRows(a, p + '-01', monthEnd(p), true); R.forEach(r => fs.add(r.fecha)); o[a] = ralStats(R).lts || 0; })); o.tot = o.log + o.ops; o.days = fs.size || 1; o.last = Array.from(fs).sort().pop() || ''; o.full = o.days >= new Date(+p.slice(0, 4), +p.slice(5, 7), 0).getDate() - 1; o.avg = o.tot / o.days; return o; });
   // Anomalías del último mes con cargas/ralentí
   const pa = latest(['log_cargas', 'ops_cargas', 'log_ral', 'ops_ral']);
   if (pa) { D.anP = pa; D.an = ['log', 'ops'].map(a => e3withF(a, {}, () => anomalies(a, pa + '-01', monthEnd(pa)).list.filter(x => x.sev === 3))); }
@@ -3486,14 +3490,16 @@ function newsStories() {
   if (S.cache.newsStories) return S.cache.newsStories;
   const D = newsData(); const out = []; const L = D.A.log, O = D.A.ops;
   const tryS = f => { try { const s = f(); if (s) out.push(s); } catch (e) { console.warn('news', e); } };
-  // 1. Ralentí
+  // 1. Ralentí (promedio diario para comparar meses en curso de forma justa)
   tryS(() => {
     if (!D.ral.length) return null; const c = D.ral[D.ral.length - 1], pv = D.ral[D.ral.length - 2]; const yr = D.ral.filter(x => x.p.slice(0, 4) === c.p.slice(0, 4)); const first = yr[0];
-    const isMax = yr.length > 2 && c.tot >= Math.max(...yr.map(x => x.tot)); const isMin = yr.length > 2 && c.tot <= Math.min(...yr.map(x => x.tot));
-    const d = pv && pv.tot ? c.tot / pv.tot - 1 : null; const up = d !== null ? d > 0 : isMax;
-    const t = isMax ? 'El ralentí llegó a su nivel más alto del año' : isMin ? 'El ralentí bajó a su nivel más bajo del año' : d !== null ? 'El ralentí ' + (d > 0 ? 'subió ' : 'bajó ') + F.n1(Math.abs(d * 100)) + '% contra ' + perLabel(pv.p).split(' ')[0].toLowerCase() : 'Así va el ralentí del mes';
+    const isMax = yr.length > 2 && c.avg >= Math.max(...yr.map(x => x.avg)); const isMin = yr.length > 2 && c.avg <= Math.min(...yr.map(x => x.avg));
+    const d = pv && pv.avg ? c.avg / pv.avg - 1 : null; const up = d !== null ? d > 0 : isMax; const mes = q => perLabel(q).split(' ')[0].toLowerCase();
+    const prom = c.full ? '' : ' en promedio diario';
+    const t = isMax ? 'El ralentí' + prom + ' está en su nivel más alto del año' : isMin ? 'El ralentí' + prom + ' está en su nivel más bajo del año' : d !== null ? 'El ralentí ' + (d > 0 ? 'sube ' : 'baja ') + F.n1(Math.abs(d * 100)) + '% por día contra ' + mes(pv.p) : 'Así va el ralentí del mes';
     const sh = c.tot ? Math.max(c.log, c.ops) / c.tot : 0; const big = c.log >= c.ops ? 'Logística' : 'Operaciones';
-    return { k: 'RALENTÍ · ' + perLabel(c.p).toUpperCase(), n: c.tot, pre: '', suf: ' L', dec: 0, t, s: (first && first !== c && first.tot ? pctTxt(c.tot / first.tot - 1) + ' desde ' + perLabel(first.p).split(' ')[0].toLowerCase() + '. ' : '') + big + ' concentra el ' + F.pct0(sh) + ': ' + F.n0(Math.max(c.log, c.ops)) + ' litros con el motor encendido y la unidad detenida.', img: IMG.cascadias, c: up ? '#ff5d5d' : '#22c58b', ic: '⏱️', go: 'logistica-ralenti' };
+    const s = (c.full ? '' : 'Mes en curso: ' + c.days + ' días cargados, al ' + dLabel(c.last) + '. ') + F.n0(c.avg) + ' L por día' + (pv ? ' contra ' + F.n0(pv.avg) + ' en ' + mes(pv.p) : '') + (first && first !== c && first.avg ? ' y ' + F.n0(first.avg) + ' en ' + mes(first.p) : '') + '. ' + big + ' concentra el ' + F.pct0(sh) + '.';
+    return { k: 'RALENTÍ · ' + perLabel(c.p).toUpperCase() + (c.full ? '' : ' (EN CURSO)'), n: c.tot, pre: '', suf: ' L', dec: 0, t, s, img: IMG.cascadias, c: up ? '#ff5d5d' : '#22c58b', ic: '⏱️', go: 'logistica-ralenti' };
   });
   // 2. Gasto
   tryS(() => {
@@ -3553,8 +3559,8 @@ function newsKpis() {
     const w = (a, b) => (a.cump * a.imp + b.cump * b.imp) / (a.imp + b.imp); const c = w(L.st, O.st), pc = L.pst && O.pst ? w(L.pst, O.pst) : null;
     k.push(['CUMPLIMIENTO', F.pct(c), pc === null ? '' : '<em class="' + (c >= pc ? 'up' : 'dn') + '">' + (c >= pc ? '▲ ' : '▼ ') + F.n1(Math.abs((c - pc) * 100)) + ' pts</em>']);
   }
-  if (D.ral.length) { const c = D.ral[D.ral.length - 1], pv = D.ral[D.ral.length - 2]; const d = pv && pv.tot ? c.tot / pv.tot - 1 : null; k.push(['RALENTÍ', F.n0(c.tot) + ' L', d === null ? '' : '<em class="' + (d <= 0 ? 'up' : 'dn') + '">' + (d <= 0 ? '▼ ' : '▲ ') + F.n1(Math.abs(d * 100)) + '% vs mes anterior</em>']); }
-  if (D.an) { const all = D.an[0].concat(D.an[1]); k.push(['ANOMALÍAS ALTAS', F.n0(all.length), '<em style="color:#ffd36b">$' + short(sum(all, 'monto')) + ' en riesgo</em>']); }
+  if (D.ral.length) { const c = D.ral[D.ral.length - 1], pv = D.ral[D.ral.length - 2]; const d = pv && pv.avg ? c.avg / pv.avg - 1 : null; k.push(['RALENTÍ' + (c.full ? '' : ' · MES EN CURSO'), F.n0(c.tot) + ' L', d === null ? '' : '<em class="' + (d <= 0 ? 'up' : 'dn') + '">' + (d <= 0 ? '▼ ' : '▲ ') + F.n1(Math.abs(d * 100)) + '% diario vs mes anterior</em>']); }
+  if (D.an) { const all = D.an[0].concat(D.an[1]); const mm = sum(all, 'monto'); k.push(['ANOMALÍAS ALTAS · ' + perLabel(D.anP).split(' ')[0].toUpperCase(), F.n0(all.length), '<em style="color:' + (mm ? '#ffd36b' : '#22c58b') + '">' + (mm ? '$' + short(mm) + ' en riesgo' : 'sin monto en riesgo') + '</em>']); }
   const s9 = newsStories().find(s => s.act === 'e360'); if (s9) k.push(['EVALUACIÓN 360°', '<i style="font-style:normal;color:#ffd36b">' + F.n0(s9.n) + '</i>', '<em style="color:#9fb3d6">' + esc(s9.t.replace('Calificación ', '')) + '</em>']);
   return k;
 }
@@ -3851,15 +3857,18 @@ async function ghEncryptBin(obj) {
 async function ghLoadParts(file, key) {
   const parts = file.parts || {}; const keys = Object.keys(parts); let done = 0;
   const msg = document.querySelector('#login .lerr');
-  const out = {};
+  const out = {}; const bad = [];
   for (let i = 0; i < keys.length; i += 4) {
     await Promise.all(keys.slice(i, i + 4).map(async k => {
-      const p = parts[k]; const r = await fetch(p.f + '?v=' + encodeURIComponent(p.iv), { cache: 'no-store' });
-      if (!r.ok) throw new Error('Falta el archivo ' + p.f + ' en el repositorio');
-      out[k] = FP.decCols(await ghDecryptBin(await r.arrayBuffer(), p.iv, key));
+      const p = parts[k]; let r = null;
+      try { r = await fetch(p.f + '?v=' + encodeURIComponent(p.iv), { cache: 'no-store' }); } catch (e) { bad.push({ k, f: p.f, why: 'net' }); return; }
+      if (!r.ok) { bad.push({ k, f: p.f, why: 'missing' }); return; }
+      try { out[k] = FP.decCols(await ghDecryptBin(await r.arrayBuffer(), p.iv, key)); }
+      catch (e) { bad.push({ k, f: p.f, why: 'old' }); return; }
       done++; if (msg) msg.textContent = 'Cargando información… ' + done + ' de ' + keys.length;
     }));
   }
+  GHS.badParts = bad;
   return out;
 }
 async function ghEncrypt(obj) {
@@ -3890,6 +3899,13 @@ function ghRemember(on, u, role) {
     try { sessionStorage.setItem('pc-gh', v); if (on) localStorage.setItem('pc-gh', v); } catch (e) { }
   });
 }
+async function ghBadNotice() {
+  const bad = GHS.badParts || []; if (!bad.length) return;
+  const why = { missing: 'no está en el repositorio (o se subió con otro nombre, por ejemplo con "(1)")', old: 'es de una versión anterior: no corresponde al data.enc.json actual', net: 'no se pudo descargar (revisa tu conexión)' };
+  const b = document.createElement('div'); b.id = 'ghbad'; b.setAttribute('role', 'alert');
+  b.innerHTML = '<b>⚠ No se pudo cargar ' + bad.length + ' archivo(s); el portal funciona con el resto de la información:</b><ul>' + bad.map(x => '<li><code>' + esc(x.f) + '</code> ' + why[x.why] + '</li>').join('') + '</ul><span>Solución: sube al repositorio estos archivos con el nombre exacto, junto con el data.enc.json de la misma publicación. Si acabas de subirlos, espera 1–2 minutos a que GitHub termine de publicar y recarga.</span><button aria-label="Cerrar aviso">×</button>';
+  b.querySelector('button').onclick = () => b.remove(); document.body.appendChild(b);
+}
 async function ghTryStored(file) {
   let v = null; try { v = sessionStorage.getItem('pc-gh') || localStorage.getItem('pc-gh'); } catch (e) { }
   if (!v) return false;
@@ -3898,7 +3914,7 @@ async function ghTryStored(file) {
     const key = await crypto.subtle.importKey('raw', b64.dec(o.k), { name: 'AES-GCM' }, true, ['encrypt', 'decrypt']);
     const obj = await ghDecrypt(file, key);
     const pd = await ghLoadParts(file, key);
-    GHS.key = key; GHS.users = file.users; ghApply(obj, file, pd); setRole(o.u, o.role); return true;
+    GHS.key = key; GHS.users = file.users; ghApply(obj, file, pd); setRole(o.u, o.role); setTimeout(ghBadNotice, 800); return true;
   } catch (e) { return false; }
 }
 function ghLogin() {
@@ -3921,7 +3937,7 @@ function ghLogin() {
         const obj = await ghDecrypt(file, key);
         err.textContent = 'Cargando información…';
         let pd; try { pd = await ghLoadParts(file, key); } catch (e2) { fail(e2.message); return; }
-        GHS.key = key; GHS.users = file.users; ghApply(obj, file, pd); setRole(w.u || u, w.role); ghRemember(fm.r.checked, w.u || u, w.role);
+        GHS.key = key; GHS.users = file.users; ghApply(obj, file, pd); setRole(w.u || u, w.role); ghRemember(fm.r.checked, w.u || u, w.role); setTimeout(ghBadNotice, 800);
         err.textContent = ''; document.body.classList.add('authed'); res();
       } catch (er) { fail('Usuario o contraseña incorrectos'); }
     });
@@ -3936,6 +3952,7 @@ function saveBlob(filename, blob) {
   setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
 }
 async function ghPublish() {
+  if ((GHS.badParts || []).length) { toast('Antes de publicar corrige los archivos que no se cargaron (ver aviso en pantalla); si publicas así se perderían datos de esos meses.', 'warn'); ghBadNotice(); return; }
   const core = {};
   const files = [];
   for (const ds of Object.keys(FP.COLS)) for (const p of periodsOf(ds)) {
@@ -3959,7 +3976,7 @@ async function ghPublish() {
 }
 function ghShowPublished(list) {
   const m = $('#modal'); DSTACK.length = 0; m.classList.remove('drill');
-  m.innerHTML = '<div class="mbox"><header><h3>Sube estos archivos a GitHub</h3><button class="x" data-act="closeModal" aria-label="Cerrar">×</button></header><div class="mbody"><p>Se descargaron <b>' + list.length + '</b> archivo(s). En el repositorio: <b>Add file → Upload files</b>, arrástralos <b>todos juntos</b> y da <b>Commit changes</b>.</p><ul class="flist">' + list.map(f => '<li>📄 ' + esc(f) + '</li>').join('') + '</ul><p class="note">Solo se descargan los meses que cambiaron; los demás archivos del repositorio se quedan como están. Si el navegador pregunta si permites descargar varios archivos, elige <b>Permitir</b>.</p></div><footer><button class="btn" data-act="closeModal">Entendido</button></footer></div>';
+  m.innerHTML = '<div class="mbox"><header><h3>Sube estos archivos a GitHub</h3><button class="x" data-act="closeModal" aria-label="Cerrar">×</button></header><div class="mbody"><p>Se descargaron <b>' + list.length + '</b> archivo(s). En el repositorio: <b>Add file → Upload files</b>, arrástralos <b>todos juntos</b> y da <b>Commit changes</b>.</p><ul class="flist">' + list.map(f => '<li>📄 ' + esc(f) + '</li>').join('') + '</ul><p class="note" style="color:#b42318"><b>Importante:</b> revisa que los nombres sean exactamente los de esta lista. Si tu navegador les agregó <b>(1)</b> o <b>(2)</b> al final, renómbralos quitándolo antes de subirlos, o borra de tu carpeta de Descargas los archivos <i>parte_…</i> anteriores antes de publicar.</p><p class="note">Solo se descargan los meses que cambiaron; los demás archivos del repositorio se quedan como están. Si el navegador pregunta si permites descargar varios archivos, elige <b>Permitir</b>.</p></div><footer><button class="btn" data-act="closeModal">Entendido</button></footer></div>';
   m.classList.add('open');
 }
 window.addEventListener('beforeunload', e => { if (GHS.dirty) { e.preventDefault(); e.returnValue = ''; } });
