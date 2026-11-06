@@ -636,6 +636,40 @@ body.e3open{overflow:hidden}body.e3open .floatbtn{display:none}
 #ghbad{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:200;max-width:760px;width:calc(100% - 40px);background:#fff4e5;color:#5c3b00;border:1px solid #f2a900;border-left:6px solid #d97706;border-radius:14px;padding:14px 44px 14px 18px;box-shadow:0 20px 50px rgba(0,0,0,.25);font-size:13.5px;line-height:1.5}
 #ghbad ul{margin:6px 0;padding-left:18px}#ghbad code{background:#fff;border:1px solid #f2d39b;border-radius:6px;padding:1px 6px;font-weight:700}
 #ghbad button{position:absolute;right:10px;top:8px;border:0;background:none;font-size:22px;cursor:pointer;color:#5c3b00}
+/* ===== login: carga de combustible ===== */
+#fuel{position:absolute;inset:0;z-index:5;display:grid;place-items:center;padding:20px;background:rgba(0,26,80,.92);backdrop-filter:blur(8px);opacity:0;transition:opacity .35s}
+#fuel.on{opacity:1}
+.fu-card{width:100%;max-width:520px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.2);border-radius:22px;padding:16px;box-shadow:0 24px 70px rgba(0,0,0,.45);color:#fff}
+.fu-svg{width:100%;display:block;border-radius:16px}
+.fu-truck{transform:translateX(-300px);transition:transform 1.5s cubic-bezier(.2,.7,.25,1)}
+#fuel.arrive .fu-truck,#fuel.fill .fu-truck{transform:translateX(0)}
+#fuel.go .fu-truck{transform:translateX(460px);transition:transform .9s cubic-bezier(.6,0,.8,.4)}
+.fu-sp{transform-box:fill-box;transform-origin:center}
+#fuel.arrive .fu-sp,#fuel.go .fu-sp{animation:fuSpin .35s linear infinite}
+@keyframes fuSpin{to{transform:rotate(360deg)}}
+.fu-smoke{opacity:0}
+#fuel.arrive .fu-smoke,#fuel.go .fu-smoke{animation:fuSmk .6s ease-out infinite}
+@keyframes fuSmk{0%{opacity:.7;transform:translate(0,0)}100%{opacity:0;transform:translate(-14px,-10px)}}
+#fuel.fill:not(.full) .fu-bob{animation:fuBob 1.8s ease-in-out infinite}
+@keyframes fuBob{50%{transform:translateY(.8px)}}
+.fu-hose,.fu-flow{opacity:0;transition:opacity .4s}
+#fuel.fill .fu-hose{opacity:1}
+#fuel.fill:not(.full) .fu-flow{opacity:1;animation:fuFlow .5s linear infinite}
+@keyframes fuFlow{to{stroke-dashoffset:-11}}
+#fuel.go .fu-hose{opacity:0}
+.fu-row{display:flex;align-items:center;gap:14px;margin-top:12px}
+.fu-gauge{width:118px;flex:none}
+.fu-needle{transition:transform .15s linear}
+.fu-txt{flex:1;display:grid;gap:4px;min-width:0}
+.fu-st{font-size:18px;font-weight:900;letter-spacing:.2px}
+.fu-sub{font-size:12.5px;color:#c9d7f2}
+.fu-bar{height:10px;border-radius:6px;background:rgba(255,255,255,.15);overflow:hidden;margin-top:4px}
+.fu-bar i{display:block;height:100%;width:0;border-radius:6px;background:linear-gradient(90deg,#f2a900,#2bd46b)}
+#fuel.full .fu-st{color:#6dff9e}
+#fuel.full .fu-card{animation:fuPop .5s ease}
+@keyframes fuPop{40%{transform:scale(1.025)}}
+#fuel.rm .fu-truck{transition:none}#fuel.rm *{animation:none!important}
+@media (max-width:520px){.fu-gauge{width:90px}.fu-st{font-size:15px}}
 .ghbar{background:#fff4d6;color:#7a5200;text-align:center;padding:8px;font-weight:700;font-size:13px}.ghbar .lnk{color:#0b2a5b;text-decoration:underline}</style>
 </head>
 <body>
@@ -3830,6 +3864,110 @@ function openManual() {
 }
 const MAN_CSS = '.mn{display:grid;grid-template-columns:400px 1fr;gap:30px;height:100%}.mt h2{margin:6px 0 8px;font-size:30px}.mnum{display:inline-grid;place-items:center;width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#f2a900,#d98a00);color:#0b2a5b;font-weight:800;font-size:20px}.mi{color:#55627a;font-size:16px;margin:0 0 14px}.mt ol{padding:0;margin:0;list-style:none;counter-reset:s}.mt li{counter-increment:s;position:relative;padding:8px 0 8px 40px;font-size:15.5px;line-height:1.45;border-bottom:1px solid #eef1f5}.mt li:before{content:counter(s);position:absolute;left:0;top:8px;width:26px;height:26px;border-radius:50%;background:#0b2a5b;color:#fff;font-weight:800;font-size:13px;display:grid;place-items:center}.mtip{margin-top:14px;background:#fff8e6;border-left:4px solid #f2a900;padding:10px 12px;border-radius:8px;font-size:14px}.ms{position:relative;border-radius:14px;overflow:hidden;box-shadow:0 18px 40px rgba(11,42,91,.25);border:1px solid #d9e0ea;align-self:start;margin-top:8px}.ms .frame{height:26px;background:#eef1f5;display:flex;gap:6px;align-items:center;padding:0 10px}.ms .frame i{width:10px;height:10px;border-radius:50%;background:#c9d1dd}.ms .frame i:first-child{background:#ff6b6b}.ms .frame i:nth-child(2){background:#f2c94c}.ms .frame i:nth-child(3){background:#3ddc84}.ms img{display:block;width:100%}.idx{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.idx div{background:#f3f6fb;border-radius:12px;padding:14px 16px;font-size:17px;font-weight:700;color:#0b2a5b;display:flex;gap:12px;align-items:center}.idx b{color:#f2a900;font-size:22px}';
 
+// ===== Animación de carga de combustible en el login =====
+const FUEL = { el: null, tgt: 0, cur: 0, raf: 0, t0: 0, lts: 0 };
+const FUEL_CAP = 400; // litros del tanque (decorativo)
+function fuelShow() {
+  if (FUEL.el) return;
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const el = document.createElement('div'); el.id = 'fuel'; if (reduce) el.classList.add('rm');
+  el.innerHTML = `<div class="fu-card">
+  <svg class="fu-svg" viewBox="0 0 420 210" aria-hidden="true">
+    <defs><clipPath id="fuTk"><rect x="150" y="133" width="44" height="20" rx="5"/></clipPath>
+      <linearGradient id="fuSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b3f9e"/><stop offset="1" stop-color="#00266e"/></linearGradient></defs>
+    <rect x="0" y="0" width="420" height="210" rx="16" fill="url(#fuSky)"/>
+    <g opacity=".22" fill="#fff"><circle cx="40" cy="30" r="1.4"/><circle cx="120" cy="18" r="1"/><circle cx="210" cy="36" r="1.2"/><circle cx="380" cy="22" r="1.4"/><circle cx="300" cy="14" r="1"/></g>
+    <!-- techo de la estación -->
+    <rect x="272" y="40" width="140" height="12" rx="3" fill="#f2a900"/><rect x="272" y="52" width="140" height="4" fill="#c98a00"/>
+    <rect x="290" y="56" width="6" height="118" fill="#7f93b8"/><rect x="390" y="56" width="6" height="118" fill="#7f93b8"/>
+    <!-- piso / carretera -->
+    <rect x="0" y="174" width="420" height="36" fill="#0d1c38"/>
+    <g class="fu-road"><rect x="0" y="190" width="30" height="3" fill="#f2a900"/><rect x="60" y="190" width="30" height="3" fill="#f2a900"/><rect x="120" y="190" width="30" height="3" fill="#f2a900"/><rect x="180" y="190" width="30" height="3" fill="#f2a900"/><rect x="240" y="190" width="30" height="3" fill="#f2a900"/><rect x="300" y="190" width="30" height="3" fill="#f2a900"/><rect x="360" y="190" width="30" height="3" fill="#f2a900"/><rect x="420" y="190" width="30" height="3" fill="#f2a900"/></g>
+    <!-- bomba -->
+    <g class="fu-pump"><rect x="318" y="82" width="52" height="92" rx="6" fill="#e9eef7"/><rect x="318" y="82" width="52" height="14" rx="6" fill="#003087"/>
+      <text x="344" y="92.5" text-anchor="middle" font-size="8" font-weight="800" fill="#fff">DIÉSEL</text>
+      <rect x="324" y="100" width="40" height="26" rx="3" fill="#0b1426"/>
+      <text class="fu-lts" x="361" y="111" text-anchor="end" font-size="9" font-family="monospace" fill="#6dff9e">0.0 L</text>
+      <text class="fu-pct" x="361" y="122" text-anchor="end" font-size="7.5" font-family="monospace" fill="#f2c94c">0 %</text>
+      <rect x="324" y="132" width="40" height="6" rx="3" fill="#c9d3e4"/><rect class="fu-pbar" x="324" y="132" width="0" height="6" rx="3" fill="#2bd46b"/>
+      <rect x="312" y="122" width="8" height="18" rx="2" fill="#2a3a5a"/>
+      <rect x="314" y="174" width="60" height="4" fill="#5a6b8a"/></g>
+    <!-- manguera -->
+    <path class="fu-hose" d="M316 130 C 300 168, 240 172, 197 140" fill="none" stroke="#1d2430" stroke-width="4.5" stroke-linecap="round"/>
+    <path class="fu-flow" d="M316 130 C 300 168, 240 172, 197 140" fill="none" stroke="#f2c94c" stroke-width="2" stroke-linecap="round" stroke-dasharray="2 9"/>
+    <!-- camión -->
+    <g class="fu-truck"><g class="fu-bob">
+      <rect x="30" y="86" width="150" height="72" rx="5" fill="#fff"/>
+      <rect x="30" y="118" width="150" height="10" fill="#003087"/><rect x="30" y="128" width="150" height="4" fill="#f2a900"/>
+      <text x="105" y="108" text-anchor="middle" font-size="13" font-weight="900" fill="#003087" font-style="italic">Paquetexpress</text>
+      <path d="M182 104 h34 q10 0 15 10 l12 22 v22 h-61 z" fill="#f2a900"/><rect x="182" y="136" width="61" height="6" fill="#003087"/>
+      <path d="M190 110 h24 q6 0 9 6 l9 16 h-42 z" fill="#9fd3ff" stroke="#0b2a5b" stroke-width="1.2"/>
+      <rect x="236" y="146" width="10" height="6" rx="2" fill="#ffe28a"/>
+      <rect x="150" y="133" width="44" height="20" rx="5" fill="#9aa7bd" stroke="#59657c" stroke-width="1.5"/>
+      <g clip-path="url(#fuTk)"><rect class="fu-tkfill" x="150" y="133" width="0" height="20" fill="#2bd46b"/></g>
+      <circle cx="196" cy="140" r="3" fill="#59657c"/>
+      <rect x="22" y="152" width="230" height="7" rx="3" fill="#1d2430"/></g>
+      <g class="fu-wh"><circle cx="70" cy="164" r="13" fill="#141a24"/><circle cx="70" cy="164" r="5.5" fill="#9aa7bd"/><rect x="68.5" y="153" width="3" height="22" fill="#5a6b8a" class="fu-sp"/></g>
+      <g class="fu-wh"><circle cx="210" cy="164" r="13" fill="#141a24"/><circle cx="210" cy="164" r="5.5" fill="#9aa7bd"/><rect x="208.5" y="153" width="3" height="22" fill="#5a6b8a" class="fu-sp"/></g>
+      <g class="fu-smoke" fill="#cfd8e8"><circle cx="18" cy="150" r="4"/><circle cx="8" cy="144" r="6"/></g>
+    </g>
+  </svg>
+  <div class="fu-row">
+    <svg class="fu-gauge" viewBox="0 0 120 70" aria-hidden="true">
+      <path d="M12 62 A48 48 0 0 1 108 62" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="9" stroke-linecap="round"/>
+      <path class="fu-garc" d="M12 62 A48 48 0 0 1 108 62" fill="none" stroke="#2bd46b" stroke-width="9" stroke-linecap="round" pathLength="100" stroke-dasharray="0 100"/>
+      <text x="10" y="54" font-size="10" font-weight="800" fill="#ff7a7a">E</text><text x="104" y="54" font-size="10" font-weight="800" fill="#6dff9e">F</text>
+      <text x="60" y="16" text-anchor="middle" font-size="7" fill="#c9d7f2">½</text>
+      <g class="fu-needle" style="transform-origin:60px 62px;transform:rotate(-90deg)"><path d="M58.5 62 L60 20 L61.5 62 z" fill="#f2a900"/></g>
+      <circle cx="60" cy="62" r="5" fill="#f2a900"/>
+    </svg>
+    <div class="fu-txt"><b class="fu-st">Llegando a la estación…</b><span class="fu-sub">Preparando tu información de combustible</span>
+      <div class="fu-bar"><i></i></div></div>
+  </div></div>`;
+  document.getElementById('login').appendChild(el);
+  FUEL.el = el; FUEL.tgt = 0; FUEL.cur = 0; FUEL.t0 = performance.now();
+  requestAnimationFrame(() => el.classList.add('on', 'arrive'));
+  const ARR = reduce ? 0 : 1500;
+  const tick = now => {
+    const arrived = now - FUEL.t0 > ARR;
+    if (arrived && !el.classList.contains('fill')) { el.classList.add('fill'); el.classList.remove('arrive'); }
+    const goal = arrived ? FUEL.tgt : 0;
+    const step = Math.min(Math.max((goal - FUEL.cur) * 0.07, 0), 0.012); // suave y con velocidad máxima
+    FUEL.cur = goal - FUEL.cur < 0.002 ? goal : FUEL.cur + step;
+    fuelPaint(FUEL.cur);
+    FUEL.raf = requestAnimationFrame(tick);
+  };
+  FUEL.raf = requestAnimationFrame(tick);
+}
+function fuelPaint(p) {
+  const el = FUEL.el; if (!el) return; const q = s => el.querySelector(s);
+  q('.fu-tkfill').setAttribute('width', (44 * p).toFixed(2));
+  q('.fu-pbar').setAttribute('width', (40 * p).toFixed(2));
+  q('.fu-lts').textContent = (FUEL_CAP * p).toFixed(1) + ' L';
+  q('.fu-pct').textContent = Math.round(p * 100) + ' %';
+  q('.fu-garc').setAttribute('stroke-dasharray', (p * 100).toFixed(1) + ' 100');
+  q('.fu-garc').setAttribute('stroke', p < .25 ? '#ff7a7a' : p < .6 ? '#f2c94c' : '#2bd46b');
+  q('.fu-needle').style.transform = 'rotate(' + (-90 + 180 * p).toFixed(1) + 'deg)';
+  q('.fu-bar i').style.width = (p * 100).toFixed(1) + '%';
+  if (el.classList.contains('fill') && p < 1) { q('.fu-st').textContent = 'Cargando combustible…'; q('.fu-sub').textContent = 'Llenando el tanque con tu información · ' + Math.round(p * 100) + '%'; }
+}
+function fuelSet(p) { FUEL.tgt = Math.max(FUEL.tgt, Math.min(1, p)); }
+function fuelDone() {
+  return new Promise(res => {
+    if (!FUEL.el) return res();
+    fuelSet(1);
+    const w = () => {
+      if (FUEL.cur >= 1 && FUEL.el.classList.contains('fill')) {
+        const el = FUEL.el; el.classList.add('full');
+        el.querySelector('.fu-st').textContent = '¡Tanque lleno!'; el.querySelector('.fu-sub').textContent = 'Entrando al portal…';
+        setTimeout(() => { el.classList.add('go'); setTimeout(() => { fuelHide(); res(); }, 900); }, 900);
+      } else setTimeout(w, 60);
+    };
+    w();
+  });
+}
+function fuelHide() { if (!FUEL.el) return; cancelAnimationFrame(FUEL.raf); FUEL.el.remove(); FUEL.el = null; FUEL.tgt = FUEL.cur = 0; }
+
 /* ===================== Versión GitHub Pages: datos cifrados en data.enc.json ===================== */
 window.GH = true;
 const GH_ITER = 150000;
@@ -3858,7 +3996,6 @@ async function ghEncryptBin(obj) {
 }
 async function ghLoadParts(file, key) {
   const parts = file.parts || {}; const keys = Object.keys(parts); let done = 0;
-  const msg = document.querySelector('#login .lerr');
   const out = {}; const bad = [];
   for (let i = 0; i < keys.length; i += 4) {
     await Promise.all(keys.slice(i, i + 4).map(async k => {
@@ -3867,7 +4004,7 @@ async function ghLoadParts(file, key) {
       if (!r.ok) { bad.push({ k, f: p.f, why: 'missing' }); return; }
       try { out[k] = FP.decCols(await ghDecryptBin(await r.arrayBuffer(), p.iv, key)); }
       catch (e) { bad.push({ k, f: p.f, why: 'old' }); return; }
-      done++; if (msg) msg.textContent = 'Cargando información… ' + done + ' de ' + keys.length;
+      done++; fuelSet(0.08 + 0.87 * done / keys.length);
     }));
   }
   GHS.badParts = bad;
@@ -3914,10 +4051,12 @@ async function ghTryStored(file) {
   try {
     const o = JSON.parse(v);
     const key = await crypto.subtle.importKey('raw', b64.dec(o.k), { name: 'AES-GCM' }, true, ['encrypt', 'decrypt']);
+    fuelShow(); fuelSet(0.06);
     const obj = await ghDecrypt(file, key);
     const pd = await ghLoadParts(file, key);
-    GHS.key = key; GHS.users = file.users; ghApply(obj, file, pd); setRole(o.u, o.role); setTimeout(ghBadNotice, 800); return true;
-  } catch (e) { return false; }
+    GHS.key = key; GHS.users = file.users; ghApply(obj, file, pd); setRole(o.u, o.role);
+    await fuelDone(); setTimeout(ghBadNotice, 800); return true;
+  } catch (e) { fuelHide(); return false; }
 }
 function ghLogin() {
   return new Promise(async res => {
@@ -3936,12 +4075,13 @@ function ghLogin() {
         const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64.dec(ent.iv) }, kek, b64.dec(ent.wrap));
         const w = JSON.parse(new TextDecoder().decode(pt));
         const key = await crypto.subtle.importKey('raw', b64.dec(w.dek), { name: 'AES-GCM' }, true, ['encrypt', 'decrypt']);
+        err.textContent = ''; fuelShow(); fuelSet(0.06);
         const obj = await ghDecrypt(file, key);
-        err.textContent = 'Cargando información…';
-        let pd; try { pd = await ghLoadParts(file, key); } catch (e2) { fail(e2.message); return; }
-        GHS.key = key; GHS.users = file.users; ghApply(obj, file, pd); setRole(w.u || u, w.role); ghRemember(fm.r.checked, w.u || u, w.role); setTimeout(ghBadNotice, 800);
-        err.textContent = ''; document.body.classList.add('authed'); res();
-      } catch (er) { fail('Usuario o contraseña incorrectos'); }
+        let pd; try { pd = await ghLoadParts(file, key); } catch (e2) { fuelHide(); fail(e2.message); return; }
+        GHS.key = key; GHS.users = file.users; ghApply(obj, file, pd); setRole(w.u || u, w.role); ghRemember(fm.r.checked, w.u || u, w.role);
+        await fuelDone(); setTimeout(ghBadNotice, 800);
+        document.body.classList.add('authed'); res();
+      } catch (er) { fuelHide(); fail('Usuario o contraseña incorrectos'); }
     });
     function fail(m) { err.textContent = m; fm.classList.remove('shake'); void fm.offsetWidth; fm.classList.add('shake'); fm.p.value = ''; fm.p.focus(); }
     setTimeout(() => fm.u.focus(), 50);
