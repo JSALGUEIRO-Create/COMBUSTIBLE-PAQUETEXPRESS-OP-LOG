@@ -702,6 +702,35 @@ body.e3open{overflow:hidden}body.e3open .floatbtn{display:none}
 .e3n{font-style:normal;font-size:10.5px;font-weight:800;opacity:.75;margin-left:3px;padding:1px 6px;border-radius:999px;background:rgba(127,140,160,.18)}
 .e3chip input:checked+span .e3n{background:rgba(255,255,255,.22);opacity:1}
 .e3scroll .e3w-chips{max-height:170px;overflow:auto;padding-right:4px}
+
+main:has(.alay){max-width:1720px}
+.amain .kv{font-size:clamp(19px,1.55vw,24px)}
+@media (max-width:1350px){.amain .kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
+/* ===== Menú lateral tipo cabina (Logística / Operaciones) ===== */
+.alay{display:grid;grid-template-columns:272px minmax(0,1fr);gap:24px;align-items:start}
+.aside{position:sticky;top:72px;max-height:calc(100vh - 88px);overflow:auto;scrollbar-width:thin;background:linear-gradient(180deg,#071733,#0b2a5b);color:#fff;border-radius:20px;padding:16px 12px;display:flex;flex-direction:column;gap:6px;box-shadow:0 14px 40px rgba(5,20,50,.28)}
+.aside.ops{background:linear-gradient(180deg,#06241c,#0b4a37)}
+.as-h{display:flex;align-items:center;gap:12px;padding:4px 6px 14px;border-bottom:1px solid rgba(255,255,255,.12);margin-bottom:6px}
+.as-h img{width:64px;height:46px;object-fit:cover;border-radius:10px;flex:none}
+.as-h b{display:block;font-size:17px;color:#fff}.as-h span{font-size:11.5px;color:#9fb3d6;line-height:1.3;display:block}
+.as-sw{display:grid;grid-template-columns:1fr 1fr;background:rgba(255,255,255,.08);border-radius:12px;padding:4px;margin-bottom:8px}
+.as-sw a{text-align:center;font-size:12.5px;font-weight:800;padding:8px 4px;border-radius:9px;color:#9fb3d6;text-decoration:none}
+.as-sw a:hover{color:#fff}.as-sw a.on{background:#f2a900;color:#0b2a5b}
+.as-nav{display:flex;flex-direction:column;gap:3px}
+.as-it{display:flex;align-items:center;gap:12px;padding:10px 11px;border-radius:12px;color:#c9d7f2;text-decoration:none;transition:background .15s,transform .15s}
+.as-it svg{flex:none;width:20px;height:20px}
+.as-it:hover{background:rgba(255,255,255,.07);transform:translateX(2px)}
+.as-tx{flex:1;min-width:0}.as-tx b{display:block;font-size:14px;color:#fff;font-weight:700}
+.as-tx small{display:block;font-size:11.5px;color:#9fb3d6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.aside:not(.ready) .as-k{width:70%;height:9px;margin-top:5px;border-radius:5px;background:rgba(255,255,255,.12);animation:asPulse 1.2s ease-in-out infinite}
+@keyframes asPulse{50%{opacity:.45}}
+.as-dot{flex:none;width:9px;height:9px;border-radius:50%;background:#8a9bb8}
+.as-dot.ok{background:#22c58b;box-shadow:0 0 0 3px rgba(34,197,139,.18)}.as-dot.warn{background:#f2c200;box-shadow:0 0 0 3px rgba(242,194,0,.18)}.as-dot.bad{background:#ff5d5d;box-shadow:0 0 0 3px rgba(255,93,93,.2)}
+.as-it.on{background:linear-gradient(90deg,rgba(242,169,0,.26),rgba(242,169,0,.05));box-shadow:inset 3px 0 0 #f2a900}.as-it.on svg{color:#f2a900}
+.as-it.t-anomalias:not(.on) svg{color:#ff8a8a}.as-it.t-liga:not(.on) svg{color:#ffd36b}
+.as-xl{margin-top:10px;background:#1f8a4c;color:#fff;border:0;border-radius:12px;padding:12px;font:inherit;font-weight:800;font-size:13px;cursor:pointer}.as-xl:hover{filter:brightness(1.1)}
+.amain{min-width:0}.amain>.areahead{margin-top:2px}
+@media (max-width:1000px){.alay{grid-template-columns:1fr}.aside{position:static;max-height:none}.as-nav{flex-direction:row;overflow-x:auto}.as-it{flex:none}.as-tx small{max-width:150px}}
 </style>
 </head>
 <body>
@@ -4462,7 +4491,40 @@ function viewArea(a, tab) {
   const SLG = ['Cada litro cuenta', 'Hagamos uso eficiente del combustible', 'Menos ralentí, más kilómetros', 'Manejo suave, rendimiento ideal', 'Apaga el motor en cada parada', 'El precio no lo controlamos; su uso, sí'];
   const slog = '<div class="slogans" aria-hidden="true"><span class="sdrop"><svg viewBox="0 0 24 24"><path d="M12 2s-7 8-7 13a7 7 0 0 0 14 0c0-5-7-13-7-13z" fill="#f2a900"/><path d="M9 14a3 3 0 0 0 3 3" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg></span><div class="sl">' + SLG.map((t, i) => '<span style="animation-delay:' + (i * 4) + 's">' + t + '</span>').join('') + '</div></div>';
   const banner = '<div class="abanner ' + a + (/^chofer/.test(PH[a][tab]) ? ' portrait' : '') + '"><img src="' + IMG[PH[a][tab]] + '" alt=""><div class="abtxt"><p class="crumb"><a href="#inicio">Inicio</a> / ' + AREA_NAME[a] + '</p><h1>' + AREA_NAME[a] + '</h1><p>' + (a === 'log' ? 'Tractocamiones · red troncal' : 'Unidades ligeras · recolección y entrega') + ' — ' + TAG[tab] + '</p></div></div>';
-  return banner + '<div class="areahead ' + a + '">' + slog + fb + '</div>' + tabs + '<div class="tabbody">' + body + '</div>';
+  const oth = a === 'log' ? 'ops' : 'log';
+  const side = '<aside class="aside ' + a + '" aria-label="Menú de ' + AREA_NAME[a] + '">' +
+    '<div class="as-h"><img src="' + IMG[PH[a].rendimientos] + '" alt=""><div><b>' + AREA_NAME[a] + '</b><span>' + (a === 'log' ? 'Tractocamiones · red troncal' : 'Unidades ligeras · recolección y entrega') + '</span></div></div>' +
+    '<div class="as-sw">' + ['log', 'ops'].map(x => '<a href="#' + SLUG[x] + '-' + tab + '" class="' + (x === a ? 'on' : '') + '">' + AREA_NAME[x] + '</a>').join('') + '</div>' +
+    '<nav class="as-nav">' + TABS.map(([k, l]) => '<a href="#' + SLUG[a] + '-' + k + '" class="as-it t-' + k + (tab === k ? ' on' : '') + '"' + (tab === k ? ' aria-current="page"' : '') + ' data-k="' + k + '">' + tabIcon(k) + '<span class="as-tx"><b>' + l + '</b><small class="as-k">&nbsp;</small></span><i class="as-dot"></i></a>').join('') + '</nav>' +
+    '<button class="as-xl" data-act="xlsTab" data-area="' + a + '" data-tab="' + tab + '">⬇ Descargar Excel</button></aside>';
+  later(() => asideFill(a));
+  return '<div class="alay ' + a + '">' + side + '<div class="amain"><div class="areahead ' + a + '">' + slog + fb + '</div><div class="tabbody">' + body + '</div></div></div>';
+}
+function asideKpis(a) {
+  const f = S.f[a]; const key = 'as|' + a + '|' + f.mes + '|' + f.region + '|' + f.suc + '|' + f.comb + '|' + S.ver;
+  if (S.cache[key]) return S.cache[key];
+  const p = f.mes; const out = {}; if (!p) return out;
+  const from = p + '-01', to = monthEnd(p); const pp = prevPeriod(p);
+  const M = v => v >= 1e6 ? '$' + (v / 1e6).toFixed(1) + ' M' : F.money(v);
+  const T = (k, fn) => { try { const r = fn(); if (r) out[k] = r; } catch (e) { console.warn('aside', k, e); } };
+  T('rendimientos', () => { const r = a === 'log' ? logRendRows(p, false) : opsRendRows(p, {}); if (!r.length) return null; const st = a === 'log' ? logRendStats(r) : opsStats(r); const s = statusOf(st.cump).k; return { v: F.n2(st.rend) + ' km/L', s: st.cump ? F.pct(st.cump) + ' del ideal' : '', st: s === 'good' ? 'ok' : s }; });
+  T('cargas', () => { const cs = cargasStats(a, cargasRows(a, from, to)); return cs.c ? { v: M(cs.imp), s: F.n0(cs.c) + ' cargas', st: 'ok' } : null; });
+  T('ralenti', () => {
+    const E = ralRows(a, from, to); if (!E.length) return null; const st = ralStats(E); const d = new Set(E.map(r => r.fecha)).size || 1;
+    const P = ralRows(a, pp + '-01', monthEnd(pp)); const pd = new Set(P.map(r => r.fecha)).size; const ch = P.length && pd ? (st.lts / d) / (sum(P, 'lts') / pd) - 1 : null;
+    return { v: F.n0(st.lts) + ' L', s: ch === null ? F.n0(st.ev) + ' eventos' : (ch > 0 ? '▲ ' : '▼ ') + F.n1(Math.abs(ch * 100)) + '% vs mes ant.', st: ch === null ? 'na' : ch > 0.03 ? 'bad' : ch > 0 ? 'warn' : 'ok' };
+  });
+  T('choferes', () => { const r = choferRows(a, p).filter(x => x.km >= setting('minKmChof')); if (!r.length) return null; const al = r.filter(x => x.pr > 25).length; const sh = al / r.length; return { v: F.n0(r.length) + ' choferes', s: al + ' con ralentí alto', st: sh > 0.15 ? 'bad' : sh > 0.05 ? 'warn' : 'ok' }; });
+  out.comparador = { v: 'Móvil, región y marca', s: '', st: 'na' };
+  T('anomalias', () => { const L = anomalies(a, from, to).list; const c = L.filter(x => x.sev >= 3).length; return { v: F.n0(L.length) + ' alertas', s: c + ' críticas', st: c ? 'bad' : L.length ? 'warn' : 'ok' }; });
+  T('liga', () => { const t = ligaTable(a, p, 'region'); return t && t[0] ? { v: String(t[0].n), s: 'líder · ' + F.n0(t[0].pts) + ' pts', st: 'ok' } : null; });
+  S.cache[key] = out; return out;
+}
+function asideFill(a) {
+  const run = () => { const el = document.querySelector('.aside.' + a); if (!el) return; const K = asideKpis(a);
+    el.querySelectorAll('.as-it').forEach(it => { const x = K[it.dataset.k]; const sm = it.querySelector('.as-k'); sm.textContent = x ? x.v + (x.s ? ' · ' + x.s : '') : 'Sin datos del mes'; sm.title = sm.textContent; it.querySelector('.as-dot').className = 'as-dot ' + (x ? x.st : 'na'); });
+    el.classList.add('ready'); };
+  setTimeout(run, 30);
 }
 
 /* ---------- Cargar archivos ---------- */
