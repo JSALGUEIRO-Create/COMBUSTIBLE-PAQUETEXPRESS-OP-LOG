@@ -785,6 +785,7 @@ const SHOT={"area": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAwI
     return rows.filter(r => r.some(c => c !== ''));
   }
 
+  function normVeh(v) { v = String(v === null || v === undefined ? '' : v).trim(); const m = v.match(/^(.+?)\s*(?:-\s+.+|\(.+\))$/); return (m ? m[1] : v).trim(); }
   function parseRalenti(aoa) {
     const h = findHeader(aoa, ['FECHA Y HORA INICIO', 'VEHICULO']);
     if (!h) return null;
@@ -792,11 +793,11 @@ const SHOT={"area": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAwI
     const cMin = pick(I, ['DURACION (MIN)']), cL = pick(I, ['COMBUSTIBLE (L)']);
     for (let i = h.row + 1; i < aoa.length; i++) {
       const r = aoa[i]; if (!r) continue;
-      const d = toDate(r[I['FECHA Y HORA INICIO']]); const veh = txt(r[I['VEHICULO']]);
+      const d = toDate(r[I['FECHA Y HORA INICIO']]); const veh = normVeh(txt(r[I['VEHICULO']]));
       if (!d || !veh) continue;
       let min = num(r[cMin]);
       if (min === null && I['DURACION (H:MM)'] !== undefined) { const m = txt(r[I['DURACION (H:MM)']]).match(/(\d+):(\d+)/); if (m) min = +m[1] * 60 + +m[2]; }
-      out.push({ fecha: d.fecha, hora: d.hora, veh: veh, chofer: txt(r[I['CHOFER']]) || 'Sin chofer asignado', min: r2(min || 0, 1), ubic: txt(r[I['UBICACION']]), geo: txt(r[I['GEOCERCA']]) || 'Fuera de geocerca', lts: r2(num(r[cL]) || 0, 2) });
+      out.push({ fecha: d.fecha, hora: d.hora, veh: veh, chofer: txt(r[I['CHOFER']]) || 'Sin chofer asignado', min: r2(min || 0, 1), ubic: txt(r[I['UBICACION']]), geo: txt(r[I['GEOCERCA']]) || 'Fuera de geocerca', lts: r2(num(r[cL]) || 0, 3) });
     }
     return out;
   }
@@ -994,7 +995,7 @@ const SHOT={"area": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAwI
     switch (ds) {
       case 'log_cargas': return [r.fecha, r.movil, r.lts, r.total, r.folio, r.suc].join('|');
       case 'ops_cargas': return [r.fecha, r.hora, r.movil, r.lts, r.imp, r.tarjeta].join('|');
-      default: return [r.fecha, r.hora, r.veh, r.min, r.lts].join('|');
+      default: return [r.fecha, r.hora, normVeh(r.veh), r.min, r2(r.lts, 2)].join('|');
     }
   }
   // Texto mal decodificado (UTF-8 leído como Windows-1252): CuautitlÃ¡n -> Cuautitlán
@@ -1019,9 +1020,9 @@ const SHOT={"area": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAwI
     return out;
   }
   function toArr(ds, rows) { const c = COLS[ds]; return rows.map(r => c.map(k => r[k] === undefined ? null : r[k])); }
-  function fromArr(ds, arr) { const c = COLS[ds]; return arr.map(a => { const o = {}; for (let i = 0; i < c.length; i++) o[c[i]] = a[i]; return o; }); }
+  function fromArr(ds, arr) { const c = COLS[ds]; const rv = /_ral$/.test(ds); return arr.map(a => { const o = {}; for (let i = 0; i < c.length; i++) o[c[i]] = a[i]; if (rv) o.veh = normVeh(o.veh); return o; }); }
 
-  const API = { COLS, MONTHLY, LABEL, MESES, parseFile, rowKey, toArr, fromArr, encCols, decCols, fixMoji, periodFromText, norm, toDate, parseCSVText };
+  const API = { normVeh, COLS, MONTHLY, LABEL, MESES, parseFile, rowKey, toArr, fromArr, encCols, decCols, fixMoji, periodFromText, norm, toDate, parseCSVText };
   if (typeof module !== 'undefined' && module.exports) module.exports = API; else root.FP = API;
 })(typeof window !== 'undefined' ? window : globalThis);
 
@@ -1955,9 +1956,10 @@ function rangeInputs(a) {
 
 /* ---------- Ralentí (genérico) ---------- */
 function ralRows(a, from, to, noGeo) {
-  const f = S.f[a]; const L = lookups(); const ex = a === 'ops' && setting('excluirLog');
+  const f = S.f[a]; const L = lookups(); const ex = setting('excluirLog');
   return rowsRange(a + '_ral', from, to).filter(r => {
-    if (ex && L.logSet.has(r.veh)) return false;
+    if (ex && a === 'ops' && L.logSet.has(r.veh)) return false;
+    if (ex && a === 'log' && L.opsU[r.veh] && !L.logU[r.veh]) return false;
     if (a === 'ops') { if (!tog('opsNoClas', true) && !L.opsU[r.veh]) return false; if (f.comb !== 'ALL' && combOf(r.veh) !== f.comb) return false; if (f.suc !== 'ALL' && sucOf(r.veh) !== f.suc) return false; }
     if (f.region !== 'ALL' && regionOf(a, r.veh) !== f.region) return false;
     if (!noGeo && f.geo !== 'ALL') { const out = /fuera/i.test(r.geo); if ((f.geo === 'IN') === out) return false; }
@@ -2012,7 +2014,7 @@ function viewRal(a) {
   const geoSel = '<select data-act="f" data-k="geo"><option value="ALL"' + (f.geo === 'ALL' ? ' selected' : '') + '>Todas las ubicaciones</option><option value="IN"' + (f.geo === 'IN' ? ' selected' : '') + '>Dentro de geocerca</option><option value="OUT"' + (f.geo === 'OUT' ? ' selected' : '') + '>Fuera de geocerca</option></select>';
   const diasSel = '<select data-act="f" data-k="rDias">' + [2, 3, 4, 5, 7, 10].map(n => '<option value="' + n + '"' + (+f.rDias === n ? ' selected' : '') + '>' + n + '+ días</option>').join('') + '</select>';
   const ncTool = a === 'ops' ? '<label class="chk"><input type="checkbox" data-act="tg" data-k="opsNoClas"' + (tog('opsNoClas', true) ? ' checked' : '') + '> Incluir unidades no clasificadas</label>' : '';
-  return '<div class="blockhead"><div><h2>Ralentí</h2><p class="sub">' + dLabel(f.desde) + ' – ' + dLabel(f.hasta) + (a === 'ops' && setting('excluirLog') ? ' · sin unidades de Logística' : '') + '</p></div><div class="bh-tools"><button class="btn mailbtn" data-act="mailRal" data-area="' + a + '">✉ Generar correo</button>' + ncTool + geoSel + rangeInputs(a) + '</div></div>' +
+  return '<div class="blockhead"><div><h2>Ralentí</h2><p class="sub">' + dLabel(f.desde) + ' – ' + dLabel(f.hasta) + (setting('excluirLog') ? (a === 'ops' ? ' · sin unidades de Logística' : ' · sin unidades de Operaciones') : '') + '</p></div><div class="bh-tools"><button class="btn mailbtn" data-act="mailRal" data-area="' + a + '">✉ Generar correo</button>' + ncTool + geoSel + rangeInputs(a) + '</div></div>' +
     '<div class="kpis">' + kpi('Litros en ralentí', F.n0(st.lts), F.n0(st.ev) + ' eventos', 'hero') + kpi('Horas en ralentí', F.n1(st.h)) + kpi('Vehículos', F.n0(st.veh)) + kpi('Duración promedio', hmm(st.prom || 0)) + kpi('Consumo por hora', F.n2(st.lph) + '<small> L/h</small>') + kpi('Fuera de geocerca', F.pct(st.pFuera), 'de los eventos') + '</div>' +
     card('Consumo por día', '<div id="' + ids.d + '"></div>', { tools }) +
     '<div class="grid2">' + card('¿A qué hora ocurre?', '<div id="' + ids.hm + '"></div>', { sub: 'Eventos por día de la semana y hora de inicio' }) + card('Ralentí por región', '<div id="' + ids.rg + '"></div>') + '</div>' +
@@ -4243,7 +4245,7 @@ function openSettings() {
     '<label>Km mínimos para evaluar un tracto (Logística)<input type="number" step="100" data-s="minKmLog" value="' + setting('minKmLog') + '"></label>' +
     '<label>Km mínimos para evaluar una unidad (Operaciones)<input type="number" step="50" data-s="minKmOps" value="' + setting('minKmOps') + '"></label>' +
     '<label>Km mínimos para evaluar un chofer<input type="number" step="50" data-s="minKmChof" value="' + setting('minKmChof') + '"></label>' +
-    '<label class="chk"><input type="checkbox" data-s="excluirLog"' + (setting('excluirLog') ? ' checked' : '') + '> En Operaciones, excluir unidades y choferes que pertenecen a Logística (los reportes de Samsara de Operaciones incluyen la flota de Logística)</label>' +
+    '<label class="chk"><input type="checkbox" data-s="excluirLog"' + (setting('excluirLog') ? ' checked' : '') + '> Separar las flotas: en Operaciones excluir unidades y choferes de Logística, y en el ralentí de Logística excluir unidades de Operaciones (los reportes de Samsara de cada área incluyen unidades de la otra; sin esto se cuentan dos veces).</label>' +
     '</div><footer>' + ((S.canWrite || !S.db) && isAdmin() ? '<button class="btn" data-act="saveSettings">Guardar' + (S.db ? ' para todos' : '') + '</button>' : '<span class="muted">Solo consulta</span>') + '</footer></div>';
   m.classList.add('open');
   void s;
