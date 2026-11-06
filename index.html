@@ -689,7 +689,20 @@ body.e3open{overflow:hidden}body.e3open .floatbtn{display:none}
 @keyframes fuPop{40%{transform:scale(1.025)}}
 #fuel.rm .fu-truck{transition:none}#fuel.rm *{animation:none!important}
 @media (max-width:520px){.fu-gauge{width:90px}.fu-st{font-size:15px}}
-.ghbar{background:#fff4d6;color:#7a5200;text-align:center;padding:8px;font-weight:700;font-size:13px}.ghbar .lnk{color:#0b2a5b;text-decoration:underline}</style>
+.ghbar{background:#fff4d6;color:#7a5200;text-align:center;padding:8px;font-weight:700;font-size:13px}.ghbar .lnk{color:#0b2a5b;text-decoration:underline}
+/* Evaluación 360: filtros de selección múltiple */
+.e3w-tip{font-size:12px;font-weight:600;color:var(--muted)}
+.e3g{border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-top:8px;background:var(--surface)}
+.e3gh{display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;color:var(--muted)}
+.e3gh span{flex:1}
+.e3gc{font-style:normal;font-size:11px;padding:2px 8px;border-radius:999px;background:rgba(34,197,139,.15);color:#159a6a;text-transform:none;letter-spacing:0}
+.e3gc.part{background:rgba(242,169,0,.18);color:#a26f00}
+.e3all{font-size:12px;font-weight:700;color:var(--brand2);text-transform:none;letter-spacing:0}
+.e3g .e3chip span{font-size:12.5px;padding:6px 11px}
+.e3n{font-style:normal;font-size:10.5px;font-weight:800;opacity:.75;margin-left:3px;padding:1px 6px;border-radius:999px;background:rgba(127,140,160,.18)}
+.e3chip input:checked+span .e3n{background:rgba(255,255,255,.22);opacity:1}
+.e3scroll .e3w-chips{max-height:170px;overflow:auto;padding-right:4px}
+</style>
 </head>
 <body>
 <div id="login"><form class="lbox" autocomplete="on">
@@ -1717,7 +1730,7 @@ function logRendRows(p, ignoreRegion, src) {
     const zona = normZona(r0.zona); const t = (r0.full || 0) + (r0.senc || 0);
     if (t > 0 || r0.tipo !== 'TRACTO') return zona === r0.zona ? r0 : Object.assign({}, r0, { zona });
     const m = mixOf(r0.eco, p); return Object.assign({}, r0, { zona, full: m.f, senc: 1 - m.f, mixEst: m.src });
-  }).filter(r => (r.tipo === 'TRACTO' || tog('logTK', false)) && (!r.wialon || tog('logWialon', true)) && (ignoreRegion || f.region === 'ALL' || r.zona === f.region) && (r.km > 0 || r.lts > 0)).map(r => {
+  }).filter(r => (r.tipo === 'TRACTO' || tog('logTK', false)) && (!r.wialon || tog('logWialon', true)) && (ignoreRegion || f.region === 'ALL' || r.zona === f.region) && (ignoreRegion || e3ok('log', r.zona, r.marca)) && (r.km > 0 || r.lts > 0)).map(r => {
     const useS = src === 'S' && r.rendS > 0 && r.km > 0;
     const ideal = logIdeal(r);
     return Object.assign({}, r, { rendM: r.rend, ltsM: r.lts, lts: useS ? r.km / r.rendS : r.lts, rend: useS ? r.rendS : r.rend, src: useS ? 'S' : 'M', ideal, li: ideal ? r.km / ideal : 0 });
@@ -1821,7 +1834,7 @@ function idealOf(r) { return r.ideal || (r.comb === 'GASOLINA' ? setting('idealG
 function opsRendRows(p, o) {
   o = o || {}; const f = S.f.ops; let out = [];
   for (const ds of AREA_DS.ops.rend) { if ((f.comb === 'DIESEL' && ds === 'ops_rend_g') || (f.comb === 'GASOLINA' && ds === 'ops_rend_d')) continue; out = out.concat(rowsOf(ds, p)); }
-  return out.filter(r => (o.allCasos || r.caso === 'N' || tog('opsCasos', false)) && (o.ignoreRegion || f.region === 'ALL' || r.region === f.region) && (o.ignoreRegion || f.suc === 'ALL' || r.suc === f.suc) && (!tog('opsAtip', false) || r.caso !== 'N' || !idealOf(r) || (r.rend / idealOf(r) <= 2.5 && r.rend / idealOf(r) >= 0.3)));
+  return out.filter(r => (o.allCasos || r.caso === 'N' || tog('opsCasos', false)) && (o.ignoreRegion || f.region === 'ALL' || r.region === f.region) && (o.ignoreRegion || f.suc === 'ALL' || r.suc === f.suc) && (o.ignoreRegion || e3ok('ops', r.region, r.desc)) && (!tog('opsAtip', false) || r.caso !== 'N' || !idealOf(r) || (r.rend / idealOf(r) <= 2.5 && r.rend / idealOf(r) >= 0.3)));
 }
 function aggOps(rows, key) {
   const m = groupBy(rows, key); const out = [];
@@ -1914,6 +1927,7 @@ function cargasRows(a, from, to) {
   const f = S.f[a]; const L = lookups(); const ex = a === 'ops' && setting('excluirLog');
   return rowsRange(CG[a].ds, from, to).filter(r => {
     if (ex && L.logSet.has(r.movil)) return false;
+    if (E3SEL && !e3okV(a, r.movil)) return false;
     if (a === 'ops') { if (f.comb !== 'ALL' && combOf(r.movil) !== f.comb) return false; if (f.region !== 'ALL' && regionOf('ops', r.movil) !== f.region) return false; if (f.suc !== 'ALL' && sucOf(r.movil) !== f.suc) return false; }
     else if (f.region !== 'ALL' && regionOf('log', r.movil) !== f.region) return false;
     return true;
@@ -2013,6 +2027,7 @@ function ralRows(a, from, to, noGeo) {
   return rowsRange(a + '_ral', from, to).filter(r => {
     if (ex && a === 'ops' && L.logSet.has(r.veh)) return false;
     if (ex && a === 'log' && L.opsU[r.veh] && !L.logU[r.veh]) return false;
+    if (E3SEL && !e3okV(a, r.veh)) return false;
     if (a === 'ops') { if (!tog('opsNoClas', true) && !L.opsU[r.veh]) return false; if (f.comb !== 'ALL' && combOf(r.veh) !== f.comb) return false; if (f.suc !== 'ALL' && sucOf(r.veh) !== f.suc) return false; }
     if (f.region !== 'ALL' && regionOf(a, r.veh) !== f.region) return false;
     if (!noGeo && f.geo !== 'ALL') { const out = /fuera/i.test(r.geo); if ((f.geo === 'IN') === out) return false; }
@@ -3057,6 +3072,10 @@ function e3regions(a) {
 }
 
 /* ---------- Asistente de perfil ---------- */
+function e3grp(name, title, items, cls) {
+  return '<div class="e3g ' + cls + '"><div class="e3gh"><span>' + title + '</span><em class="e3gc"></em><a href="#" class="e3all" data-n="' + name + '" data-v="1">Todas</a><a href="#" class="e3all" data-n="' + name + '" data-v="0">Ninguna</a></div><div class="e3w-chips">' +
+    (items.length ? items.map(([v, l, c]) => '<label class="e3chip"><input type="checkbox" name="' + name + '" value="' + esc(v) + '" checked><span>' + esc(l) + (c != null ? ' <i class="e3n">' + c + '</i>' : '') + '</span></label>').join('') : '<span class="e3w-tip">Sin información cargada</span>') + '</div></div>';
+}
 function openE360Wizard() {
   const months = e3allMonths(); const last = months[months.length - 1] || '';
   const opt = sel => months.slice().reverse().map(m => '<option value="' + m + '"' + (m === sel ? ' selected' : '') + '>' + perLabel(m) + '</option>').join('');
@@ -3065,16 +3084,35 @@ function openE360Wizard() {
   m.innerHTML = '<div class="mbox e3w"><header><div><h3><span class="e3w-ic">360°</span> Evaluación 360</h3><p class="sub">Arma el perfil de la evaluación y obtén el diagnóstico completo: compra, rendimiento, ralentí, choferes y acciones</p></div><button class="x" data-act="closeModal" aria-label="Cerrar">×</button></header><div class="mbody">' +
     '<div class="e3w-sec"><b>1 · ¿Qué vamos a evaluar?</b><div class="pw-areas">' + [['both', 'Toda la flota', IMG.full], ['log', 'Logística', IMG.cascadia_caja], ['ops', 'Operaciones', IMG.hinos_anden]].map(([v, l, im], i) => '<label class="pwa"><input type="radio" name="e3a" value="' + v + '"' + (i === 0 ? ' checked' : '') + '><img src="' + im + '" alt=""><span>' + l + '</span></label>').join('') + '</div></div>' +
     '<div class="e3w-sec"><b>2 · Periodo</b><div class="e3w-grid"><label>Desde<select id="e3d">' + opt(last) + '</select></label><label>Hasta<select id="e3h">' + opt(last) + '</select></label><label>Comparar contra<select id="e3c"><option value="prev">Periodo anterior equivalente</option><option value="yoy">Mismo periodo del año anterior</option><option value="none">Sin comparación</option></select></label></div></div>' +
-    '<div class="e3w-sec"><b>3 · Alcance</b><div class="e3w-grid"><label class="e3-rl">Región Logística<select id="e3rl">' + rOpt('log') + '</select></label><label class="e3-ro">Región Operaciones<select id="e3ro">' + rOpt('ops') + '</select></label><label class="e3-cb">Combustible (Operaciones)<select id="e3cb"><option value="ALL">Diésel y gasolina</option><option value="DIESEL">Solo diésel</option><option value="GASOLINA">Solo gasolina</option></select></label></div></div>' +
-    '<div class="e3w-sec"><b>4 · Enfoque</b><div class="e3w-chips">' + E3_PILL.map(p => '<label class="e3chip"><input type="checkbox" name="e3p" value="' + p.k + '" checked><span>' + p.ic + ' ' + p.n + '</span></label>').join('') + '</div></div>' +
-    '<div class="e3w-sec"><b>5 · Perfil del reporte</b><div class="e3w-grid"><label>Audiencia<select id="e3au"><option value="dir">Dirección · ejecutivo</option><option value="ger" selected>Gerencia · regional</option><option value="op">Operativo · detalle</option></select></label><label>Meta de cumplimiento<select id="e3m"><option value="0.95">95% (Aceptable)</option><option value="0.98">98%</option><option value="1" selected>100% (Óptimo)</option></select></label></div></div>' +
+    '<div class="e3w-sec"><b>3 · Alcance</b> <span class="e3w-tip">elige una, dos o más opciones en cada filtro</span>' + e3grp('e3rl', 'Regiones de Logística', e3regions('log').map(r => [r, r]), 'e3-rl') + e3grp('e3ro', 'Regiones de Operaciones', e3regions('ops').map(r => [r, r]), 'e3-ro') + e3grp('e3cb', 'Combustible (Operaciones)', [['DIESEL', 'Diésel'], ['GASOLINA', 'Gasolina']], 'e3-cb', true) + '</div>' +
+    '<div class="e3w-sec"><b>4 · Tipo de unidad</b> <span class="e3w-tip">todas vienen marcadas; el número es la cantidad de unidades</span>' + e3grp('e3tl', 'Logística · marca / motor', e3tipos('log').map(([t, n]) => [t, sm(t), n]), 'e3-tl e3scroll') + e3grp('e3to', 'Operaciones · modelo de unidad', e3tipos('ops').map(([t, n]) => [t, t, n]), 'e3-to e3scroll') + '<p class="e3w-tip" style="margin:6px 0 0">Los filtros de región y tipo de unidad se aplican a rendimiento, compras, ralentí y unidades. El archivo de choferes no trae la unidad, así que ese pilar se evalúa con toda el área.</p></div>' +
+    '<div class="e3w-sec"><b>5 · Enfoque</b><div class="e3w-chips">' + E3_PILL.map(p => '<label class="e3chip"><input type="checkbox" name="e3p" value="' + p.k + '" checked><span>' + p.ic + ' ' + p.n + '</span></label>').join('') + '</div></div>' +
+    '<div class="e3w-sec"><b>6 · Perfil del reporte</b><div class="e3w-grid"><label>Audiencia<select id="e3au"><option value="dir">Dirección · ejecutivo</option><option value="ger" selected>Gerencia · regional</option><option value="op">Operativo · detalle</option></select></label><label>Meta de cumplimiento<select id="e3m"><option value="0.95">95% (Aceptable)</option><option value="0.98">98%</option><option value="1" selected>100% (Óptimo)</option></select></label></div></div>' +
     '<p class="note">La calificación 360 (0–100) pondera: Rendimiento 35%, Compra 20%, Ralentí 20%, Choferes 15% y Disciplina de flota 10%. Los pilares sin información no cuentan.</p></div><footer><span class="e3hint">Elige tu perfil y da clic en Generar →</span><button class="btn ghost" data-act="closeModal">Cancelar</button><button class="btn e3go" id="e3go">✨ Generar Evaluación 360</button></footer></div>';
   m.classList.add('open');
-  const sync = () => { const a = (m.querySelector('input[name=e3a]:checked') || {}).value; m.querySelector('.e3-rl').style.display = a === 'ops' ? 'none' : ''; m.querySelector('.e3-ro').style.display = a === 'log' ? 'none' : ''; m.querySelector('.e3-cb').style.display = a === 'log' ? 'none' : ''; };
+  const sync = () => { const a = (m.querySelector('input[name=e3a]:checked') || {}).value; $$('.e3-rl,.e3-tl', m).forEach(x => { x.style.display = a === 'ops' ? 'none' : ''; }); $$('.e3-ro,.e3-cb,.e3-to', m).forEach(x => { x.style.display = a === 'log' ? 'none' : ''; }); };
   $$('input[name=e3a]', m).forEach(i => i.addEventListener('change', sync)); sync();
+  const cnt = () => $$('.e3g', m).forEach(g => { const all = $$('input', g), on = all.filter(i => i.checked).length; const c = g.querySelector('.e3gc'); if (c) { c.textContent = on === all.length ? 'Todas (' + all.length + ')' : on + ' de ' + all.length; c.classList.toggle('part', on < all.length); } });
+  $$('.e3g input', m).forEach(i => i.addEventListener('change', cnt)); cnt();
+  $$('.e3all', m).forEach(x => x.addEventListener('click', ev => { ev.preventDefault(); $$('input[name=' + x.dataset.n + ']', m).forEach(i => { i.checked = x.dataset.v === '1'; }); cnt(); }));
   $('#e3go').onclick = () => {
     let d = $('#e3d').value, h = $('#e3h').value; if (d > h) [d, h] = [h, d];
-    const cfg = { area: (m.querySelector('input[name=e3a]:checked') || {}).value || 'both', d, h, cmp: $('#e3c').value, region: { log: $('#e3rl').value, ops: $('#e3ro').value }, comb: $('#e3cb').value, focus: $$('input[name=e3p]:checked', m).map(i => i.value), aud: $('#e3au').value, meta: +$('#e3m').value };
+    const area = (m.querySelector('input[name=e3a]:checked') || {}).value || 'both';
+    const pick = n => { const all = $$('input[name=' + n + ']', m); const on = all.filter(i => i.checked).map(i => i.value); return { all: all.length, on, sub: on.length < all.length ? on : null }; };
+    const R = { log: pick('e3rl'), ops: pick('e3ro') }, T = { log: pick('e3tl'), ops: pick('e3to') }, CB = pick('e3cb');
+    const areas = area === 'both' ? ['log', 'ops'] : [area]; const AN = { log: 'Logística', ops: 'Operaciones' };
+    for (const a of areas) {
+      if (R[a].all && !R[a].on.length) { toast('Elige al menos una región de ' + AN[a], 'warn'); return; }
+      if (T[a].all && !T[a].on.length) { toast('Elige al menos un tipo de unidad de ' + AN[a], 'warn'); return; }
+    }
+    if (area !== 'log' && !CB.on.length) { toast('Elige al menos un combustible', 'warn'); return; }
+    const lst = (L, n, fmt) => L.length <= 3 ? L.map(fmt || (x => x)).join(', ') : L.length + ' ' + n;
+    const lab = [];
+    areas.forEach(a => { const ab = a === 'log' ? 'Log' : 'Ops'; if (R[a].sub) lab.push(ab + ': ' + lst(R[a].sub, 'regiones')); if (T[a].sub) lab.push(ab + ' · ' + lst(T[a].sub, 'de ' + T[a].all + ' tipos de unidad', a === 'log' ? sm : null)); });
+    const comb = CB.on.length === 1 ? CB.on[0] : 'ALL';
+    if (area !== 'log' && comb !== 'ALL') lab.push(comb === 'DIESEL' ? 'Diésel' : 'Gasolina');
+    const reg1 = a => R[a].on.length === 1 && R[a].all > 1 ? R[a].on[0] : 'ALL';
+    const cfg = { area, d, h, cmp: $('#e3c').value, region: { log: reg1('log'), ops: reg1('ops') }, comb, sel: { log: { reg: R.log.sub, tipo: T.log.sub }, ops: { reg: R.ops.sub, tipo: T.ops.sub } }, lab, focus: $$('input[name=e3p]:checked', m).map(i => i.value), aud: $('#e3au').value, meta: +$('#e3m').value };
     if (!cfg.focus.length) { toast('Elige al menos un enfoque', 'warn'); return; }
     const b = $('#e3go'); b.disabled = true; b.textContent = 'Analizando toda la información…';
     setTimeout(() => { try { buildE360(cfg); } catch (err) { console.error(err); toast('No se pudo generar: ' + err.message, 'warn'); b.disabled = false; b.textContent = '✨ Generar Evaluación 360'; } }, 40);
@@ -3082,7 +3120,17 @@ function openE360Wizard() {
 }
 
 /* ---------- Cálculo ---------- */
-function e3Area(a, months, cfg, light) {
+let E3SEL = null;
+function e3ok(a, reg, tipo) { const s = E3SEL && E3SEL[a]; if (!s) return true; if (s.reg && !s.reg.has(reg)) return false; if (s.tipo && !s.tipo.has(String(tipo || '').trim())) return false; return true; }
+function e3okV(a, veh) { const s = E3SEL && E3SEL[a]; if (!s) return true; const L = lookups(); const u = a === 'log' ? L.logU[veh] : L.opsU[veh]; return e3ok(a, regionOf(a, veh), u ? (a === 'log' ? u.marca : u.desc) : ''); }
+function e3selFor(sel) { const o = {}; for (const a in sel) { const x = sel[a]; if (!x) continue; o[a] = { reg: x.reg ? new Set(x.reg) : null, tipo: x.tipo ? new Set(x.tipo) : null }; if (!o[a].reg && !o[a].tipo) delete o[a]; } return Object.keys(o).length ? o : null; }
+function e3tipos(a) {
+  const L = lookups(); const U = a === 'log' ? L.logU : L.opsU; const m = new Map();
+  for (const k in U) { const u = U[k]; if (a === 'log' && u.tipo !== 'TRACTO' && !tog('logTK', false)) continue; const t = String((a === 'log' ? u.marca : u.desc) || '').trim(); if (t) m.set(t, (m.get(t) || 0) + 1); }
+  return Array.from(m).sort((x, y) => y[1] - x[1] || (x[0] < y[0] ? -1 : 1));
+}
+function e3Area(a, months, cfg, light) { const k = E3SEL; E3SEL = cfg.sel ? e3selFor(cfg.sel) : null; try { return e3Area0(a, months, cfg, light); } finally { E3SEL = k; } }
+function e3Area0(a, months, cfg, light) {
   return e3withF(a, { region: cfg.region[a] || 'ALL', comb: a === 'ops' ? cfg.comb : 'ALL' }, () => {
     const rows = months.flatMap(p => a === 'log' ? logRendRows(p, false) : opsRendRows(p, {}));
     const st = rows.length ? (a === 'log' ? logRendStats(rows) : opsStats(rows)) : null;
@@ -3254,7 +3302,7 @@ function e3HTML(cfg, months, cm, cur, prev, G, GP) {
   const g = e3grade(G.score); const AC = { log: '#4ea1ff', ops: '#2fd69a' };
   const audT = { dir: 'Dirección', ger: 'Gerencia regional', op: 'Operativo' }[cfg.aud];
   const scopeT = cfg.area === 'both' ? 'Toda la flota' : AREA_NAME[cfg.area];
-  const chips = [scopeT, per, cper ? 'vs ' + cper : null, cfg.region.log !== 'ALL' && cfg.area !== 'ops' ? 'Log: ' + cfg.region.log : null, cfg.region.ops !== 'ALL' && cfg.area !== 'log' ? 'Ops: ' + cfg.region.ops : null, cfg.comb !== 'ALL' && cfg.area !== 'log' ? (cfg.comb === 'DIESEL' ? 'Diésel' : 'Gasolina') : null, audT, 'Meta ' + F.pct0(cfg.meta)].filter(Boolean);
+  const chips = [scopeT, per, cper ? 'vs ' + cper : null, ...(cfg.lab ? cfg.lab : [cfg.region.log !== 'ALL' && cfg.area !== 'ops' ? 'Log: ' + cfg.region.log : null, cfg.region.ops !== 'ALL' && cfg.area !== 'log' ? 'Ops: ' + cfg.region.ops : null, cfg.comb !== 'ALL' && cfg.area !== 'log' ? (cfg.comb === 'DIESEL' ? 'Diésel' : 'Gasolina') : null]), audT, 'Meta ' + F.pct0(cfg.meta)].filter(Boolean);
   const head = { A: 'Estamos en un nivel sobresaliente', B: 'Vamos bien, con áreas claras por pulir', C: 'Estamos a medio camino: hay dinero sobre la mesa', D: 'Necesitamos atención inmediata en varios frentes', E: 'Situación crítica: hay que actuar ya', '—': 'Sin información suficiente' }[g.l];
   const tot = G.money.rend + G.money.ral + G.money.compra;
   const pf = cfg.focus;
