@@ -613,6 +613,25 @@ body.e3open{overflow:hidden}body.e3open .floatbtn{display:none}
 .mbox.mailprev{max-width:900px;width:100%;display:flex;flex-direction:column;max-height:calc(100vh - 40px)}
 .mbox.mailprev .mbody{flex:1;min-height:0}.mbox.mailprev iframe{width:100%;height:100%;min-height:60vh;border:0;background:#f4f6fa;display:block}
 .mbox.mailprev footer{gap:10px;flex-wrap:wrap}
+
+/* Menú de pestañas por área */
+.tabs{display:flex;align-items:center;gap:12px;border-bottom:0;margin:10px 0 20px;padding:8px 0;overflow:visible}
+.tabrail{display:flex;gap:4px;padding:6px;border-radius:18px;background:var(--surface);border:1px solid var(--line);box-shadow:0 8px 24px rgba(11,29,61,.10);overflow-x:auto;scrollbar-width:none;flex:1;min-width:0}
+.tabrail::-webkit-scrollbar{display:none}
+.tabs .tabrail a{display:flex;align-items:center;gap:8px;padding:11px 16px;border-radius:13px;border-bottom:0;text-decoration:none;color:var(--ink2);font-weight:800;font-size:14px;white-space:nowrap;transition:background .15s,color .15s,transform .15s}
+.tabs .tabrail a svg{flex:none;opacity:.75;transition:opacity .15s}
+.tabs .tabrail a:hover{background:var(--surface2);color:var(--ink);transform:translateY(-1px)}.tabs .tabrail a:hover svg{opacity:1}
+.tabs .tabrail a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tabs.log .tabrail a.on{background:linear-gradient(135deg,#1c5cab,#2a78d6);color:#fff;box-shadow:0 6px 16px rgba(28,92,171,.35)}
+.tabs.ops .tabrail a.on{background:linear-gradient(135deg,#0e8a5a,#17b277);color:#fff;box-shadow:0 6px 16px rgba(14,138,90,.35)}
+.tabs .tabrail a.on svg{opacity:1}
+.tabs .tabrail a.t-anomalias:not(.on) svg{color:#d63c3c;opacity:1}
+.tabs .tabrail a.t-liga:not(.on) svg{color:#e8a200;opacity:1}
+.tabs.log .tabrail a.t-anomalias.on,.tabs.ops .tabrail a.t-anomalias.on{background:linear-gradient(135deg,#b52a35,#d63c3c);box-shadow:0 6px 16px rgba(214,60,60,.35)}
+.tabs.log .tabrail a.t-liga.on,.tabs.ops .tabrail a.t-liga.on{background:linear-gradient(135deg,#c98a00,#f2a900);color:#2a1800;box-shadow:0 6px 16px rgba(242,169,0,.35)}
+.tabs .tabx{flex:none;margin-left:0;height:44px;border-radius:14px}
+@media (max-width:1300px){.tabs .tabrail a{padding:10px 12px;font-size:13px}}
+@media (max-width:1100px){.tabs .tabrail a span{display:none}.tabs .tabrail a.on span{display:inline}}
 .ghbar{background:#fff4d6;color:#7a5200;text-align:center;padding:8px;font-weight:700;font-size:13px}.ghbar .lnk{color:#0b2a5b;text-decoration:underline}</style>
 </head>
 <body>
@@ -1581,7 +1600,17 @@ const AREA_DS = {
 };
 const AREA_NAME = { log: 'Logística', ops: 'Operaciones' };
 const SLUG = { log: 'logistica', ops: 'operaciones' };
-const TABS = [['rendimientos', 'Rendimientos'], ['cargas', 'Cargas de combustible'], ['ralenti', 'Ralentí'], ['choferes', 'Choferes'], ['comparador', 'Comparador'], ['anomalias', '🚨 Anomalías'], ['liga', '🥊 Liga del Litro']];
+const TABS = [['rendimientos', 'Rendimientos'], ['cargas', 'Cargas de combustible'], ['ralenti', 'Ralentí'], ['choferes', 'Choferes'], ['comparador', 'Comparador'], ['anomalias', 'Anomalías'], ['liga', 'Liga del Litro']];
+const TAB_IC = {
+  rendimientos: '<path d="M4 15a8 8 0 1 1 16 0"/><path d="M12 15l4-5"/><circle cx="12" cy="15" r="1.6"/>',
+  cargas: '<path d="M5 20V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v14"/><path d="M4 20h12"/><path d="M8 8h4"/><path d="M15 9l3 3v5a1.5 1.5 0 0 0 3 0V9l-3-3"/>',
+  ralenti: '<circle cx="12" cy="13" r="7"/><path d="M12 9v4l2.5 2"/><path d="M10 3h4"/>',
+  choferes: '<circle cx="12" cy="8" r="3.5"/><path d="M5 20c1-3.5 4-5 7-5s6 1.5 7 5"/>',
+  comparador: '<path d="M7 4v16"/><path d="M17 4v16"/><path d="M4 8h6"/><path d="M14 16h6"/><path d="M4 14h6"/><path d="M14 10h6"/>',
+  anomalias: '<path d="M12 4l9 16H3z"/><path d="M12 10v4"/><path d="M12 17h.01"/>',
+  liga: '<path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5a3 3 0 0 0 3 4"/><path d="M16 6h3a3 3 0 0 1-3 4"/><path d="M12 13v4"/><path d="M8 20h8"/>'
+};
+function tabIcon(k) { return '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (TAB_IC[k] || '') + '</svg>'; }
 
 function areaMonths(a) { const s = new Set(); const d = AREA_DS[a]; [].concat(d.rend, [d.cargas, d.ral, d.chof]).forEach(x => periodsOf(x).forEach(p => s.add(p))); return Array.from(s).sort(); }
 function latest(dsList) { const all = [].concat(dsList).flatMap(d => periodsOf(d)).sort(); return all[all.length - 1] || null; }
@@ -4057,7 +4086,7 @@ function viewArea(a, tab) {
     '<label>Región <select data-act="f" data-k="region"><option value="ALL">Todas</option>' + regions.map(r => '<option' + (f.region === r ? ' selected' : '') + '>' + esc(r) + '</option>').join('') + '</select></label>' +
     (a === 'ops' ? '<label>Sucursal <select data-act="f" data-k="suc"><option value="ALL">Todas</option>' + sucs.map(r => '<option' + (f.suc === r ? ' selected' : '') + '>' + esc(r) + '</option>').join('') + '</select></label><div class="seg" role="group" aria-label="Combustible">' + [['ALL', 'Todo'], ['DIESEL', 'Diésel'], ['GASOLINA', 'Gasolina']].map(([v, l]) => '<button data-act="f" data-k="comb" data-v="' + v + '" class="' + (f.comb === v ? 'on' : '') + '">' + l + '</button>').join('') + '</div>' : '') +
     '</div>';
-  const tabs = '<nav class="tabs">' + TABS.map(([k, l]) => '<a href="#' + SLUG[a] + '-' + k + '" class="' + (tab === k ? 'on' : '') + '">' + l + '</a>').join('') + '<button class="btn xls sm tabx" data-act="xlsTab" data-area="' + a + '" data-tab="' + tab + '">⬇ Descargar Excel</button></nav>';
+  const tabs = '<nav class="tabs ' + a + '" aria-label="Menú de ' + AREA_NAME[a] + '"><div class="tabrail">' + TABS.map(([k, l]) => '<a href="#' + SLUG[a] + '-' + k + '" class="t-' + k + (tab === k ? ' on' : '') + '"' + (tab === k ? ' aria-current="page"' : '') + '>' + tabIcon(k) + '<span>' + l + '</span></a>').join('') + '</div>' + '<button class="btn xls sm tabx" data-act="xlsTab" data-area="' + a + '" data-tab="' + tab + '">⬇ Descargar Excel</button></nav>';
   let body = '';
   if (tab === 'rendimientos') body = a === 'log' ? viewLogRend() : viewOpsRend();
   else if (tab === 'cargas') body = viewCargas(a);
