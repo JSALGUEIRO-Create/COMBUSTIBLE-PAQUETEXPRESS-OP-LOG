@@ -717,6 +717,22 @@ html,body{overflow-x:clip}
 @media (max-width:1560px){.logo small{display:none}.e360btn,.wabtn{margin-left:2px}#userchip{max-width:150px}}
 @media (max-width:1460px){#userchip{display:none}}
 @media (max-width:1250px){.logo .sep,.logo>span:not(.sep){display:none}}
+
+/* Paquetín 2.0 */
+#paqpanel{width:460px}
+.pqint{font-size:11.5px;color:#4a5872;background:rgba(29,108,255,.08);border:1px solid rgba(29,108,255,.18);border-radius:10px;padding:5px 8px;margin-bottom:8px}
+.pqint b{color:#0b2a5b;font-weight:700}
+[data-theme="dark"] .pqint{color:#c9d7f2}[data-theme="dark"] .pqint b{color:#cfe0ff}
+.pqsep{height:1px;background:var(--line);margin:9px 0}
+.pqbig{font-size:19px;font-weight:800;color:var(--ink)}
+.pqx{font-size:12.5px;color:var(--ink2)}
+.pqt{width:100%;border-collapse:collapse;margin-top:6px;font-size:12px}
+.pqt td{padding:2px 4px;vertical-align:middle}
+.pqt .pn{max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pqt .pb{width:38%}.pqt .pb i{display:block;height:9px;border-radius:5px;background:linear-gradient(90deg,#4ea1ff,#1d6cff)}
+.pqt .pv{text-align:right;white-space:nowrap;font-weight:700}
+.pqt tr.hl td{background:rgba(242,169,0,.18)}.pqt tr.hl .pb i{background:linear-gradient(90deg,#ffcf4d,#f2a900)}
+.pqc tr:first-child td{font-size:11px;color:var(--muted);font-weight:700}.pqc td{border-bottom:1px solid var(--line)}
 /* ===== Menú lateral tipo cabina (Logística / Operaciones) ===== */
 .alay{display:grid;grid-template-columns:272px minmax(0,1fr);gap:24px;align-items:start}
 .aside{position:sticky;top:72px;max-height:calc(100vh - 88px);overflow:auto;scrollbar-width:thin;background:linear-gradient(180deg,#071733,#0b2a5b);color:#fff;border-radius:20px;padding:16px 12px;display:flex;flex-direction:column;gap:6px;box-shadow:0 14px 40px rgba(5,20,50,.28)}
@@ -2632,12 +2648,12 @@ async function paqInit() {
   } catch (e) { }
   PQ.ready = true; paqMode();
 }
-function paqMode() { const m = $('#pqmode'); if (m) m.textContent = PQ.sample ? 'Con inteligencia de Claude · conoce tus datos' : 'Modo local · entiendo preguntas sobre tus datos'; }
+function paqMode() { const m = $('#pqmode'); if (m) m.textContent = PQ.sample ? 'Con inteligencia de Claude · conoce tus datos' : 'Paquetín 2.0 · entiendo tus preguntas y te digo cómo las entendí'; }
 function paqToggle() {
   PQ.open = !PQ.open; $('#paqpanel').classList.toggle('open', PQ.open); document.body.classList.toggle('pq-open', PQ.open);
   if (PQ.open && !$('#pqmsgs').children.length) {
     paqSay('bot', '¡Hola' + (firstName() ? ', ' + esc(firstName()) : '') + '! Soy <b>Paquetín</b> 💧📦. Te ayudo con rendimientos, cargas, ralentí y choferes de <b>Logística</b> y <b>Operaciones</b>: consulto números, comparo meses, armo reportes en Excel y presentaciones.');
-    paqChips(['¿Cómo vamos este mes?', 'Peores 10 tractos de septiembre', 'Precio del diésel por sitio', 'Compara agosto vs septiembre en Logística', 'Rendimiento del M005790', 'Crea una presentación de ambas áreas']);
+    paqChips(['¿Cómo vamos este mes?', '¿En qué mes pagamos más caro el diésel y la gasolina?', 'Peores 10 tractos', '¿Qué región tiene más ralentí este mes?', '¿Cuántas unidades están en crítico?', 'Choferes con más ralentí', 'Crea una presentación de ambas áreas']);
   }
   if (PQ.open) setTimeout(() => $('#pqin').focus(), 50);
 }
@@ -2712,7 +2728,7 @@ function pqEntity(a, t) {
   if (a === 'log') { const m = n.match(/\b(FULL|SENCILLO|MIXTO)\b/); if (m) return { ty: 'modalidad', v: m[1] }; }
   return null;
 }
-function paqLocal(q) {
+function paqLocalOld(q) {
   const n = FP.norm(q); const months = pqMonth(q); let a = pqArea(q); const N = pqN(q);
   const help = ['¿Cómo vamos este mes?', 'Peores 10 tractos', 'Mejores 10 sucursales', 'Ralentí de Logística', 'Precio del diésel por sitio', 'Compara agosto vs septiembre', 'Descarga el reporte de cargas'];
   // Presentación
@@ -2783,6 +2799,439 @@ function paqLocal(q) {
     return { html: ars.map(ar => { const r = qRend(ar, months[0], 'total'); const x = r.filas[0]; return x ? '<b>' + AREA_NAME[ar] + '</b> · ' + perLabel(r.mes) + (ar === 'log' ? ' (Samsara)' : '') + '<br>' + fmtRow(x) + '<br>' + F.km(x.km) + ' · ' + F.L(x.litros) : '<b>' + AREA_NAME[ar] + '</b>: sin rendimientos'; }).join('<br><br>'), chips: help };
   }
   return { html: 'Puedo ayudarte con:<br>• Rendimiento y cumplimiento por región, marca, sucursal o móvil (ej. <i>"rendimiento de CENTRO 1"</i>, <i>"M005790"</i>)<br>• Rankings (<i>"peores 10 tractos de agosto"</i>)<br>• Comparar meses (<i>"compara julio vs septiembre en operaciones"</i>)<br>• Precios, cargas, ralentí y choferes<br>• Excel de cualquier sección y presentaciones ejecutivas' + (window.GH ? '<br><span class="muted">En la versión de Claude, Paquetín usa inteligencia artificial y responde preguntas libres.</span>' : ''), chips: help };
+}
+
+/* ===================== Paquetín 2.0 · motor local de consultas ===================== */
+const PQ2 = { last: null, dict: null, dictV: null };
+const PQ_MES = [['ENERO', 'ENE'], ['FEBRERO', 'FEB'], ['MARZO', 'MAR'], ['ABRIL', 'ABR'], ['MAYO'], ['JUNIO', 'JUN'], ['JULIO', 'JUL'], ['AGOSTO', 'AGO'], ['SEPTIEMBRE', 'SETIEMBRE', 'SEPT', 'SEP'], ['OCTUBRE', 'OCT'], ['NOVIEMBRE', 'NOV'], ['DICIEMBRE', 'DIC']];
+const PQ_MESRE = PQ_MES.map(x => x.join('|')).join('|');
+const PQ_ML = {
+  rend: 'Rendimiento', cump: 'Cumplimiento vs ideal', km: 'Kilómetros', lts: 'Litros consumidos', gasto: 'Gasto de combustible', exc: 'Litros sobre el ideal', unid: 'Unidades',
+  precio: 'Precio por litro', cargasN: 'Número de cargas', cargasL: 'Litros cargados', cargasI: 'Importe de cargas', auto: '% de autoconsumo',
+  ralL: 'Litros en ralentí', ralE: 'Eventos de ralentí', ralH: 'Horas de ralentí', ralV: 'Vehículos con ralentí', ralM: 'Costo del ralentí',
+  chofPr: '% de ralentí de choferes', chofRend: 'Rendimiento de choferes', chofKm: 'Km de choferes', chofHr: 'Horas de ralentí de choferes', chofN: 'Choferes',
+  anom: 'Anomalías', anomM: 'Dinero en riesgo por anomalías'
+};
+const PQ_HI = { rend: 1, cump: 1, km: 1, auto: 1, chofRend: 1, chofKm: 1, unid: 1, chofN: 1, cargasN: 0 };
+const PQ_DL = { mes: 'mes', dia: 'día', hora: 'hora', region: 'región', sucursal: 'sucursal', marca: 'marca', tipo: 'tipo de unidad', modalidad: 'modalidad', segmento: 'segmento', comb: 'combustible', prov: 'proveedor', sitio: 'sitio de carga', fuente: 'fuente', ubic: 'ubicación', chofer: 'chofer', unit: 'unidad', anomt: 'tipo de anomalía' };
+function pq2Src(m) { return { rend: 'rend', cump: 'rend', km: 'rend', lts: 'rend', gasto: 'rend', exc: 'rend', unid: 'rend', precio: 'cargas', cargasN: 'cargas', cargasL: 'cargas', cargasI: 'cargas', auto: 'cargas', ralL: 'ral', ralE: 'ral', ralH: 'ral', ralV: 'ral', ralM: 'ral', chofPr: 'chof', chofRend: 'chof', chofKm: 'chof', chofHr: 'chof', chofN: 'chof', anom: 'anom', anomM: 'anom' }[m]; }
+function pq2Fmt(m, v) {
+  if (v === null || v === undefined || !isFinite(v)) return '—';
+  if (m === 'rend' || m === 'chofRend') return F.n2(v) + ' km/L';
+  if (m === 'cump' || m === 'auto' || m === 'chofPr') return F.pct(v);
+  if (m === 'km' || m === 'chofKm') return F.km(v);
+  if (m === 'lts' || m === 'cargasL' || m === 'ralL' || m === 'exc') return F.L(v);
+  if (m === 'gasto' || m === 'cargasI' || m === 'ralM' || m === 'anomM') return F.money(v);
+  if (m === 'precio') return F.money2(v) + '/L';
+  if (m === 'ralH' || m === 'chofHr') return F.h(v);
+  return F.n0(v);
+}
+function pq2Norm(q) {
+  let n = FP.norm(q).replace(/[¿?¡!,;:()"“”']/g, ' ').replace(/\.(?!\d)/g, ' ').replace(/\s+/g, ' ').trim();
+  const fix = [[/\b(DISEL|DIESL|DIEZEL|DISEL)\b/g, 'DIESEL'], [/\b(RALETI|RALENTY|RALENTIS|RALENTÍ|RALENTI)\b/g, 'RALENTI'], [/\b(RENDIMENTO|REDIMIENTO|RENDIMINETO|RENDIMIETO)\b/g, 'RENDIMIENTO'], [/\b(GASOLNA|GASILINA|GAS0LINA)\b/g, 'GASOLINA'], [/\bSUCURZAL(ES)?\b/g, 'SUCURSAL$1'], [/\bLOGISITICA\b/g, 'LOGISTICA'], [/\bOPERACINES\b/g, 'OPERACIONES'], [/\bAÑO\b/g, 'ANO']];
+  fix.forEach(([a, b]) => { n = n.replace(a, b); });
+  return n;
+}
+function pq2Esc(s) { return String(s).replace(/[.*+?^${}()|[\]\\\/]/g, '\\$&'); }
+function pq2Nz(v) { return FP.norm(v).replace(/^LOG\s*/, '').replace(/\s+/g, ' ').trim(); }
+function pq2Eq(a, b) { return pq2Nz(a) === pq2Nz(b); }
+function pq2AllMonths() { return Array.from(new Set(Object.keys(FP.COLS).flatMap(periodsOf))).sort(); }
+function pq2MonthOf(name, y, all) {
+  const i = PQ_MES.findIndex(x => x.includes(name)); if (i < 0) return null; const mm = String(i + 1).padStart(2, '0');
+  if (!y) { const c = all.filter(p => p.slice(5) === mm).sort(); y = c.length ? c[c.length - 1].slice(0, 4) : String(new Date().getFullYear()); }
+  return y + '-' + mm;
+}
+function pq2Months(n) {
+  const all = pq2AllMonths(); const out = []; const re = new RegExp('\\b(' + PQ_MESRE + ')\\b(?:\\s+(?:DE(?:L)?\\s+)?(20\\d\\d))?', 'g'); let m;
+  while ((m = re.exec(n))) { const p = pq2MonthOf(m[1], m[2], all); if (p) out.push(p); }
+  return out;
+}
+function pq2Dict() {
+  if (PQ2.dict && PQ2.dictV === S.ver) return PQ2.dict;
+  const L = lookups(); const U = (o, f) => Array.from(new Set(Object.values(o).map(f).filter(v => v && String(v).trim()))).map(v => String(v).trim());
+  const recent = (ds, f) => Array.from(new Set(periodsOf(ds).slice(-4).flatMap(p => rowsOf(ds, p).map(f)).filter(v => v && String(v).trim().length >= 2))).map(v => String(v).trim());
+  const D = {
+    log: { region: U(L.logU, u => u.zona), marca: U(L.logU, u => sm(u.marca)), sitio: recent('log_cargas', CG.log.sitio), chofer: recent('log_chof', r => r.chofer).concat(recent('log_ral', r => r.chofer)) },
+    ops: { region: U(L.opsU, u => u.region), sucursal: U(L.opsU, u => u.suc), marca: U(L.opsU, u => marcaOps(u.desc)), tipo: U(L.opsU, u => u.desc), sitio: recent('ops_cargas', CG.ops.sitio), chofer: recent('ops_chof', r => r.chofer).concat(recent('ops_ral', r => r.chofer)) }
+  };
+  ['log', 'ops'].forEach(a => { D[a].chofer = Array.from(new Set(D[a].chofer)); D[a].chTok = D[a].chofer.map(c => ({ c, t: FP.norm(c).split(/[^A-Z]+/).filter(w => w.length >= 3) })); });
+  PQ2.dict = D; PQ2.dictV = S.ver; return D;
+}
+function pq2Ents(n, q) {
+  const D = pq2Dict(); const E = { log: {}, ops: {} }; let any = false;
+  const STOP = /^(NORTE|SUR|CENTRO|TODAS|TODOS|MES|DIA)$/;
+  for (const a of ['log', 'ops']) {
+    let w = ' ' + n + ' ';
+    for (const ty of ['sucursal', 'tipo', 'region', 'marca', 'sitio']) {
+      const vals = (D[a][ty] || []).slice().sort((x, y) => pq2Nz(y).length - pq2Nz(x).length);
+      for (const v of vals) {
+        const k = pq2Nz(v); if (k.length < 3 && ty !== 'sucursal') continue; if (ty === 'sitio' && STOP.test(k)) continue;
+        const re = new RegExp('(^|\\s)' + pq2Esc(k) + '(?!\\s+\\d)(?=\\s|$)'); if (re.test(w)) { (E[a][ty] = E[a][ty] || []).push(v); w = w.replace(re, ' '); any = true; }
+      }
+    }
+    if (a === 'log') { const mo = n.match(/\b(FULL|SENCILLO|MIXTO)\b(?!\s+VS)/); if (mo && !/MODALIDAD/.test(n)) { E.log.modalidad = [mo[1]]; any = true; } }
+    const toks = new Set(n.split(' ').filter(x => x.length >= 3)); let best = null;
+    for (const c of D[a].chTok) { let h = 0; for (const t of c.t) if (toks.has(t)) h++; if (h >= 2 && (!best || h > best.h)) best = { c: c.c, h }; }
+    if (best) { E[a].chofer = [best.c]; any = true; }
+  }
+  const L = lookups(); const vs = (q.toUpperCase().match(/\bM\d{5,6}\b|\b\d{5}\b/g) || []);
+  vs.filter(v => /^M/.test(v) || L.logU[v] || L.opsU[v]).forEach(v => { if (L.logU[v]) { (E.log.movil = E.log.movil || []).push(v); any = true; } if (L.opsU[v]) { (E.ops.movil = E.ops.movil || []).push(v); any = true; } if (!L.logU[v] && !L.opsU[v]) { (E.log.movil = E.log.movil || []).push(v); (E.ops.movil = E.ops.movil || []).push(v); any = true; } });
+  E.any = any; return E;
+}
+function pq2Metric(n) {
+  if (/ANOMAL|ALERTA|IRREGULAR|SOSPECHOS|FRAUDE|CENTINELA/.test(n)) return /MONTO|DINERO|RIESGO|PESOS/.test(n) ? 'anomM' : 'anom';
+  const ral = /RALENTI|IDLE|MOTOR ENCENDIDO|SIN AVANZAR/.test(n), chof = /CHOFER|CONDUCTOR|OPERADOR/.test(n);
+  if (chof && !(ral && /LITROS|EVENTOS|HORAS|VECES/.test(n))) { if (/RENDIM|KM ?\/ ?L|KM POR LITRO/.test(n)) return 'chofRend'; if (/KILOMETR|\bKMS?\b|RECORR/.test(n)) return 'chofKm'; if (/HORAS/.test(n)) return 'chofHr'; if (/CUANTOS/.test(n) && !ral) return 'chofN'; return 'chofPr'; }
+  if (ral) return /EVENTO|VECES/.test(n) ? 'ralE' : /CUANTAS HORAS|HORAS DE RALENTI|HORAS EN RALENTI|TIEMPO|MINUTO|DURACION/.test(n) ? 'ralH' : /CUANT[AO]S (VEHICULOS|UNIDADES|TRACTOS|CAMIONETAS)/.test(n) ? 'ralV' : /PESOS|DINERO|COSTO|CUESTA|GASTO|\$|NOS SALE/.test(n) ? 'ralM' : 'ralL';
+  if (/PRECIO|CARO|BARATO|CUANTO CUESTA|COSTO (DEL|POR|DE) LITRO|POR LITRO|\$ ?\/ ?L|PAGAMOS EL LITRO|COTIZA/.test(n)) return 'precio';
+  if (/CARGA|CARGAMOS|PROVEEDOR|GASOLINERA|EDENRED|SURTI|TANQUEA|AUTOCONSUMO/.test(n)) return /CUANTAS|NUMERO|VECES/.test(n) ? 'cargasN' : /IMPORTE|GASTO|PESOS|DINERO|PAGAMOS|COSTO|MONTO|COMPRAMOS/.test(n) ? 'cargasI' : /AUTOCONSUMO/.test(n) && /PORCENTAJE|%|CUANTO|PARTICIPACION|PROPORCION/.test(n) ? 'auto' : 'cargasL';
+  if (/SOBRE (EL )?IDEAL|EXCESO|DE MAS|DESPERDICI|PERDIDA|FUGA|SOBRECONSUMO/.test(n)) return 'exc';
+  if (/CUMPLIM|VS (EL )?IDEAL|CONTRA (EL )?IDEAL|DEL IDEAL|\bMETA\b|SEMAFORO|CRITIC|OPTIMO|ACEPTABLE|VIGILANCIA/.test(n)) return 'cump';
+  if (/GASTO|GASTAMOS|GASTAN|GASTARON|DINERO|PESOS|IMPORTE|\bCOSTO\b|CUANTO (NOS )?(CUESTA|COSTO|SALE|SALIO)|INVERSION/.test(n)) return 'gasto';
+  if (/KILOMETR|\bKMS?\b|RECORR|DISTANCIA/.test(n) && !/KM ?\/ ?L|KM POR LITRO/.test(n)) return 'km';
+  if (/RENDIM|KM ?\/ ?L|KM POR LITRO|EFICIEN|\bRINDE|RINDIO|RINDEN/.test(n)) return 'rend';
+  if (/CONSUM|LITROS|CUANTO COMBUSTIBLE/.test(n)) return 'lts';
+  if (/CUANT[AO]S (UNIDADES|TRACTOS|CAMIONETAS|MOVILES|VEHICULOS)|NUMERO DE (UNIDADES|TRACTOS)|TAMANO DE (LA )?FLOTA/.test(n)) return 'unid';
+  return null;
+}
+function pq2Dim(n, E) {
+  const has = ty => (E.log[ty] && E.log[ty].length) || (E.ops[ty] && E.ops[ty].length);
+  const R = [['mes', 'MES|MESES|MENSUAL'], ['dia', 'DIA|DIAS|DIARIO|FECHA'], ['hora', 'HORA|HORAS|HORARIO'], ['anomt', 'TIPO DE ANOMALIA|TIPOS DE ANOMALIA'], ['sucursal', 'SUCURSAL|SUCURSALES|PLAZA|PLAZAS'], ['region', 'REGION|REGIONES'], ['tipo', 'MODELO|MODELOS|TIPO DE UNIDAD|TIPOS DE UNIDAD|TIPO DE CAMIONETA|TIPO DE VEHICULO'], ['marca', 'MARCA|MARCAS|MOTOR|MOTORES'], ['modalidad', 'MODALIDAD|MODALIDADES'], ['segmento', 'SEGMENTO|SEGMENTOS'], ['comb', 'COMBUSTIBLE|TIPO DE COMBUSTIBLE'], ['prov', 'PROVEEDOR|PROVEEDORES'], ['sitio', 'SITIO|SITIOS|GASOLINERA|GASOLINERAS|ESTACION|ESTACIONES|PATIO|PUNTO DE CARGA'], ['fuente', 'FUENTE|FUENTES'], ['ubic', 'UBICACION|UBICACIONES|LUGAR|LUGARES|DIRECCION|DONDE'], ['chofer', 'CHOFER|CHOFERES|CONDUCTOR|CONDUCTORES|OPERADOR|OPERADORES'], ['unit', 'UNIDAD|UNIDADES|MOVIL|MOVILES|TRACTO|TRACTOS|CAMIONETA|CAMIONETAS|VEHICULO|VEHICULOS|ECONOMICO|ECONOMICOS|CAMION|CAMIONES']];
+  let fb = null;
+  for (const [d, st] of R) {
+    if (!new RegExp('\\b(' + st + ')\\b').test(n)) continue;
+    const expl = new RegExp('\\b(POR|CADA|QUE|CUAL|CUALES|QUIEN|QUIENES|ENTRE|LISTA DE|RANKING DE|TOP|DE LAS?|DE LOS?)\\s+(\\d+\\s+)?(LA |EL |LAS |LOS )?(' + st + ')\\b').test(n) || (d === 'ubic' && /\bDONDE\b/.test(n)) || (d === 'comb' && /DIESEL VS GASOLINA|GASOLINA VS DIESEL/.test(n)) || (d === 'fuente' && /AUTOCONSUMO VS|VS AUTOCONSUMO/.test(n));
+    if (has(d) && !new RegExp('\\bPOR\\s+(LA |EL |LAS |LOS )?(' + st + ')\\b').test(n)) continue;
+    if (expl && !(d === 'mes' && /\bQUE MES\b/.test(n))) return { d, expl };
+    if (!fb && !/^(mes|dia|hora)$/.test(d)) fb = { d, expl: false };
+  }
+  return fb;
+}
+function pq2Parse(q) {
+  const n = pq2Norm(q); const P = { q, n };
+  const aLog = /\bLOGIST|TRACTO|TRAILER|QUINTA RUEDA|CASCADIA|SAMSARA/.test(n), aOps = /OPERACI|SUCURSAL|CAMIONETA|\bVANS?\b|LIGERA|REPARTO|RECOLECCI|EDENRED|PLAZA/.test(n);
+  P.areas = /\bAMBAS\b|\bAMBOS\b|TODA LA FLOTA|LAS DOS AREAS|LAS DOS|EN GENERAL|TODA LA EMPRESA/.test(n) || (aLog && aOps) ? ['log', 'ops'] : aLog ? ['log'] : aOps ? ['ops'] : null;
+  const fd = /DIESEL/.test(n), fg = /GASOLINA|MAGNA|PREMIUM/.test(n); P.fuels = fd && fg ? ['DIESEL', 'GASOLINA'] : fd ? ['DIESEL'] : fg ? ['GASOLINA'] : null;
+  P.fuente = /AUTOCONSUMO/.test(n) && !/VS|COMPAR|POR FUENTE/.test(n) ? 'auto' : /(GASOLINERAS? )?EXTERNA|EN GASOLINERA|EDENRED/.test(n) && !/VS|COMPAR/.test(n) ? 'ext' : null;
+  P.m = pq2Metric(n); P.ent = pq2Ents(n, q);
+  const sv = n.match(/SEVERIDAD (ALTA|MEDIA|BAJA)|\b(CRITICAS|GRAVES)\b/); if (sv && /ANOMAL|ALERTA/.test(n)) { P.sev = sv[1] === 'MEDIA' ? 2 : sv[1] === 'BAJA' ? 1 : 3; }
+  P.when = /\b(MEJOR|PEOR) (MES|DIA|HORA)\b|\b(MES|DIA) (CON|DE) (MAS|MENOS|MAYOR|MENOR)|A QUE HORA|EN QUE HORA|EN QUE (MES|DIA|FECHA|SEMANA)|\bQUE MES\b|CUAL (FUE |ES )?(EL )?MES|\bCUANDO\b|\bQUE DIA\b|CUAL (FUE |ES )?(EL )?DIA/.test(n);
+  P.trend = /POR MES|MES A MES|MENSUAL|EVOLUCION|TENDENCIA|HISTORIC|COMPORTAMIENTO|CADA MES|COMO HA (IDO|VARIADO|CAMBIADO|EVOLUCIONADO)|POR DIA|DIARIO|DIA A DIA/.test(n);
+  P.cmp = /\bVS\b|VERSUS|COMPAR|\bCONTRA\b(?! EL IDEAL)|DIFERENCIA|\bFRENTE A\b/.test(n) && !/VS (EL )?IDEAL/.test(n);
+  P.why = /POR QUE|A QUE SE DEBE|EXPLICA(ME)? (EL|LA|POR)|QUE PASO CON/.test(n);
+  P.hi = /SEVERIDAD (ALTA|MEDIA|BAJA)/.test(n) && !/\b(MAS|MENOS|MAYOR|MENOR|TOP)\b/.test(n) ? null : /CARO/.test(n) ? 1 : /BARATO/.test(n) ? 0 : /MEJOR/.test(n) ? 'better' : /PEOR/.test(n) ? 'worse' : /\bMENOS\b|\bMENOR|MINIM|\bBAJO|\bBAJA\b/.test(n) ? 0 : /\bMAS\b|MAYOR|MAXIM|\bALTO|\bALTA\b|\bTOP\b/.test(n) ? 1 : null;
+  const nm = n.match(/\b(?:TOP|LOS|LAS|PRIMER(?:OS|AS)?|MEJORES|PEORES|DAME|LISTA DE)\s*(\d{1,3})\b/) || n.match(/\b(\d{1,3})\s+(?:MEJORES|PEORES|UNIDADES|TRACTOS|SUCURSALES|CHOFERES|REGIONES|CAMIONETAS|MOVILES|VEHICULOS|SITIOS)\b/);
+  P.N = nm ? Math.min(50, +nm[1]) : null;
+  const dd = pq2Dim(n, P.ent); P.dim = dd ? dd.d : null; P.dimExpl = dd ? dd.expl : false;
+  if (P.dim && !P.dimExpl && P.hi === null && !P.N) P.dim = null;
+  if (/\b(FULL|SENCILLO|MIXTO) (VS|CONTRA|Y) (FULL|SENCILLO|MIXTO)\b|COMPARA (EL )?(FULL|SENCILLO)/.test(n)) { delete P.ent.log.modalidad; P.dim = 'modalidad'; P.dimExpl = true; P.cmp = false; P.areas = ['log']; }
+  if (/DIESEL (VS|CONTRA) GASOLINA|GASOLINA (VS|CONTRA) DIESEL/.test(n)) { P.fuels = null; P.dim = 'comb'; P.dimExpl = true; P.cmp = false; P.areas = P.areas || ['ops']; }
+  if (P.cmp && pq2Months(n).length < 2) { for (const a of ['log', 'ops']) for (const ty of ['region', 'sucursal', 'marca', 'tipo', 'sitio', 'movil', 'chofer']) { const L = P.ent[a][ty]; if (L && L.length >= 2) { P.cmp = false; P.dim = ty === 'movil' ? 'unit' : ty; P.dimExpl = true; P.areas = P.areas || [a]; P.N = L.length; } } }
+  if (P.when) { const wm = (n.match(/(MEJOR|PEOR) (MES|DIA|HORA)|(MES|DIA) (CON|DE) (MAS|MENOS|MAYOR|MENOR)|(A|EN) QUE HORA|EN QUE (MES|DIA|FECHA|SEMANA)|QUE (MES|DIA)|CUAL (FUE |ES )?(EL )?(MES|DIA)|CUANDO/) || [''])[0]; P.dim = /HORA/.test(wm) ? 'hora' : /DIA|FECHA/.test(wm) ? 'dia' : 'mes'; }
+  if (P.trend && !P.dim) P.dim = /DIA/.test(n) ? 'dia' : 'mes';
+  const tm = n.match(/(DEBAJO DE(L)?|MENOS DE(L)?|MENOR(?:ES)? (?:A|AL|DE|QUE)|ABAJO DE(L)?|BAJO (?:EL |DEL )?|ARRIBA DE(L)?|MAS DE(L)?|MAYOR(?:ES)? (?:A|AL|DE|QUE)|SOBRE EL |ENCIMA DE(L)?|POR ENCIMA DE(L)?|POR DEBAJO DE(L)?)\s*(\d+(?:[.,]\d+)?)\s*(%|POR CIENTO)?/);
+  if (tm) { const v = +tm[tm.length - 2].replace(',', '.'); P.thr = { op: /DEBAJO|MENOS|MENOR|ABAJO|BAJO/.test(tm[1]) ? '<' : '>', v, pct: !!tm[tm.length - 1] }; }
+  const st = n.match(/\b(CRITIC|VIGILANCIA|ACEPTABLE|OPTIMO|EN IDEAL|CUMPLEN|NO CUMPLEN)/); if (st) P.status = st[1];
+  P.count = /\bCUANT[AO]S\b/.test(n) && (P.thr || P.status) ? true : !!(P.thr || P.status) && /UNIDADES|TRACTOS|CAMIONETAS|MOVILES|VEHICULOS|CHOFERES|SUCURSALES/.test(n);
+  P.hasPer = pq2Months(n).length > 0 || /\b(HOY|AYER|SEMANA|ULTIMOS?|ESTE MES|MES PASADO|MES ANTERIOR|ESTE ANO|EN EL ANO|ANUAL|ACUMULADO|20\d\d|DEL \d|EL \d{1,2} DE)\b/.test(n);
+  P.summary = /COMO VAMOS|COMO ESTAMOS|RESUMEN|PANORAMA|COMO VA (LA FLOTA|TODO)|ESTADO GENERAL|COMO NOS FUE/.test(n);
+  P.pn = n; return P;
+}
+function pq2Merge(P, L) {
+  if (!L || P.m || P.summary) return P;
+  const follow = /^(Y|Y EN|Y EL|Y LA|Y LOS|Y LAS|AHORA|TAMBIEN|IGUAL|LO MISMO|Y PARA|Y DE|Y POR|PERO|Y SI|Y CON|SOLO|NADA MAS|AHORA EN)\b/.test(P.n) || P.n.split(' ').length <= 5;
+  if (!follow || !(P.areas || P.fuels || P.hasPer || P.ent.any || P.dim || P.hi !== null || P.N || P.cmp)) return P;
+  const M = Object.assign({}, L, { q: P.q, n: P.n, merged: true });
+  if (P.areas) M.areas = P.areas; if (P.fuels) M.fuels = P.fuels; if (P.fuente) M.fuente = P.fuente;
+  if (P.dim && L.m && !pq2Key(P.dim, pq2Src(L.m), 'log') && !pq2Key(P.dim, pq2Src(L.m), 'ops')) return P;
+  if (P.ent.any) M.ent = P.ent; if (P.dim) { M.dim = P.dim; M.when = P.when; M.trend = P.trend; M.cmp = false; M.count = false; M.dimExpl = true; }
+  if (P.hi !== null) M.hi = P.hi; if (P.N) M.N = P.N; if (P.hasPer) { M.pn = P.n; M.cmp = P.cmp; } else if (P.cmp) { M.cmp = true; }
+  if (P.cmp) { M.dim = null; M.when = false; M.trend = false; M.count = false; }
+  if (P.dim && /^(mes|dia|hora)$/.test(P.dim) && !P.hasPer) M.pn = P.n;
+  return M;
+}
+function pq2Avail(src, a) {
+  const ds = src === 'rend' ? AREA_DS[a].rend : src === 'cargas' ? [CG[a].ds] : src === 'ral' ? [a + '_ral'] : src === 'chof' ? [a + '_chof'] : [CG[a].ds, a + '_ral'];
+  return Array.from(new Set([].concat(ds).flatMap(periodsOf))).sort();
+}
+function pq2MaxDate(src, a) { const ds = src === 'cargas' ? CG[a].ds : a + '_ral'; const ps = periodsOf(ds); const p = ps[ps.length - 1]; if (!p) return null; return rowsOf(ds, p).reduce((m, r) => r.fecha > m ? r.fecha : m, '') || monthEnd(p); }
+function pq2AddDays(d, k) { const x = new Date(d + 'T12:00:00'); x.setDate(x.getDate() + k); return x.toISOString().slice(0, 10); }
+function pq2Period(P, src, a) {
+  const n = P.pn; const av = pq2Avail(src, a); if (!av.length) return null; const last = av[av.length - 1]; const all = pq2AllMonths();
+  const daily = src === 'cargas' || src === 'ral' || src === 'anom';
+  const mk = (ms, note) => { ms = Array.from(new Set(ms)).filter(m => av.includes(m)).sort(); return ms.length ? { months: ms, from: ms[0] + '-01', to: monthEnd(ms[ms.length - 1]), label: ms.length > 1 ? perLabel(ms[0]) + ' – ' + perLabel(ms[ms.length - 1]) : perLabel(ms[0]), note } : null; };
+  const dk = (f, t) => { if (f > t) [f, t] = [t, f]; const ms = av.filter(m => m >= f.slice(0, 7) && m <= t.slice(0, 7)); if (!ms.length) return { missing: (f === t ? dLabel(f) : dLabel(f) + ' – ' + dLabel(t)), av }; if (!daily) return mk(ms, 'Este dato es mensual: tomé ' + (ms.length > 1 ? 'los meses' : 'el mes') + ' completo' + (ms.length > 1 ? 's' : '') + '.'); return { months: ms, from: f, to: t, label: f === t ? dLabel(f) : dLabel(f) + ' – ' + dLabel(t), days: true }; };
+  const MR = '(' + PQ_MESRE + ')';
+  let m = n.match(new RegExp('\\bDEL?\\s+(\\d{1,2})\\s+(?:DE\\s+' + MR + '\\s+)?(?:AL?|HASTA(?: EL)?)\\s+(\\d{1,2})\\s+DE\\s+' + MR + '(?:\\s+(?:DE(?:L)?\\s+)?(20\\d\\d))?'));
+  if (m) { const p2 = pq2MonthOf(m[4], m[5], all), p1 = m[2] ? pq2MonthOf(m[2], m[5], all) : p2; return dk(p1 + '-' + String(+m[1]).padStart(2, '0'), p2 + '-' + String(+m[3]).padStart(2, '0')); }
+  m = n.match(new RegExp('\\b(?:EL\\s+)?(\\d{1,2})\\s+DE\\s+' + MR + '(?:\\s+(?:DE(?:L)?\\s+)?(20\\d\\d))?'));
+  if (m && !P.cmp && !/\b(TOP|LOS|LAS|MEJORES|PEORES|PRIMEROS|PRIMERAS|DAME)\s*$/.test(n.slice(0, m.index))) { const p = pq2MonthOf(m[2], m[3], all); const d = p + '-' + String(+m[1]).padStart(2, '0'); return dk(d, d); }
+  const ms = pq2Months(n);
+  if (ms.length >= 2 && P.cmp) return { cmp: [mk([ms[0]]), mk([ms[1]])] };
+  if (ms.length === 1 && P.cmp && !P.ent.any) { const pv = prevPeriod(ms[0]); return { cmp: [mk([pv]), mk([ms[0]])] }; }
+  if (ms.length >= 2 && /\b(DE|DESDE|ENTRE)\b[^]*\b(A|AL|HASTA|Y)\b/.test(n)) { const s = ms.slice().sort(); return mk(av.filter(x => x >= s[0] && x <= s[s.length - 1])); }
+  if (ms.length) { const r = mk(ms); if (r) return r; return { missing: ms.map(perLabel).join(', '), av }; }
+  if (P.cmp && !P.ent.any) { const pv = av[av.length - 2]; return pv ? { cmp: [mk([pv]), mk([last])] } : mk([last]); }
+  const md = daily ? pq2MaxDate(src === 'anom' ? 'ral' : src, a) : null;
+  m = n.match(/ULTIMOS?\s+(\d{1,2})\s+MESES/); if (m) return mk(av.slice(-(+m[1])));
+  m = n.match(/ULTIMOS?\s+(\d{1,3})\s+DIAS/); if (m && md) return dk(pq2AddDays(md, 1 - (+m[1])), md);
+  if (/ESTA SEMANA|ULTIMA SEMANA/.test(n) && md) return dk(pq2AddDays(md, -6), md);
+  if (/SEMANA PASADA/.test(n) && md) return dk(pq2AddDays(md, -13), pq2AddDays(md, -7));
+  const today = new Date(); const td = today.toISOString().slice(0, 10);
+  if (/\bAYER\b/.test(n)) return dk(pq2AddDays(td, -1), pq2AddDays(td, -1));
+  if (/\bHOY\b/.test(n)) return dk(md && md < td ? md : td, md && md < td ? md : td);
+  if (/MES PASADO|MES ANTERIOR/.test(n)) { const pm = prevPeriod(td.slice(0, 7)); return mk([av.includes(pm) ? pm : av[av.length - 2] || last]); }
+  if (/ESTE MES|MES ACTUAL|MES EN CURSO|ESTE PERIODO/.test(n)) return mk([last]);
+  m = n.match(/\b(20\d\d)\b/); if (m || /ESTE ANO|EN EL ANO|LO QUE VA DEL ANO|ANUAL|ACUMULADO|EN TODO EL ANO/.test(n)) { const y = m ? m[1] : td.slice(0, 4); return mk(av.filter(x => x.startsWith(y))); }
+  if (P.cmp && !P.ent.any) { const pv = av[av.length - 2]; return pv ? { cmp: [mk([pv]), mk([last])] } : mk([last]); }
+  if (P.when || P.trend) return P.dim === 'dia' || P.dim === 'hora' ? mk([last]) : mk(av.slice(-12));
+  return mk([last], src === 'rend' || src === 'chof' ? null : 'Mes más reciente con datos' + (md ? ' (al ' + dLabel(md) + ')' : '') + '.');
+}
+function pq2Rows(src, a, per, P, fuel) {
+  const E = P.ent[a] || {}; const L = lookups(); const U = a === 'log' ? L.logU : L.opsU;
+  const inL = (list, v) => !list || list.some(x => pq2Eq(v, x));
+  const okVeh = v => {
+    if (E.movil && !E.movil.includes(v)) return false; if (!inL(E.region, regionOf(a, v))) return false; if (E.sucursal && !inL(E.sucursal, sucOf(v))) return false;
+    const u = U[v]; if (E.marca && !(u && inL(E.marca, a === 'log' ? sm(u.marca) : marcaOps(u.desc)))) return false; if (E.tipo && !(u && inL(E.tipo, u.desc))) return false;
+    if (fuel && a === 'ops' && combOf(v) !== fuel) return false; if (fuel === 'GASOLINA' && a === 'log') return false; return true;
+  };
+  if (src === 'rend') return per.months.flatMap(m => areaRows(a, m).map(r => Object.assign({ _m: m }, r))).filter(r => {
+    const v = a === 'log' ? r.eco : r.movil; if (E.movil && !E.movil.includes(v)) return false;
+    if (E.region && !inL(E.region, QBY[a].region(r)) && !inL(E.region, regionOf(a, v))) return false; if (E.marca && !inL(E.marca, QBY[a].marca(r))) return false;
+    if (a === 'ops') { if (E.sucursal && !inL(E.sucursal, r.suc)) return false; if (E.tipo && !inL(E.tipo, r.desc)) return false; if (fuel && r.comb !== fuel) return false; }
+    else { if (E.modalidad && modalidad(r) !== E.modalidad[0]) return false; if (fuel === 'GASOLINA') return false; }
+    return true;
+  });
+  if (src === 'cargas') return e3withF(a, {}, () => cargasRows(a, per.from, per.to)).filter(r => okVeh(r.movil) && (!E.sitio || inL(E.sitio, CG[a].sitio(r))) && (!P.fuente || (P.fuente === 'auto') === !!CG[a].auto(r)));
+  if (src === 'ral') return e3withF(a, {}, () => ralRows(a, per.from, per.to, true)).filter(r => okVeh(r.veh) && (!E.chofer || inL(E.chofer, r.chofer)));
+  if (src === 'chof') return per.months.flatMap(m => choferRows(a, m).map(r => Object.assign({ _m: m }, r))).filter(r => r.km >= setting('minKmChof') && (!E.chofer || inL(E.chofer, r.chofer)));
+  if (src === 'anom') { const flt = E.region || E.sucursal || E.marca || E.tipo || E.movil || fuel; return e3withF(a, {}, () => anomalies(a, per.from, per.to).list).filter(x => (!P.sev || (P.sev === 3 ? x.sev >= 3 : x.sev === P.sev)) && (x.veh ? okVeh(x.veh) : !flt)); }
+  return [];
+}
+function pq2Px(a) { const k = a + '|' + S.ver; PQ2.px = PQ2.px || {}; if (PQ2.px[k] === undefined) { const ps = priceSummary(a); PQ2.px[k] = (ps && ps.avg) || 26; } return PQ2.px[k]; }
+function pq2Val(m, a, rows) {
+  if (!rows || !rows.length) return null; const src = pq2Src(m);
+  if (src === 'rend') { if (m === 'unid') return new Set(rows.map(r => a === 'log' ? r.eco : r.movil)).size; const g = (a === 'log' ? aggLog(rows, () => 'T') : aggOps(rows, () => 'T'))[0]; return { rend: g.rend, cump: g.cump, km: g.km, lts: g.lts, gasto: g.imp, exc: g.lExc }[m]; }
+  if (src === 'cargas') { const l = sum(rows, 'lts'), $ = sum(rows, CG[a].amt); return { precio: div($, l), cargasN: rows.length, cargasL: l, cargasI: $, auto: div(sum(rows.filter(CG[a].auto), 'lts'), l) }[m]; }
+  if (src === 'ral') { if (m === 'ralL') return sum(rows, 'lts'); if (m === 'ralE') return rows.length; if (m === 'ralH') return sum(rows, 'min') / 60; if (m === 'ralV') return new Set(rows.map(r => r.veh)).size; return sum(rows, 'lts') * pq2Px(a); }
+  if (src === 'chof') { const hm = sum(rows, 'hm'), hr = sum(rows, 'hr'); return { chofPr: div(hr, hm), chofRend: div(sum(rows, 'km'), sum(rows, 'lts')), chofKm: sum(rows, 'km'), chofHr: hr, chofN: new Set(rows.map(r => r.chofer)).size }[m]; }
+  if (src === 'anom') return m === 'anom' ? rows.length : sum(rows, 'monto');
+  return null;
+}
+function pq2Key(dim, src, a) {
+  const L = lookups(); const U = a === 'log' ? L.logU : L.opsU;
+  if (dim === 'mes') return src === 'rend' || src === 'chof' ? r => r._m : r => String(r.fecha).slice(0, 7);
+  if (dim === 'dia') return src === 'rend' || src === 'chof' ? null : r => r.fecha;
+  if (dim === 'hora') return src === 'ral' || src === 'cargas' ? r => String(r.hora || '00').slice(0, 2) + ':00' : null;
+  if (src === 'rend') return ({ region: QBY[a].region, sucursal: QBY[a].sucursal || QBY[a].region, marca: QBY[a].marca, tipo: QBY[a].tipo || QBY[a].marca, modalidad: QBY[a].modalidad, segmento: QBY[a].segmento, comb: QBY[a].combustible || (() => 'DIESEL'), unit: QBY[a].movil })[dim] || null;
+  if (src === 'chof') return dim === 'chofer' || dim === 'unit' ? r => r.chofer : null;
+  if (src === 'anom' && dim === 'anomt') return x => x.tn;
+  const vk = src === 'cargas' ? r => r.movil : src === 'ral' ? r => r.veh : x => x.veh;
+  const f = { region: r => regionOf(a, vk(r)), sucursal: a === 'ops' ? r => sucOf(vk(r)) : r => regionOf(a, vk(r)), marca: r => { const u = U[vk(r)]; return u ? (a === 'log' ? sm(u.marca) : marcaOps(u.desc)) : 'Sin clasificar'; }, tipo: r => { const u = U[vk(r)]; return u ? (a === 'log' ? sm(u.marca) : u.desc) : 'Sin clasificar'; }, unit: vk, comb: r => a === 'log' ? 'DIESEL' : (combOf(vk(r)) || 'Sin clasificar') }[dim];
+  if (f) return f;
+  if (src === 'cargas') return { prov: CG[a].prov, sitio: CG[a].sitio, fuente: CG[a].fuente }[dim] || null;
+  if (src === 'ral') return { ubic: placeOf, chofer: r => r.chofer || 'Sin chofer', sitio: placeOf }[dim] || null;
+  return null;
+}
+function pq2DefDim(src) { return { rend: 'region', cargas: 'sitio', ral: 'unit', chof: 'chofer', anom: 'anomt' }[src]; }
+function pq2Lab(dim, k) { return dim === 'mes' ? perLabel(k) : dim === 'dia' ? dLabel(k) : String(k); }
+function pq2Groups(m, a, rows, dim, src, per) {
+  const fn = pq2Key(dim, src, a); if (!fn) return null;
+  let G = Array.from(groupBy(rows, fn)).filter(([k]) => k !== null && k !== undefined && k !== '').map(([k, g]) => ({ k, lab: pq2Lab(dim, k), v: pq2Val(m, a, g), n: g.length, g }));
+  if (src === 'rend' && dim === 'unit') { const mk = (a === 'log' ? setting('minKmLog') : setting('minKmOps')) * Math.max(1, per.months.length); G = G.filter(x => sum(x.g, 'km') >= mk && (!/rend|cump/.test(m) || (pq2Val('cump', a, x.g) >= 0.3 && pq2Val('cump', a, x.g) <= 2.5))); }
+  if (src === 'rend' && dim !== 'unit' && dim !== 'mes' && (m === 'cump' || m === 'rend')) G = G.filter(x => new Set(x.g.map(r => a === 'log' ? r.eco : r.movil)).size >= (dim === 'sucursal' ? 3 : 1));
+  return G.filter(x => x.v !== null && isFinite(x.v));
+}
+function pq2Combos(P, src) {
+  let areas = P.areas;
+  if (!areas) { const el = Object.keys(P.ent.log).length, eo = Object.keys(P.ent.ops).length; if (el && !eo) areas = ['log']; else if (eo && !el) areas = ['ops']; else if (el && eo) { const lm = P.ent.log.movil && L0(P.ent.log.movil[0], 'log'); const om = P.ent.ops.movil && L0(P.ent.ops.movil[0], 'ops'); areas = lm && !om ? ['log'] : om && !lm ? ['ops'] : ['log', 'ops']; } }
+  if (!areas) { const pr = /^(OPERACIONES|LOGISTICA)/.exec(FP.norm(S.route || '')); areas = P.fuels && P.fuels.length === 1 && P.fuels[0] === 'GASOLINA' ? ['ops'] : ['log', 'ops']; }
+  const out = [];
+  for (const a of areas) {
+    if (!P.fuels || src === 'chof') { out.push({ a, fuel: null, lab: AREA_NAME[a] }); continue; }
+    for (const f of P.fuels) { if (a === 'log' && f === 'GASOLINA') continue; out.push({ a, fuel: a === 'log' ? null : (P.fuels.length === 1 && a === 'ops' ? f : f), lab: AREA_NAME[a] + ' · ' + (f === 'DIESEL' ? 'Diésel' : 'Gasolina') }); }
+  }
+  return out;
+  function L0(v, a) { const L = lookups(); return !!(a === 'log' ? L.logU[v] : L.opsU[v]); }
+}
+function pq2Prev(per) {
+  if (!per) return null;
+  if (per.days) { const span = Math.round((new Date(per.to) - new Date(per.from)) / 864e5) + 1; const t = pq2AddDays(per.from, -1), f = pq2AddDays(t, 1 - span); return { months: Array.from(new Set([f.slice(0, 7), t.slice(0, 7)])), from: f, to: t, label: f === t ? dLabel(f) : dLabel(f) + ' – ' + dLabel(t), days: true }; }
+  const k = per.months.length; let ms = per.months.slice(); for (let i = 0; i < k; i++) ms = ms.map(prevPeriod);
+  return { months: ms, from: ms[0] + '-01', to: monthEnd(ms[ms.length - 1]), label: k > 1 ? perLabel(ms[0]) + ' – ' + perLabel(ms[k - 1]) : perLabel(ms[0]) };
+}
+function pq2Delta(m, v, pv) {
+  if (v === null || pv === null || !isFinite(v) || !isFinite(pv) || !pv) return '';
+  const d = v - pv, p = d / Math.abs(pv); const good = PQ_HI[m] ? d > 0 : d < 0; const flat = Math.abs(p) < 0.005;
+  const c = flat ? '#7a869a' : good ? '#159a6a' : '#d63c3c';
+  return '<span style="color:' + c + ';font-weight:700">' + (flat ? '＝' : d > 0 ? '▲' : '▼') + ' ' + (m === 'cump' || m === 'auto' || m === 'chofPr' ? F.n1(Math.abs(d) * 100) + ' pts' : F.pct(Math.abs(p))) + '</span>';
+}
+function pq2Bars(G, m, hl) {
+  const mx = Math.max(...G.map(x => Math.abs(x.v || 0))) || 1;
+  return '<table class="pqt"><tbody>' + G.map((x, i) => '<tr' + (hl && hl.includes(x) ? ' class="hl"' : '') + '><td class="pn">' + (x.rk ? x.rk + '. ' : '') + esc(x.lab) + '</td><td class="pb"><i style="width:' + Math.max(2, Math.abs(x.v) / mx * 100).toFixed(1) + '%"></i></td><td class="pv">' + pq2Fmt(m, x.v) + '</td></tr>').join('') + '</tbody></table>';
+}
+function pq2Int(P, src, per, extra) {
+  const E = []; ['log', 'ops'].forEach(a => { const e = P.ent[a]; if (!e) return; Object.keys(e).forEach(k => { if (k === 'any') return; e[k].forEach(v => E.push((k === 'modalidad' ? 'Modalidad ' : k === 'movil' ? 'Móvil ' : k === 'chofer' ? 'Chofer ' : '') + (k === 'marca' && a === 'log' ? v : v))); }); });
+  const parts = [PQ_ML[P.m], extra, P.fuels ? P.fuels.map(f => f === 'DIESEL' ? 'Diésel' : 'Gasolina').join(' y ') : null, P.fuente === 'auto' ? 'Solo autoconsumo' : P.fuente === 'ext' ? 'Solo gasolineras externas' : null, Array.from(new Set(E)).join(', ') || null, per ? per.label : null].filter(Boolean);
+  return '<div class="pqint">🔎 Entendí: ' + parts.map(x => '<b>' + esc(x) + '</b>').join(' · ') + '</div>';
+}
+function pq2Dir(P) { const hiG = !!PQ_HI[P.m]; if (P.hi === 'better') return hiG ? 1 : 0; if (P.hi === 'worse') return hiG ? 0 : 1; if (P.hi === 0 || P.hi === 1) return P.hi; return hiG ? 1 : 1; }
+function pq2Run(P) {
+  const src = pq2Src(P.m); const combos = pq2Combos(P, src); if (!combos.length) return null;
+  const blocks = []; const xl = []; let perShown = null; let note = null;
+  for (const c of combos) {
+    const per = pq2Period(P, src, c.a);
+    if (!per) { blocks.push('<b>' + c.lab + '</b>: no hay datos cargados de este tema.'); continue; }
+    if (per.missing) { blocks.push('<b>' + c.lab + '</b>: no hay datos de ' + esc(per.missing) + '. Hay de ' + perLabel(per.av[0]) + ' a ' + perLabel(per.av[per.av.length - 1]) + '.'); continue; }
+    if (per.note) note = per.note;
+    // Comparar dos periodos
+    if (per.cmp) {
+      const [A, B] = per.cmp; if (!A || !B) { blocks.push('<b>' + c.lab + '</b>: falta uno de los periodos.'); continue; }
+      perShown = { label: A.label + ' vs ' + B.label };
+      const ks = P.m ? [P.m] : [];
+      const va = pq2Val(P.m, c.a, pq2Rows(src, c.a, A, P, c.fuel)), vb = pq2Val(P.m, c.a, pq2Rows(src, c.a, B, P, c.fuel));
+      blocks.push('<b>' + c.lab + '</b><br>' + esc(A.label) + ': <b>' + pq2Fmt(P.m, va) + '</b><br>' + esc(B.label) + ': <b>' + pq2Fmt(P.m, vb) + '</b> ' + pq2Delta(P.m, vb, va));
+      xl.push({ Grupo: c.lab, [A.label]: va, [B.label]: vb, Diferencia: va !== null && vb !== null ? vb - va : null });
+      continue;
+    }
+    if (!perShown || !perShown.months || (per.months && per.months.length > perShown.months.length)) perShown = per;
+    const rows = pq2Rows(src, c.a, per, P, c.fuel);
+    if (!rows.length) { blocks.push('<b>' + c.lab + '</b>: sin datos con esos filtros en ' + esc(per.label) + '.'); continue; }
+    // Conteo con condición
+    if (P.count && (src === 'rend' || src === 'chof')) {
+      const cd = src === 'chof' ? 'chofer' : /SUCURSAL/.test(P.n) && c.a === 'ops' ? 'sucursal' : /REGION/.test(P.n) ? 'region' : /MARCA/.test(P.n) ? 'marca' : /MODELO|TIPO DE UNIDAD/.test(P.n) ? 'tipo' : 'unit'; const cdn = { chofer: 'choferes', sucursal: 'sucursales', region: 'regiones', marca: 'marcas', tipo: 'tipos de unidad', unit: 'unidades' }[cd];
+      const G = pq2Groups(src === 'chof' ? (P.m || 'chofPr') : (P.m === 'rend' ? 'rend' : 'cump'), c.a, rows, cd, src, per) || [];
+      const mm = src === 'chof' ? (P.m || 'chofPr') : (P.m === 'rend' ? 'rend' : 'cump');
+      const vv = x => mm === 'rend' ? pq2Val('rend', c.a, x.g) : x.v;
+      let cond, ctext;
+      if (P.status) { const S2 = { CRITIC: [0, 0.9, 'en Crítico (menos de 90%)'], VIGILANCIA: [0.9, 0.95, 'en Vigilancia (90–95%)'], ACEPTABLE: [0.95, 1, 'en Aceptable (95–100%)'], OPTIMO: [1, 99, 'en Óptimo (100% o más)'], 'EN IDEAL': [1, 99, 'en su ideal o mejor'], CUMPLEN: [0.95, 99, 'que cumplen (95% o más)'], 'NO CUMPLEN': [0, 0.95, 'que no cumplen (menos de 95%)'] }[P.status]; cond = x => x.v >= S2[0] && x.v < S2[1]; ctext = S2[2]; }
+      else { let t = P.thr.v; if ((mm === 'cump' || mm === 'chofPr') && (P.thr.pct || t > 3)) t = t / 100; cond = x => P.thr.op === '<' ? vv(x) < t : vv(x) > t; ctext = (P.thr.op === '<' ? 'debajo de ' : 'arriba de ') + (mm === 'rend' ? F.n2(t) + ' km/L' : F.pct(t)); }
+      const hit = G.filter(cond).sort((x, y) => vv(x) - vv(y));
+      blocks.push('<b>' + c.lab + '</b>: <b>' + F.n0(hit.length) + '</b> de ' + F.n0(G.length) + ' ' + cdn + ' (' + F.pct(div(hit.length, G.length)) + ') están ' + ctext + '.' + (hit.length ? pq2Bars(hit.slice(0, P.N || 10).map((x, i) => ({ lab: x.lab, v: vv(x), rk: i + 1 })), mm) + (hit.length > (P.N || 10) ? '<span class="muted">…y ' + (hit.length - (P.N || 10)) + ' más (descárgalos en Excel).</span>' : '') : ''));
+      hit.forEach(x => xl.push({ Area: c.lab, Nombre: x.lab, Valor: vv(x) }));
+      continue;
+    }
+    const dim = P.dim || ((P.N || P.hi !== null) && !P.when ? pq2DefDim(src) : null);
+    if (dim) {
+      let G = pq2Groups(P.m, c.a, rows, dim, src, per);
+      if (!G) { blocks.push('<b>' + c.lab + '</b>: ese dato no se puede separar por ' + PQ_DL[dim] + '.'); continue; }
+      if (!G.length) { blocks.push('<b>' + c.lab + '</b>: sin datos para agrupar.'); continue; }
+      if (dim === 'mes' || dim === 'dia' || dim === 'hora') {
+        G.sort((x, y) => x.k < y.k ? -1 : 1);
+        const mx = G.reduce((b, x) => x.v > b.v ? x : b), mn = G.reduce((b, x) => x.v < b.v ? x : b);
+        const unit = dim === 'mes' ? 'mes' : dim === 'dia' ? 'día' : 'hora';
+        let head;
+        if (G.length === 1) { head = 'Solo hay datos de <b>' + esc(G[0].lab) + '</b>: ' + pq2Fmt(P.m, G[0].v) + '.'; }
+        else if (P.when) { const dir = pq2Dir(P); const tgt = dir ? mx : mn, oth = dir ? mn : mx; const fem = dim === 'hora'; const art = fem ? 'La' : 'El';
+          const w = P.hi === 'better' || P.hi === 'worse' ? null : P.m === 'precio' ? (dir ? 'más car' + (fem ? 'a' : 'o') : 'más barat' + (fem ? 'a' : 'o')) : null;
+          head = (w ? art + ' ' + unit + ' ' + w : P.hi === 'better' ? art + ' mejor ' + unit + ' en ' + PQ_ML[P.m].toLowerCase() : P.hi === 'worse' ? art + ' peor ' + unit + ' en ' + PQ_ML[P.m].toLowerCase() : art + ' ' + unit + ' con ' + (dir ? 'más' : 'menos') + ' ' + PQ_ML[P.m].toLowerCase()) + ' fue <b>' + esc(tgt.lab) + '</b> con <b>' + pq2Fmt(P.m, tgt.v) + '</b>. En el otro extremo: ' + esc(oth.lab) + ' (' + pq2Fmt(P.m, oth.v) + ').'; G.hl = [tgt]; }
+        else { const f = G[0], l = G[G.length - 1]; head = 'De ' + esc(f.lab) + ' a ' + esc(l.lab) + ': ' + pq2Fmt(P.m, f.v) + ' → <b>' + pq2Fmt(P.m, l.v) + '</b> ' + pq2Delta(P.m, l.v, f.v) + '. Máximo ' + esc(mx.lab) + ' (' + pq2Fmt(P.m, mx.v) + '), mínimo ' + esc(mn.lab) + ' (' + pq2Fmt(P.m, mn.v) + ').'; }
+        blocks.push('<b>' + c.lab + '</b><br>' + head + pq2Bars(G.slice(-31), P.m, G.hl));
+      } else {
+        const dir = P.hi !== null ? pq2Dir(P) : (PQ_HI[P.m] ? 1 : 1);
+        G.sort((x, y) => dir ? y.v - x.v : x.v - y.v); const k = P.N || (/\b(CUAL|QUE|QUIEN)\b/.test(P.n) && !/\bCUALES|QUIENES\b/.test(P.n) ? 5 : 10);
+        const top = G.slice(0, k).map((x, i) => Object.assign(x, { rk: i + 1 }));
+        const lead = top[0];
+        const adj = P.hi === 'better' ? 'Mejor' : P.hi === 'worse' ? 'Peor' : dir ? (P.m === 'precio' ? 'Más caro' : 'Más alto') : (P.m === 'precio' ? 'Más barato' : 'Más bajo');
+        blocks.push('<b>' + c.lab + '</b> · por ' + PQ_DL[dim] + ' (' + G.length + ')<br>' + adj + ': <b>' + esc(lead.lab) + '</b> con <b>' + pq2Fmt(P.m, lead.v) + '</b>' + pq2Bars(top, P.m));
+      }
+      G.forEach(x => xl.push({ Area: c.lab, [PQ_DL[dim]]: x.lab, [PQ_ML[P.m]]: x.v, Registros: x.n }));
+      continue;
+    }
+    // Valor
+    const v = pq2Val(P.m, c.a, rows); const pp = pq2Prev(per); let pvv = null;
+    try { const pr = pq2Rows(src, c.a, pp, P, c.fuel); pvv = pr.length ? pq2Val(P.m, c.a, pr) : null; } catch (e) { }
+    let extra = '';
+    if (src === 'rend') { const g = (c.a === 'log' ? aggLog(rows, () => 'T') : aggOps(rows, () => 'T'))[0]; extra = F.kml(g.rend) + (g.ideal ? ' vs ideal ' + F.n2(g.ideal) + ' → ' + badge(g.cump, F.pct(g.cump)) : '') + '<br>' + F.km(g.km) + ' · ' + F.L(g.lts) + ' · ' + F.money(g.imp) + ' · ' + F.n0(pq2Val('unid', c.a, rows)) + (pq2Val('unid', c.a, rows) === 1 ? ' unidad' : ' unidades') + (g.lExc ? ' · ' + F.L(g.lExc) + ' sobre el ideal' : ''); }
+    else if (src === 'cargas') { const au = rows.filter(CG[c.a].auto), ex = rows.filter(r => !CG[c.a].auto(r)); extra = F.n0(rows.length) + ' cargas · ' + F.L(sum(rows, 'lts')) + ' · ' + F.money(sum(rows, CG[c.a].amt)) + ' · promedio ' + F.money2(pq2Val('precio', c.a, rows)) + '/L' + (au.length && ex.length ? '<br>Autoconsumo ' + F.money2(pq2Val('precio', c.a, au)) + '/L · Gasolineras ' + F.money2(pq2Val('precio', c.a, ex)) + '/L' : ''); }
+    else if (src === 'ral') extra = F.n0(rows.length) + ' eventos · ' + F.L(sum(rows, 'lts')) + ' · ' + F.h(sum(rows, 'min') / 60) + ' · ' + F.n0(new Set(rows.map(r => r.veh)).size) + ' vehículo(s) · ≈ ' + F.money(pq2Val('ralM', c.a, rows));
+    else if (src === 'chof') extra = F.n0(pq2Val('chofN', c.a, rows)) + (pq2Val('chofN', c.a, rows) === 1 ? ' chofer · ' : ' choferes · ') + F.kml(pq2Val('chofRend', c.a, rows)) + ' · ralentí ' + F.pct(pq2Val('chofPr', c.a, rows)) + ' · ' + F.n0(rows.filter(r => r.pr > 25).length) + ' arriba de 25%';
+    else if (src === 'anom') extra = F.n0(rows.filter(x => x.sev >= 3).length) + ' de severidad alta · ' + F.money(sum(rows, 'monto')) + ' en riesgo';
+    blocks.push('<b>' + c.lab + '</b>: <span class="pqbig">' + pq2Fmt(P.m, v) + '</span> ' + (pvv !== null ? pq2Delta(P.m, v, pvv) + ' <span class="muted">vs ' + esc(pp.label) + '</span>' : '') + (extra ? '<br><span class="pqx">' + extra + '</span>' : ''));
+    xl.push({ Area: c.lab, Periodo: per.label, [PQ_ML[P.m]]: v, 'Periodo anterior': pp ? pp.label : '', 'Valor anterior': pvv });
+  }
+  const dimLab = P.when ? ({ dia: 'día', hora: 'hora', mes: 'mes' }[P.dim] || 'mes') + (P.hi === 'better' ? ' mejor' : P.hi === 'worse' ? ' peor' : P.m === 'precio' ? (pq2Dir(P) ? ' más caro' : ' más barato') : (pq2Dir(P) ? ' con más' : ' con menos')) : P.count ? 'conteo' : P.dim ? 'por ' + PQ_DL[P.dim] : P.cmp ? 'comparación' : null;
+  const html = pq2Int(P, src, perShown, dimLab) + blocks.join('<div class="pqsep"></div>') + (note ? '<div class="muted" style="margin-top:6px">' + esc(note) + '</div>' : '') + (P.m === 'precio' && !P.fuente ? '<div class="muted" style="margin-top:6px">Precio promedio ponderado de todas las cargas (autoconsumo y gasolineras). Pide “solo autoconsumo” o “solo gasolineras” si lo quieres separado.</div>' : '');
+  const acts = []; if (xl.length) acts.push(['⬇ Excel de esta respuesta', () => downloadXLSX('Paquetin ' + PQ_ML[P.m] + '.xlsx', [['Respuesta', xl]])]);
+  const sec = { rend: 'rendimientos', cargas: 'cargas', ral: 'ralenti', chof: 'choferes', anom: 'anomalias' }[src]; const a0 = combos[0].a; acts.push(['Ir a la sección', () => { location.hash = SLUG[a0] + '-' + sec; }]);
+  return { html, acts, chips: pq2Chips(P, src) };
+}
+function pq2Chips(P, src) {
+  const c = [];
+  if (!P.dim || P.dim !== 'mes') c.push('¿Y mes a mes?');
+  if (P.dim !== 'region') c.push('¿Y por región?');
+  if (src === 'cargas' && P.dim !== 'sitio') c.push('¿Y por sitio?');
+  if (src === 'ral' && P.dim !== 'unit') c.push('¿Qué unidades tienen más?');
+  if ((src === 'rend') && P.dim !== 'sucursal') c.push('¿Y por sucursal en Operaciones?');
+  if (!P.areas || P.areas.length === 2) c.push('¿Y solo en Logística?'); else c.push(P.areas[0] === 'log' ? '¿Y en Operaciones?' : '¿Y en Logística?');
+  c.push('Compara con el mes anterior');
+  return c.slice(0, 5);
+}
+function pq2Summary(P) {
+  const out = []; const xl = [];
+  for (const a of (P.areas || ['log', 'ops'])) {
+    const p = latest(AREA_DS[a].rend); const L = [];
+    const r = p ? areaRows(a, p) : []; if (r.length) { const g = (a === 'log' ? aggLog(r, () => 'T') : aggOps(r, () => 'T'))[0]; L.push('Rendimiento ' + perLabel(p) + ': <b>' + F.kml(g.rend) + '</b> → ' + badge(g.cump, F.pct(g.cump)) + ' · gasto ' + F.money(g.imp)); xl.push({ Area: AREA_NAME[a], Concepto: 'Rendimiento ' + p, Valor: g.rend }, { Area: AREA_NAME[a], Concepto: 'Cumplimiento', Valor: g.cump }, { Area: AREA_NAME[a], Concepto: 'Gasto', Valor: g.imp }); }
+    const pr = pq2Avail('ral', a); const pl = pr[pr.length - 1];
+    if (pl) { const per = { months: [pl], from: pl + '-01', to: monthEnd(pl) }; const E = pq2Rows('ral', a, per, { ent: { log: {}, ops: {} } }, null); L.push('Ralentí ' + perLabel(pl) + ': <b>' + F.L(sum(E, 'lts')) + '</b> en ' + F.n0(E.length) + ' eventos'); }
+    const ps = priceSummary(a); if (ps) L.push('Precio promedio ' + perLabel(ps.p) + ': <b>' + F.money2(ps.avg) + '/L</b>');
+    out.push('<b>' + AREA_NAME[a] + '</b><br>' + L.join('<br>'));
+  }
+  return { html: '<div class="pqint">🔎 Entendí: <b>Resumen general</b></div>' + out.join('<div class="pqsep"></div>'), acts: [['⬇ Excel', () => downloadXLSX('Resumen Paquetin.xlsx', [['Resumen', xl]])]], chips: ['¿En qué mes pagamos más caro el diésel?', 'Peores 10 tractos', 'Ralentí por región', 'Choferes con más ralentí', 'Compara con el mes anterior'] };
+}
+function pq2Tot(a, rows) { if (!rows.length) return null; const g = (a === 'log' ? aggLog(rows, () => 'T') : aggOps(rows, () => 'T'))[0]; return { km: g.km, lts: g.lts, imp: g.imp, rend: g.rend, cump: g.cump, precio: div(g.imp, g.lts), u: new Set(rows.map(r => a === 'log' ? r.eco : r.movil)).size, exc: g.lExc }; }
+function pq2Why(P) {
+  const out = []; const xl = [];
+  for (const a of (P.areas || ['log', 'ops'])) {
+    const av = pq2Avail('rend', a); const ms = pq2Months(P.n); const b = ms[0] && av.includes(ms[0]) ? ms[0] : av[av.length - 1]; const aa = av[av.indexOf(b) - 1];
+    if (!aa) { out.push('<b>' + AREA_NAME[a] + '</b>: no hay un mes anterior para comparar.'); continue; }
+    const A = pq2Tot(a, pq2Rows('rend', a, { months: [aa] }, P, null)), B = pq2Tot(a, pq2Rows('rend', a, { months: [b] }, P, null));
+    if (!A || !B) { out.push('<b>' + AREA_NAME[a] + '</b>: sin datos suficientes.'); continue; }
+    const dG = B.imp - A.imp; const eKm = (B.km - A.km) / A.rend * A.precio; const eEf = (B.lts - B.km / A.rend) * A.precio; const ePr = B.lts * (B.precio - A.precio); const eOt = dG - eKm - eEf - ePr;
+    const it = [['Kilómetros recorridos', eKm, F.km(A.km) + ' → ' + F.km(B.km) + ' (' + (B.km >= A.km ? '+' : '−') + F.pct(Math.abs(B.km / A.km - 1)) + ')'], ['Rendimiento (eficiencia)', eEf, F.n2(A.rend) + ' → ' + F.n2(B.rend) + ' km/L'], ['Precio por litro', ePr, F.money2(A.precio) + ' → ' + F.money2(B.precio)]].concat(Math.abs(eOt) > 1 ? [['Otros / redondeo', eOt, '']] : []).sort((x, y) => Math.abs(y[1]) - Math.abs(x[1]));
+    const sg = v => '<b style="color:' + (v > 0 ? '#d63c3c' : '#159a6a') + '">' + (v > 0 ? '+' : '−') + F.money(Math.abs(v)) + '</b>';
+    out.push('<b>' + AREA_NAME[a] + ' · ' + perLabel(aa) + ' → ' + perLabel(b) + '</b><br>El gasto ' + (dG > 0 ? 'subió' : 'bajó') + ' ' + sg(dG) + ' (' + F.money(A.imp) + ' → ' + F.money(B.imp) + ', ' + (dG > 0 ? '+' : '−') + F.pct(Math.abs(dG / A.imp)) + '). Se explica por:<br>' + it.map(x => '• ' + sg(x[1]) + ' ' + x[0] + (x[2] ? ' <span class="muted">(' + x[2] + ')</span>' : '')).join('<br>') + '<br><span class="muted">Principal causa: ' + it[0][0].toLowerCase() + '.</span>');
+    it.forEach(x => xl.push({ Area: AREA_NAME[a], Factor: x[0], Efecto: x[1], Detalle: x[2] }));
+  }
+  return { html: '<div class="pqint">🔎 Entendí: <b>¿Por qué cambió el gasto?</b> · contra el mes anterior</div>' + out.join('<div class="pqsep"></div>'), acts: [['⬇ Excel', () => downloadXLSX('Explicacion gasto.xlsx', [['Factores', xl]])]], chips: ['¿Y mes a mes?', 'Peores 10 tractos', 'Precio del diésel por mes'] };
+}
+function pq2CmpAll(P) {
+  const ars = P.areas || ['log', 'ops']; const out = []; const xl = []; let lab = null;
+  for (const a of ars) {
+    const per = pq2Period(Object.assign({}, P, { cmp: true }), 'rend', a); if (!per || !per.cmp || !per.cmp[0] || !per.cmp[1]) { out.push('<b>' + AREA_NAME[a] + '</b>: no tengo ambos periodos.'); continue; }
+    const [A, B] = per.cmp; lab = A.label + ' vs ' + B.label;
+    const ra = pq2Rows('rend', a, A, P, null), rb = pq2Rows('rend', a, B, P, null);
+    const ca = { months: A.months, from: A.from, to: A.to }, cb = { months: B.months, from: B.from, to: B.to };
+    const L = [['rend', pq2Val('rend', a, ra), pq2Val('rend', a, rb)], ['cump', pq2Val('cump', a, ra), pq2Val('cump', a, rb)], ['km', pq2Val('km', a, ra), pq2Val('km', a, rb)], ['lts', pq2Val('lts', a, ra), pq2Val('lts', a, rb)], ['gasto', pq2Val('gasto', a, ra), pq2Val('gasto', a, rb)], ['exc', pq2Val('exc', a, ra), pq2Val('exc', a, rb)]];
+    try { const pa = pq2Rows('cargas', a, ca, P, null), pb = pq2Rows('cargas', a, cb, P, null); if (pa.length || pb.length) L.push(['precio', pq2Val('precio', a, pa), pq2Val('precio', a, pb)]); } catch (e) { }
+    try { const ea = pq2Rows('ral', a, ca, P, null), eb = pq2Rows('ral', a, cb, P, null); if (ea.length || eb.length) L.push(['ralL', pq2Val('ralL', a, ea), pq2Val('ralL', a, eb)]); } catch (e) { }
+    out.push('<b>' + AREA_NAME[a] + '</b><table class="pqt pqc"><tr><td></td><td class="pv">' + esc(perShort(A.months[0])) + '</td><td class="pv">' + esc(perShort(B.months[0])) + '</td><td class="pv">Cambio</td></tr>' + L.map(([m, x, y]) => '<tr><td class="pn">' + PQ_ML[m] + '</td><td class="pv">' + pq2Fmt(m, x) + '</td><td class="pv">' + pq2Fmt(m, y) + '</td><td class="pv">' + pq2Delta(m, y, x) + '</td></tr>').join('') + '</table>');
+    L.forEach(([m, x, y]) => xl.push({ Area: AREA_NAME[a], Indicador: PQ_ML[m], [A.label]: x, [B.label]: y }));
+  }
+  if (!lab) return null;
+  return { html: '<div class="pqint">🔎 Entendí: <b>Comparación general</b> · <b>' + esc(lab) + '</b></div>' + out.join('<div class="pqsep"></div>'), acts: [['⬇ Excel', () => downloadXLSX('Comparacion.xlsx', [['Comparación', xl]])], ['¿Por qué cambió el gasto?', () => paqAsk('¿Por qué cambió el gasto?')]], chips: ['¿Por qué cambió el gasto?', 'Compara el ralentí', 'Compara el precio del diésel'] };
+}
+function paqLocal(q) {
+  const n0 = pq2Norm(q);
+  if (/^(HOLA|BUEN(OS|AS)? (DIAS|TARDES|NOCHES)|QUE TAL|HEY)\b/.test(n0) && n0.split(' ').length <= 4) return { html: '¡Hola! 👋 Pregúntame lo que quieras de rendimientos, precios, cargas, ralentí, choferes o anomalías. Por ejemplo: <i>“¿en qué mes pagamos más caro el diésel?”</i>', chips: ['¿Cómo vamos este mes?', '¿En qué mes pagamos más caro el diésel y la gasolina?', 'Peores 10 tractos de octubre', 'Ralentí por región de esta semana', '¿Cuántas unidades están en crítico?'] };
+  if (/^(GRACIAS|MUCHAS GRACIAS|OK|OKAY|PERFECTO|EXCELENTE|SALE)\b/.test(n0) && n0.split(' ').length <= 4) return { html: '¡Con gusto! Aquí sigo si necesitas algo más 💧' };
+  if (/PRESENTACION|DIAPOSITIVA|\bPPT\b|JUNTA/.test(n0) || /\b(IR A|LLEVAME|ABRE LA|MUESTRAME LA SECCION)\b/.test(n0) || /QUE ES|COMO SE (CALCULA|MIDE|OBTIENE)|QUE SIGNIFICA|COMO FUNCIONA/.test(n0)) return paqLocalOld(q);
+  let P = pq2Parse(q);
+  if (P.summary && !P.m) { const r = pq2Summary(P); PQ2.last = null; return r; }
+  P = pq2Merge(P, PQ2.last);
+  if (P.why && !P.cmp) return pq2Why(P);
+  const veh = /\bM\d{5,6}\b|\b\d{5}\b/.test(q.toUpperCase());
+  if (!P.m && veh && !P.dim) return paqLocalOld(q);
+  if (/EXCEL|DESCARGA|EXPORTA/.test(P.n) && !P.m) return paqLocalOld(q);
+  if (P.count && (P.m === 'unid' || P.m === 'rend' && !/RENDIM|KM ?\/ ?L/.test(P.n))) P.m = 'cump';
+  if (!P.m && P.cmp) { const r = pq2CmpAll(P); if (r) { PQ2.last = P; return r; } }
+  if (!P.m && (P.ent.any || P.dim || P.N || P.count || P.hi !== null)) P.m = P.count || P.dim === 'unit' || P.hi === 'better' || P.hi === 'worse' ? 'cump' : 'rend';
+  if (!P.m) {
+    const ms = pq2Months(P.n); const pl = ms.length ? ' de ' + perLabel(ms[0]).toLowerCase() : '';
+    return { html: 'No estoy seguro de qué dato necesitas. ¿Te refieres a alguno de estos?', chips: ['Rendimiento' + pl, 'Precio del diésel' + pl, 'Ralentí' + pl, 'Gasto de combustible' + pl, 'Anomalías' + pl, 'Choferes con más ralentí' + pl] };
+  }
+  try { const r = pq2Run(P); if (!r) return paqLocalOld(q); PQ2.last = P; return r; }
+  catch (e) { console.error('Paquetín', e); return { html: 'Tuve un problema con esa consulta (' + esc(e.message || 'error') + '). ¿Me la dices de otra forma?', chips: ['¿Cómo vamos este mes?', 'Rendimiento por región', 'Precio del diésel por mes'] }; }
 }
 
 /* ---------- Excel por pestaña ---------- */
