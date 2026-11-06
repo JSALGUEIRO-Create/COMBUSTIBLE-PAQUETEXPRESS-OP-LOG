@@ -603,6 +603,16 @@ body.e3open{overflow:hidden}body.e3open .floatbtn{display:none}
 @media (max-width:1100px){.nw-queue{display:none}.nw-story{width:auto;right:30px}.nw-bars{right:44px}.nw-greet{right:200px}}
 @media (max-width:700px){.nw-stage{height:620px}.nw-story .nw-num{font-size:72px}.nw-story h2{font-size:26px}.nw-ctl{top:auto;bottom:16px;right:16px}.nw-ctl .nw-man{display:none}}
 @media (prefers-reduced-motion:reduce){.nw-bg.on{animation:none}.nw-tick .run{animation:none}.nw-story.in>*{animation:none}}
+
+/* Correo de ralentí */
+.btn.mailbtn{background:linear-gradient(135deg,#d63c3c,#a5222c);color:#fff;font-weight:800;box-shadow:0 6px 16px rgba(214,60,60,.3)}
+.btn.mailbtn:hover{filter:brightness(1.08)}
+.e3chipb{all:unset;cursor:pointer;padding:8px 14px;border-radius:999px;border:1.5px solid var(--line);font-weight:700;font-size:13.5px}
+.e3chipb.on{background:#1c5cab;border-color:#1c5cab;color:#fff}.e3chipb:focus-visible{outline:2px solid var(--accent)}
+.e3w-grid input{padding:9px 10px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:14px;text-transform:none}
+.mbox.mailprev{max-width:900px;width:100%;display:flex;flex-direction:column;max-height:calc(100vh - 40px)}
+.mbox.mailprev .mbody{flex:1;min-height:0}.mbox.mailprev iframe{width:100%;height:100%;min-height:60vh;border:0;background:#f4f6fa;display:block}
+.mbox.mailprev footer{gap:10px;flex-wrap:wrap}
 .ghbar{background:#fff4d6;color:#7a5200;text-align:center;padding:8px;font-weight:700;font-size:13px}.ghbar .lnk{color:#0b2a5b;text-decoration:underline}</style>
 </head>
 <body>
@@ -1969,7 +1979,7 @@ function viewRal(a) {
   const geoSel = '<select data-act="f" data-k="geo"><option value="ALL"' + (f.geo === 'ALL' ? ' selected' : '') + '>Todas las ubicaciones</option><option value="IN"' + (f.geo === 'IN' ? ' selected' : '') + '>Dentro de geocerca</option><option value="OUT"' + (f.geo === 'OUT' ? ' selected' : '') + '>Fuera de geocerca</option></select>';
   const diasSel = '<select data-act="f" data-k="rDias">' + [2, 3, 4, 5, 7, 10].map(n => '<option value="' + n + '"' + (+f.rDias === n ? ' selected' : '') + '>' + n + '+ días</option>').join('') + '</select>';
   const ncTool = a === 'ops' ? '<label class="chk"><input type="checkbox" data-act="tg" data-k="opsNoClas"' + (tog('opsNoClas', true) ? ' checked' : '') + '> Incluir unidades no clasificadas</label>' : '';
-  return '<div class="blockhead"><div><h2>Ralentí</h2><p class="sub">' + dLabel(f.desde) + ' – ' + dLabel(f.hasta) + (a === 'ops' && setting('excluirLog') ? ' · sin unidades de Logística' : '') + '</p></div><div class="bh-tools">' + ncTool + geoSel + rangeInputs(a) + '</div></div>' +
+  return '<div class="blockhead"><div><h2>Ralentí</h2><p class="sub">' + dLabel(f.desde) + ' – ' + dLabel(f.hasta) + (a === 'ops' && setting('excluirLog') ? ' · sin unidades de Logística' : '') + '</p></div><div class="bh-tools"><button class="btn mailbtn" data-act="mailRal" data-area="' + a + '">✉ Generar correo</button>' + ncTool + geoSel + rangeInputs(a) + '</div></div>' +
     '<div class="kpis">' + kpi('Litros en ralentí', F.n0(st.lts), F.n0(st.ev) + ' eventos', 'hero') + kpi('Horas en ralentí', F.n1(st.h)) + kpi('Vehículos', F.n0(st.veh)) + kpi('Duración promedio', hmm(st.prom || 0)) + kpi('Consumo por hora', F.n2(st.lph) + '<small> L/h</small>') + kpi('Fuera de geocerca', F.pct(st.pFuera), 'de los eventos') + '</div>' +
     card('Consumo por día', '<div id="' + ids.d + '"></div>', { tools }) +
     '<div class="grid2">' + card('¿A qué hora ocurre?', '<div id="' + ids.hm + '"></div>', { sub: 'Eventos por día de la semana y hora de inicio' }) + card('Ralentí por región', '<div id="' + ids.rg + '"></div>') + '</div>' +
@@ -3565,6 +3575,167 @@ function newsStart() {
   }, 100);
 }
 
+/* ===================== Generar correo de Ralentí ===================== */
+const mR3 = v => v === null || v === undefined || !isFinite(v) ? null : Math.round(v * 1000) / 1000;
+const MAIL = { html: null, eml: null, file: null, xlsx: null, cfg: null };
+function mailLastDay(a) { const p = latest(a + '_ral'); if (!p) return null; return rowsOf(a + '_ral', p).reduce((m, r) => r.fecha > m ? r.fecha : m, ''); }
+function addDays(d, n) { const x = new Date(d + 'T12:00:00'); x.setDate(x.getDate() + n); return x.toISOString().slice(0, 10); }
+function mailStore(a, v) { try { if (v) localStorage.setItem('pc-mail-' + a, JSON.stringify(v)); else return JSON.parse(localStorage.getItem('pc-mail-' + a) || '{}'); } catch (e) { return {}; } }
+function openMailRal(a) {
+  const last = mailLastDay(a); if (!last) { toast('No hay ralentí cargado', 'warn'); return; }
+  const mem = mailStore(a) || {}; const regs = e3regions(a);
+  const sucs = a === 'ops' ? Array.from(new Set(Object.values(lookups().opsU).map(u => u.suc).filter(Boolean))).sort() : [];
+  const m = $('#modal'); DSTACK.length = 0; m.classList.remove('drill');
+  m.innerHTML = '<div class="mbox e3w mailw"><header><div><h3><span class="e3w-ic" style="background:#d63c3c;color:#fff">✉</span> Generar correo de ralentí · ' + AREA_NAME[a] + '</h3><p class="sub">Reporte detallado para que las áreas tomen acciones. Último día cargado: <b>' + dLabel(last) + '</b></p></div><button class="x" data-act="closeModal" aria-label="Cerrar">×</button></header><div class="mbody">' +
+    '<div class="e3w-sec"><b>1 · Periodo</b><div class="e3w-chips" id="mqk">' + [['1', 'Último día'], ['2', 'Últimos 2 días'], ['3', 'Últimos 3 días'], ['7', 'Última semana'], ['M', 'Mes en curso']].map(([v, l], i) => '<button class="e3chipb' + (i === 0 ? ' on' : '') + '" data-q="' + v + '">' + l + '</button>').join('') + '</div><div class="e3w-grid" style="margin-top:10px"><label>Desde<input type="date" id="mdD" value="' + last + '"></label><label>Hasta<input type="date" id="mdH" value="' + last + '"></label></div></div>' +
+    '<div class="e3w-sec"><b>2 · Alcance</b><div class="e3w-grid"><label>Región<select id="mdR"><option value="ALL">Todas las regiones</option>' + regs.map(r => '<option>' + esc(r) + '</option>').join('') + '</select></label>' + (a === 'ops' ? '<label>Sucursal<select id="mdS"><option value="ALL">Todas las sucursales</option>' + sucs.map(s => '<option>' + esc(s) + '</option>').join('') + '</select></label>' : '') + '<label>Detalle de vehículos y choferes<select id="mdN"><option value="10">Top 10</option><option value="15" selected>Top 15</option><option value="25">Top 25</option><option value="40">Top 40</option></select></label></div></div>' +
+    '<div class="e3w-sec"><b>3 · Correo</b><div class="e3w-grid"><label>Para<input type="text" id="mdTo" placeholder="correo1@paquetexpress.com.mx; correo2@…" value="' + esc(mem.to || '') + '"></label><label>CC<input type="text" id="mdCc" placeholder="opcional" value="' + esc(mem.cc || '') + '"></label></div><div class="e3w-grid" style="margin-top:10px"><label>Fecha límite para responder con plan de acción<input type="date" id="mdLim" value="' + addDays(new Date().toISOString().slice(0, 10), 2) + '"></label><label>Mensaje adicional (opcional)<input type="text" id="mdNota" placeholder="Ej. Favor de revisar con sus jefes de patio" value="' + esc(mem.nota || '') + '"></label></div>' +
+    '<div class="e3w-chips" style="margin-top:12px"><label class="e3chip"><input type="checkbox" id="mdX" checked><span>📎 Adjuntar Excel con el detalle de eventos</span></label></div></div>' +
+    '<p class="note">El correo compara contra el periodo anterior de la misma duración. Se descarga un archivo <b>.eml</b> que Outlook abre como borrador listo para enviar, o puedes copiarlo y pegarlo en Outlook o Gmail.</p></div><footer><span class="e3hint">Destinatarios y mensaje se recuerdan para la próxima vez</span><button class="btn ghost" data-act="closeModal">Cancelar</button><button class="btn e3go" id="mdGo">✉ Generar correo</button></footer></div>';
+  m.classList.add('open');
+  const first = last.slice(0, 8) + '01';
+  $$('#mqk .e3chipb', m).forEach(b => b.onclick = () => { $$('#mqk .e3chipb', m).forEach(x => x.classList.remove('on')); b.classList.add('on'); const q = b.dataset.q; $('#mdH').value = last; $('#mdD').value = q === 'M' ? first : addDays(last, -(+q - 1)); });
+  $('#mdGo').onclick = () => {
+    let d = $('#mdD').value, h = $('#mdH').value; if (!d || !h) { toast('Elige el periodo', 'warn'); return; } if (d > h) [d, h] = [h, d];
+    const cfg = { a, d, h, region: $('#mdR').value, suc: a === 'ops' ? $('#mdS').value : 'ALL', top: +$('#mdN').value, to: $('#mdTo').value.trim(), cc: $('#mdCc').value.trim(), lim: $('#mdLim').value, nota: $('#mdNota').value.trim(), xlsx: $('#mdX').checked };
+    mailStore(a, { to: cfg.to, cc: cfg.cc, nota: cfg.nota });
+    const b = $('#mdGo'); b.disabled = true; b.textContent = 'Armando el reporte…';
+    setTimeout(async () => { try { await buildMailRal(cfg); } catch (e) { console.error(e); toast('No se pudo generar: ' + e.message, 'warn'); b.disabled = false; b.textContent = '✉ Generar correo'; } }, 40);
+  };
+}
+function mailCalc(cfg) {
+  const a = cfg.a; const nd = Math.round((new Date(cfg.h + 'T12:00:00') - new Date(cfg.d + 'T12:00:00')) / 864e5) + 1;
+  const pd = addDays(cfg.d, -nd), ph = addDays(cfg.d, -1);
+  return e3withF(a, { region: cfg.region, suc: cfg.suc }, () => {
+    const R = ralRows(a, cfg.d, cfg.h, true), PR = ralRows(a, pd, ph, true);
+    const st = ralStats(R), pst = ralStats(PR);
+    const C = cargasRows(a, cfg.d, cfg.h); let P = cargasStats(a, C).precio;
+    if (!P) { const ps = priceSummary(a); P = ps && ps.items.length ? sum(ps.items, 'v') / ps.items.length : 26; }
+    const gkey = a === 'log' ? (cfg.region === 'ALL' ? v => regionOf(a, v) : v => (lookups().logU[v] && sm(lookups().logU[v].marca)) || 'S/D') : (cfg.region === 'ALL' && cfg.suc === 'ALL' ? v => regionOf(a, v) : v => sucOf(v));
+    const glab = a === 'log' ? (cfg.region === 'ALL' ? 'Región' : 'Marca') : (cfg.region === 'ALL' && cfg.suc === 'ALL' ? 'Región' : 'Sucursal');
+    const pg = groupBy(PR, r => gkey(r.veh));
+    const groups = Array.from(groupBy(R, r => gkey(r.veh))).map(([n, g]) => { const s = ralStats(g); const p = pg.get(n); return { n, lts: s.lts, h: s.h, ev: s.ev, veh: s.veh, pF: s.pFuera, d: p ? s.lts / sum(p, 'lts') - 1 : null }; }).sort((x, y) => y.lts - x.lts);
+    const days = []; for (let i = 0; i < nd; i++) days.push(addDays(cfg.d, i)); const bd = groupBy(R, r => r.fecha);
+    const byDay = days.map(d => ({ d, lts: sum(bd.get(d) || [], 'lts') }));
+    const hrs = new Array(24).fill(0); R.forEach(r => { const h = parseInt(String(r.hora || '0').slice(0, 2), 10) || 0; hrs[Math.min(23, h)] += r.lts || 0; });
+    const heat = Array.from({ length: 7 }, () => new Array(24).fill(0)); R.forEach(r => { const d = (new Date(r.fecha + 'T12:00:00').getDay() + 6) % 7; const h = parseInt(String(r.hora || '0').slice(0, 2), 10) || 0; heat[d][Math.min(23, h)] += r.lts || 0; });
+    const top = (arr, k) => { const m = new Map(); arr.forEach(x => { if (x) m.set(x, (m.get(x) || 0) + 1); }); let b = '', bc = 0; m.forEach((c, x) => { if (c > bc) { bc = c; b = x; } }); return b; };
+    const okCh = c => c && !/sin chofer|sin asignar|^-$|^n\/a$/i.test(String(c).trim());
+    const nmC = c => nmFix(String(c).replace(/\d+/g, ' ').replace(/\s+/g, ' ').trim());
+    const veh = Array.from(groupBy(R, r => r.veh)).map(([n, g]) => { const s = ralStats(g); return { n, reg: regionOf(a, n), suc: a === 'ops' ? sucOf(n) : '', lts: s.lts, h: s.h, ev: s.ev, max: Math.max(...g.map(x => x.min)), pF: s.pFuera, dias: new Set(g.map(x => x.fecha)).size, ch: nmC(top(g.map(x => x.chofer).filter(okCh))) || 'Sin asignar', lugar: top(g.map(placeOf)) }; }).sort((x, y) => y.lts - x.lts);
+    const chof = Array.from(groupBy(R.filter(r => okCh(r.chofer)), r => r.chofer)).map(([n, g]) => { const s = ralStats(g); return { n: nmC(n), lts: s.lts, h: s.h, ev: s.ev, veh: Array.from(new Set(g.map(x => x.veh))).slice(0, 3).join(', '), pF: s.pFuera, reg: regionOf(a, top(g.map(x => x.veh))) }; }).sort((x, y) => y.lts - x.lts);
+    const seenL = new Set(); const longest = R.slice().sort((x, y) => y.min - x.min || (okCh(y.chofer) ? 1 : 0) - (okCh(x.chofer) ? 1 : 0)).filter(r => { const k = r.veh + '|' + r.fecha + '|' + r.hora; if (seenL.has(k)) return false; seenL.add(k); return true; }).slice(0, 10).map(r => ({ f: r.fecha, h: r.hora, veh: r.veh, min: r.min, lts: r.lts, lugar: placeOf(r), ch: okCh(r.chofer) ? nmC(r.chofer) : 'Sin asignar', reg: regionOf(a, r.veh) }));
+    const places = Array.from(groupBy(R, placeOf)).map(([n, g]) => ({ n, lts: sum(g, 'lts'), ev: g.length, veh: new Set(g.map(x => x.veh)).size })).sort((x, y) => y.lts - x.lts).slice(0, 10);
+    const recid = nd >= 3 ? veh.filter(v => v.dias >= Math.max(3, Math.ceil(nd * 0.6))).sort((x, y) => y.dias - x.dias || y.lts - x.lts) : [];
+    let pk = 0; hrs.forEach((v, i) => { if (v > hrs[pk]) pk = i; });
+    const topShare = div(sum(veh.slice(0, cfg.top), 'lts'), st.lts);
+    return { a, nd, pd, ph, R, st, pst, P, groups, glab, byDay, hrs, heat, veh, chof, longest, places, recid, pk, topShare };
+  });
+}
+/* --- HTML compatible con correo (tablas y estilos en línea) --- */
+const MC = { ink: '#0b1d3d', mut: '#5a6b8c', line: '#e3e9f2', bg: '#f4f6fa', red: '#d63c3c', amb: '#e8a200', grn: '#0e8a5a', blue: '#1c5cab' };
+function mHeatCol(t) { const a = [255, 241, 240], b = [214, 60, 60]; const c = a.map((x, i) => Math.round(x + (b[i] - x) * t)); return '#' + c.map(x => x.toString(16).padStart(2, '0')).join(''); }
+function mBar(v, max, col) { const p = max ? Math.max(1, Math.round(v / max * 100)) : 0; return '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td width="' + p + '%" bgcolor="' + col + '" style="background:' + col + ';height:10px;font-size:0;line-height:0;border-radius:5px">&nbsp;</td>' + (p < 100 ? '<td style="font-size:0;line-height:0">&nbsp;</td>' : '') + '</tr></table>'; }
+function mVbars(items, col, fmt, H) {
+  H = H || 130; const mx = Math.max(1, ...items.map(i => i.v)); const w = Math.floor(100 / items.length); const tw = items.length < 10 ? (items.length * 70) + '' : '100%';
+  return '<table role="presentation" width="' + tw + '" cellpadding="0" cellspacing="0" border="0"><tr>' + items.map(i => { const h = Math.max(2, Math.round(i.v / mx * H)); return '<td valign="bottom" align="center" width="' + w + '%" style="height:' + (H + 16) + 'px;padding:0 2px;vertical-align:bottom"><div style="font-size:9px;color:' + MC.mut + ';font-family:Arial,sans-serif;white-space:nowrap">' + (i.v && i.lab2 !== false ? fmt(i.v) : '') + '</div><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td height="' + h + '" bgcolor="' + (i.c || col) + '" style="background:' + (i.c || col) + ';height:' + h + 'px;font-size:0;line-height:0;border-radius:3px 3px 0 0">&nbsp;</td></tr></table></td>'; }).join('') + '</tr><tr>' + items.map(i => '<td align="center" style="font-size:10px;color:' + MC.mut + ';font-family:Arial,sans-serif;padding-top:4px">' + i.l + '</td>').join('') + '</tr></table>';
+}
+function mSec(title, sub, body) { return '<tr><td style="padding:22px 28px 0 28px"><div style="font-family:Arial,sans-serif;font-size:17px;font-weight:bold;color:' + MC.ink + ';border-left:4px solid ' + MC.red + ';padding-left:10px">' + title + '</div>' + (sub ? '<div style="font-family:Arial,sans-serif;font-size:12.5px;color:' + MC.mut + ';margin:4px 0 0 14px">' + sub + '</div>' : '') + '<div style="margin-top:12px">' + body + '</div></td></tr>'; }
+function mTable(cols, rows) {
+  return '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;font-family:Arial,sans-serif;font-size:12px">' +
+    '<tr>' + cols.map(c => '<th align="' + (c.r ? 'right' : 'left') + '" style="background:' + MC.ink + ';color:#fff;padding:7px 8px;font-size:11px;' + (c.w ? 'width:' + c.w + ';' : '') + '">' + c.l + '</th>').join('') + '</tr>' +
+    rows.map((r, i) => '<tr>' + cols.map(c => '<td align="' + (c.r ? 'right' : 'left') + '" style="padding:6px 8px;border-bottom:1px solid ' + MC.line + ';background:' + (i % 2 ? '#fafbfd' : '#ffffff') + ';color:' + MC.ink + ';' + (c.nw ? 'white-space:nowrap;' : '') + '">' + c.f(r, i) + '</td>').join('') + '</tr>').join('') + '</table>';
+}
+function mDelta(d, inv) { if (d === null || d === undefined || !isFinite(d)) return '<span style="color:' + MC.mut + '">—</span>'; const bad = inv ? d < 0 : d > 0; return '<span style="color:' + (bad ? MC.red : MC.grn) + ';font-weight:bold">' + (d > 0 ? '▲ +' : '▼ ') + F.n1(d * 100) + '%</span>'; }
+function mailHTML(cfg, X, logoSrc) {
+  const a = cfg.a, n = AREA_NAME[a], acc = a === 'log' ? MC.blue : MC.grn; const st = X.st, pst = X.pst;
+  const per = cfg.d === cfg.h ? dLabel(cfg.d) : dLabel(cfg.d) + ' al ' + dLabel(cfg.h); const pper = X.nd === 1 ? dLabel(X.pd) : dLabel(X.pd) + ' al ' + dLabel(X.ph);
+  const scope = [cfg.region !== 'ALL' ? 'Región ' + cfg.region : 'Todas las regiones', cfg.suc !== 'ALL' ? 'Sucursal ' + cfg.suc : null].filter(Boolean).join(' · ');
+  const d = pst.lts ? st.lts / pst.lts - 1 : null; const cost = st.lts * X.P;
+  const verdict = !st.ev ? 'No se registró ralentí en el periodo.' : d === null ? 'Se registraron ' + F.n0(st.lts) + ' litros de ralentí.' : d > 0.05 ? 'El ralentí SUBIÓ ' + F.n1(d * 100) + '% contra el periodo anterior. Se requiere acción inmediata.' : d < -0.05 ? 'El ralentí BAJÓ ' + F.n1(-d * 100) + '% contra el periodo anterior. Hay que sostener la tendencia.' : 'El ralentí se mantiene igual que el periodo anterior: no hay mejora.';
+  const vcol = d !== null && d < -0.05 ? MC.grn : d !== null && d > 0.05 ? MC.red : MC.amb;
+  const kp = [['Litros en ralentí', F.n0(st.lts) + ' L', mDelta(d)], ['Costo estimado', F.money(cost), '<span style="color:' + MC.mut + '">a ' + F.money2(X.P) + '/L</span>'], ['Horas con motor encendido sin avanzar', F.n0(st.h) + ' h', mDelta(pst.h ? st.h / pst.h - 1 : null)], ['Eventos', F.n0(st.ev), mDelta(pst.ev ? st.ev / pst.ev - 1 : null)], ['Vehículos con ralentí', F.n0(st.veh), '<span style="color:' + MC.mut + '">' + F.n1(div(st.lts, st.veh)) + ' L por vehículo</span>'], ['Fuera de geocerca', F.pct(st.pFuera), '<span style="color:' + MC.mut + '">de los eventos</span>']];
+  const kpH = '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>' + kp.slice(0, 3).map(k => mKp(k)).join('<td width="10"></td>') + '</tr><tr><td colspan="5" height="10"></td></tr><tr>' + kp.slice(3).map(k => mKp(k)).join('<td width="10"></td>') + '</tr></table>';
+  const T = cfg.top; const vt = X.veh.slice(0, T); const mxV = vt.length ? vt[0].lts : 1;
+  // Acciones
+  const acts = [];
+  if (vt.length) acts.push('<b>Hablar hoy con los choferes de los ' + vt.length + ' vehículos de la tabla "Acción inmediata"</b>: concentran el ' + F.pct0(X.topShare) + ' de los litros de ralentí del periodo.');
+  if (X.groups.length > 1) { const g = X.groups[0]; acts.push('<b>' + esc(g.n) + '</b> concentra el ' + F.pct0(div(g.lts, st.lts)) + ' del ralentí (' + F.n0(g.lts) + ' L): su responsable debe presentar un plan de reducción.'); }
+  if (st.pFuera > 0.3) acts.push('El <b>' + F.pct0(st.pFuera) + ' de los eventos ocurre fuera de geocerca</b>: validar paradas no autorizadas, esperas en cliente y descansos con motor encendido.');
+  if (st.ev) acts.push('La hora con más ralentí es de <b>' + X.pk + ':00 a ' + ((X.pk + 1) % 24) + ':00</b>: revisar procedimientos de calentamiento, carga en andén y espera de documentación en ese horario.');
+  if (X.longest[0] && X.longest[0].min >= 60) acts.push('El evento más largo fue de <b>' + hmm(X.longest[0].min) + '</b> en ' + esc(X.longest[0].veh) + ' (' + esc(X.longest[0].lugar) + '): requiere justificación por escrito.');
+  if (X.recid.length) acts.push('<b>' + X.recid.length + ' vehículos son reincidentes</b> (ralentí en la mayoría de los días del periodo): aplicar seguimiento diario y, en su caso, configurar apagado automático.');
+  acts.push('Responder este correo con el <b>plan de acción y responsables a más tardar el ' + (cfg.lim ? dLabel(cfg.lim) : '—') + '</b>.');
+  // Contenido
+  let body = '';
+  body += mSec('Resumen ejecutivo', 'Comparado contra el periodo anterior (' + pper + ')', '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="background:' + vcol + ';color:#ffffff;padding:14px 18px;border-radius:10px;font-family:Arial,sans-serif;font-size:16px;font-weight:bold">' + verdict + '</td></tr></table><div style="height:12px"></div>' + kpH);
+  body += mSec('✅ Acciones requeridas', 'Lo que necesitamos que hagan a partir de hoy', '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">' + acts.map((t, i) => '<tr><td valign="top" width="30" style="padding:6px 0"><div style="width:24px;height:24px;line-height:24px;border-radius:12px;background:' + MC.red + ';color:#fff;text-align:center;font-weight:bold;font-size:12px;font-family:Arial,sans-serif">' + (i + 1) + '</div></td><td style="padding:6px 0 6px 8px;font-size:13.5px;line-height:1.5;color:' + MC.ink + ';font-family:Arial,sans-serif">' + t + '</td></tr>').join('') + '</table>');
+  if (X.groups.length) { const mx = X.groups[0].lts; body += mSec('Ralentí por ' + X.glab.toLowerCase(), 'Litros del periodo y cambio contra el periodo anterior', mTable([{ l: X.glab, f: g => '<b>' + esc(g.n) + '</b>' }, { l: 'Litros', f: g => mBar(g.lts, mx, acc), w: '30%' }, { l: 'L', r: 1, nw: 1, f: g => F.n0(g.lts) }, { l: 'Costo', r: 1, nw: 1, f: g => F.money(g.lts * X.P) }, { l: 'Horas', r: 1, f: g => F.n0(g.h) }, { l: 'Vehíc.', r: 1, f: g => F.n0(g.veh) }, { l: 'Fuera', r: 1, f: g => F.pct0(g.pF) }, { l: 'vs ant.', r: 1, nw: 1, f: g => mDelta(g.d) }], X.groups.slice(0, 15))); }
+  if (X.nd >= 2) body += mSec('Tendencia diaria', 'Litros de ralentí por día', mVbars(X.byDay.map(x => ({ v: x.lts, l: x.d.slice(8) + '/' + x.d.slice(5, 7), lab2: X.nd <= 16 })), acc, v => F.n0(v)));
+  body += mSec('¿A qué hora ocurre?', 'Litros de ralentí por hora del día · la barra roja es la hora pico', mVbars(X.hrs.map((v, i) => ({ v, l: i % 3 === 0 ? String(i) : '', c: i === X.pk ? MC.red : '#f4a3a3', lab2: false })), MC.red, v => F.n0(v), 110));
+  if (X.nd >= 7) { const D = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']; const mx = Math.max(1, ...X.heat.flat()); body += mSec('Mapa de calor', 'Día de la semana contra hora del día · entre más rojo, más litros', '<table role="presentation" width="100%" cellpadding="0" cellspacing="1" border="0" style="font-family:Arial,sans-serif;font-size:10px">' + X.heat.map((row, i) => '<tr><td width="32" style="color:' + MC.mut + ';font-weight:bold">' + D[i] + '</td>' + row.map(v => '<td bgcolor="' + mHeatCol(v / mx) + '" style="background:' + mHeatCol(v / mx) + ';height:16px">&nbsp;</td>').join('') + '</tr>').join('') + '<tr><td></td>' + Array.from({ length: 24 }, (_, h) => '<td align="center" style="color:' + MC.mut + '">' + (h % 3 === 0 ? h : '') + '</td>').join('') + '</tr></table>'); }
+  body += mSec('🚨 Acción inmediata · vehículos con más ralentí', 'Top ' + vt.length + ' de ' + F.n0(X.veh.length) + ' vehículos · concentran el ' + F.pct0(X.topShare) + ' de los litros', mTable([{ l: '#', r: 1, f: (v, i) => i + 1 }, { l: 'Vehículo', nw: 1, f: v => '<b>' + esc(v.n) + '</b>' }, { l: a === 'ops' ? 'Suc.' : 'Región', f: v => esc(a === 'ops' ? v.suc : v.reg) }, { l: 'Chofer principal', f: v => esc(v.ch) }, { l: 'Litros', w: '16%', f: v => mBar(v.lts, mxV, MC.red) + '<div style="font-size:11px;font-weight:bold;margin-top:2px">' + F.n0(v.lts) + ' L · ' + F.money(v.lts * X.P) + '</div>' }, { l: 'Horas', r: 1, f: v => F.n1(v.h) }, { l: 'Evento más largo', r: 1, nw: 1, f: v => hmm(v.max) }, { l: 'Días', r: 1, f: v => v.dias + '/' + X.nd }, { l: 'Fuera', r: 1, f: v => F.pct0(v.pF) }], vt));
+  if (X.chof.length) { const ct = X.chof.slice(0, T); const mx = ct[0].lts; body += mSec('👤 Choferes con más ralentí', 'Según la asignación registrada en Samsara', mTable([{ l: '#', r: 1, f: (c, i) => i + 1 }, { l: 'Chofer', f: c => '<b>' + esc(c.n) + '</b>' }, { l: 'Región', f: c => esc(c.reg) }, { l: 'Vehículo(s)', f: c => esc(c.veh) }, { l: 'Litros', w: '22%', f: c => mBar(c.lts, mx, MC.amb) }, { l: 'L', r: 1, f: c => F.n0(c.lts) }, { l: 'Horas', r: 1, f: c => F.n1(c.h) }, { l: 'Eventos', r: 1, f: c => F.n0(c.ev) }], ct)); }
+  if (X.longest.length) body += mSec('⏱ Eventos más largos', 'Requieren justificación', mTable([{ l: 'Fecha', nw: 1, f: e => dLabel(e.f) + ' ' + esc(e.h || '') }, { l: 'Vehículo', nw: 1, f: e => '<b>' + esc(e.veh) + '</b>' }, { l: 'Chofer', f: e => esc(e.ch) }, { l: 'Duración', r: 1, nw: 1, f: e => '<b style="color:' + MC.red + '">' + hmm(e.min) + '</b>' }, { l: 'Litros', r: 1, f: e => F.n1(e.lts) }, { l: 'Ubicación', f: e => esc(e.lugar) }], X.longest));
+  if (X.places.length) { const mx = X.places[0].lts; body += mSec('📍 Dónde ocurre', 'Ubicaciones con más litros de ralentí', mTable([{ l: 'Ubicación', f: p => esc(p.n) }, { l: 'Litros', w: '30%', f: p => mBar(p.lts, mx, /^Fuera/.test(p.n) ? MC.amb : acc) }, { l: 'L', r: 1, f: p => F.n0(p.lts) }, { l: 'Eventos', r: 1, f: p => F.n0(p.ev) }, { l: 'Vehíc.', r: 1, f: p => F.n0(p.veh) }], X.places)); }
+  if (X.recid.length) body += mSec('🔁 Reincidentes', 'Vehículos con ralentí en la mayoría de los días del periodo', mTable([{ l: 'Vehículo', f: v => '<b>' + esc(v.n) + '</b>' }, { l: a === 'ops' ? 'Suc.' : 'Región', f: v => esc(a === 'ops' ? v.suc : v.reg) }, { l: 'Chofer principal', f: v => esc(v.ch) }, { l: 'Días con ralentí', r: 1, f: v => '<b>' + v.dias + ' de ' + X.nd + '</b>' }, { l: 'Litros', r: 1, f: v => F.n0(v.lts) }], X.recid.slice(0, T)));
+  const intro = '<tr><td style="padding:22px 28px 0 28px;font-family:Arial,sans-serif;font-size:14px;line-height:1.6;color:' + MC.ink + '">Buen día, equipo de ' + n + ':<br><br>Les comparto el reporte de <b>ralentí del ' + per + '</b> (' + esc(scope) + '). El ralentí es combustible que pagamos sin mover un solo paquete: <b>' + F.n0(st.lts) + ' litros, equivalentes a ' + F.money(cost) + '</b>.' + (cfg.nota ? '<br><br>' + esc(cfg.nota) : '') + '<br><br>Les pido revisar las tablas y atender las <b>acciones requeridas</b>.</td></tr>';
+  const head = '<tr><td style="background:' + MC.ink + ';padding:20px 28px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td><img src="' + logoSrc + '" alt="Paquetexpress" height="36" style="display:block;height:36px;background:#003087;padding:4px 8px;border-radius:6px"></td><td align="right" style="font-family:Arial,sans-serif;color:#ffd36b;font-size:11px;font-weight:bold;letter-spacing:2px">CONTROL DE COMBUSTIBLE</td></tr></table><div style="font-family:Arial,sans-serif;color:#ffffff;font-size:26px;font-weight:bold;margin-top:16px">Reporte de Ralentí · ' + n + '</div><div style="font-family:Arial,sans-serif;color:#b8c8e6;font-size:14px;margin-top:4px">' + per + ' · ' + esc(scope) + '</div></td></tr><tr><td style="background:' + acc + ';height:5px;font-size:0;line-height:0">&nbsp;</td></tr>';
+  const foot = '<tr><td style="padding:26px 28px;font-family:Arial,sans-serif;font-size:13px;line-height:1.6;color:' + MC.ink + '">Quedo atento a su plan de acción.<br><br>Saludos,<br><b>' + esc(S.name || '') + '</b><br>Control de Combustible · Logística y Operaciones<br><span style="color:' + MC.mut + ';font-size:11.5px">Fuente: reportes de ralentí de Samsara cargados en el Portal de Combustible. Costo estimado con el precio promedio por litro del periodo (' + F.money2(X.P) + '/L).' + (cfg.xlsx ? ' Se adjunta el detalle de eventos en Excel.' : '') + '</span></td></tr>';
+  return '<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Reporte de Ralentí</title></head><body style="margin:0;padding:0;background:' + MC.bg + '"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="' + MC.bg + '" style="background:' + MC.bg + '"><tr><td align="center" style="padding:18px 8px"><table role="presentation" width="780" cellpadding="0" cellspacing="0" border="0" style="width:780px;max-width:780px;background:#ffffff;border-radius:12px;overflow:hidden">' + head + intro + body + foot + '</table></td></tr></table></body></html>';
+}
+function mKp(k) { return '<td width="33%" valign="top" style="background:' + MC.bg + ';border-radius:10px;padding:12px 14px;font-family:Arial,sans-serif"><div style="font-size:10.5px;font-weight:bold;color:' + MC.mut + ';text-transform:uppercase;letter-spacing:.5px">' + k[0] + '</div><div style="font-size:24px;font-weight:bold;color:' + MC.ink + ';margin:3px 0">' + k[1] + '</div><div style="font-size:12px">' + k[2] + '</div></td>'; }
+function b64wrap(s) { return s.replace(/(.{76})/g, '$1\r\n'); }
+function u8b64(u8) { let s = ''; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); }
+function mimeWord(s) { return '=?UTF-8?B?' + u8b64(new TextEncoder().encode(s)) + '?='; }
+function buildEml(cfg, subject, html, xlsx) {
+  const B = '----=_PortalCombustible_' + Date.now();
+  const M = '----=_PortalMix_' + Date.now();
+  const hdr = ['X-Unsent: 1', 'To: ' + (cfg.to || ''), cfg.cc ? 'Cc: ' + cfg.cc : null, 'Subject: ' + mimeWord(subject), 'MIME-Version: 1.0', 'Content-Type: multipart/mixed; boundary="' + M + '"', ''].filter(x => x !== null).join('\r\n');
+  let s = hdr + '\r\n--' + M + '\r\nContent-Type: multipart/related; boundary="' + B + '"\r\n\r\n';
+  s += '--' + B + '\r\nContent-Type: text/html; charset="utf-8"\r\nContent-Transfer-Encoding: base64\r\n\r\n' + b64wrap(u8b64(new TextEncoder().encode(html))) + '\r\n';
+  s += '--' + B + '\r\nContent-Type: image/png; name="logo.png"\r\nContent-Transfer-Encoding: base64\r\nContent-ID: <pxlogo>\r\nContent-Disposition: inline; filename="logo.png"\r\n\r\n' + b64wrap(LOGO64) + '\r\n--' + B + '--\r\n';
+  if (xlsx) s += '--' + M + '\r\nContent-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet; name="' + xlsx.name + '"\r\nContent-Transfer-Encoding: base64\r\nContent-Disposition: attachment; filename="' + xlsx.name + '"\r\n\r\n' + b64wrap(u8b64(new Uint8Array(xlsx.buf))) + '\r\n';
+  return s + '--' + M + '--\r\n';
+}
+async function mailXlsx(cfg, X) {
+  const XLSX = await loadXLSX(); const wb = XLSX.utils.book_new(); const a = cfg.a;
+  const add = (name, rows) => { const ws = XLSX.utils.json_to_sheet(rows.length ? rows : [{ '': 'Sin datos' }]); const keys = Object.keys(rows[0] || {}); ws['!cols'] = keys.map(k => ({ wch: Math.min(46, Math.max(10, k.length + 2)) })); XLSX.utils.book_append_sheet(wb, ws, name); };
+  add('Vehículos', X.veh.map((v, i) => ({ '#': i + 1, Vehiculo: v.n, Region: v.reg, Sucursal: v.suc, 'Chofer principal': v.ch, Litros: mR3(v.lts), 'Costo estimado': mR3(v.lts * X.P), Horas: mR3(v.h), Eventos: v.ev, 'Evento más largo (min)': mR3(v.max), 'Días con ralentí': v.dias, '% fuera de geocerca': mR3(v.pF * 100), 'Lugar más frecuente': v.lugar })));
+  add('Choferes', X.chof.map((c, i) => ({ '#': i + 1, Chofer: c.n, Region: c.reg, Vehiculos: c.veh, Litros: mR3(c.lts), Horas: mR3(c.h), Eventos: c.ev })));
+  add('Por ' + X.glab.toLowerCase(), X.groups.map(g => ({ [X.glab]: g.n, Litros: mR3(g.lts), 'Costo estimado': mR3(g.lts * X.P), Horas: mR3(g.h), Eventos: g.ev, Vehiculos: g.veh, '% fuera': mR3(g.pF * 100), 'Cambio vs periodo anterior %': g.d === null ? '' : mR3(g.d * 100) })));
+  add('Eventos', X.R.slice().sort((x, y) => x.fecha < y.fecha ? -1 : x.fecha > y.fecha ? 1 : String(x.hora).localeCompare(String(y.hora))).map(r => ({ Fecha: r.fecha, Hora: r.hora, Vehiculo: r.veh, Region: regionOf(a, r.veh), Sucursal: a === 'ops' ? sucOf(r.veh) : '', Chofer: r.chofer, 'Duración (min)': mR3(r.min), Litros: mR3(r.lts), Geocerca: r.geo, Ubicacion: r.ubic })));
+  return XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+}
+async function buildMailRal(cfg) {
+  const X = mailCalc(cfg); const a = cfg.a;
+  if (!X.st.ev) { toast('No hay eventos de ralentí en ese periodo y alcance', 'warn'); const b = $('#mdGo'); if (b) { b.disabled = false; b.textContent = '✉ Generar correo'; } return; }
+  const per = cfg.d === cfg.h ? dLabel(cfg.d) : dLabel(cfg.d) + ' al ' + dLabel(cfg.h);
+  const subject = 'Reporte de Ralentí ' + AREA_NAME[a] + ' · ' + per + (cfg.region !== 'ALL' ? ' · ' + cfg.region : '') + (cfg.suc !== 'ALL' ? ' · ' + cfg.suc : '') + ' · ' + F.n0(X.st.lts) + ' L (' + F.money(X.st.lts * X.P) + ')';
+  const tag = (a === 'log' ? 'Logistica' : 'Operaciones') + '_' + cfg.d + (cfg.d !== cfg.h ? '_a_' + cfg.h : '');
+  let xl = null; if (cfg.xlsx) { try { xl = { name: 'Detalle_Ralenti_' + tag + '.xlsx', buf: await mailXlsx(cfg, X) }; } catch (e) { console.warn(e); toast('No se pudo crear el Excel adjunto; el correo va sin adjunto', 'warn'); } }
+  MAIL.cfg = cfg; MAIL.subject = subject; MAIL.html = mailHTML(cfg, X, 'data:image/png;base64,' + LOGO64);
+  MAIL.eml = buildEml(cfg, subject, mailHTML(cfg, X, 'cid:pxlogo'), xl); MAIL.file = 'Correo_Ralenti_' + tag + '.eml'; MAIL.xlsx = xl;
+  const m = $('#modal'); DSTACK.length = 0; m.classList.remove('drill');
+  m.innerHTML = '<div class="mbox mailprev"><header><div><h3>✉ Correo listo · ' + AREA_NAME[a] + '</h3><p class="sub"><b>Asunto:</b> ' + esc(subject) + (cfg.to ? '<br><b>Para:</b> ' + esc(cfg.to) : '') + (xl ? '<br>📎 ' + esc(xl.name) : '') + '</p></div><button class="x" data-act="closeModal" aria-label="Cerrar">×</button></header><div class="mbody" style="padding:0"><iframe id="mailF" title="Vista previa del correo" sandbox="allow-same-origin"></iframe></div><footer><button class="btn ghost" data-act="mailBack">⚙ Cambiar periodo</button><button class="btn ghost" data-act="mailHtml">⬇ HTML</button><button class="btn ghost" data-act="mailCopy">📋 Copiar para pegar</button><button class="btn e3go" data-act="mailEml">✉ Abrir en Outlook (.eml)</button></footer></div>';
+  m.classList.add('open'); $('#mailF').srcdoc = MAIL.html;
+}
+async function mailSave(name, blob) {
+  if (window.GH) { saveBlob(name, blob); return true; }
+  let dl = null; try { dl = await window.claude.use('downloads'); } catch (e) { }
+  if (!dl) { toast('La descarga no está disponible en esta vista.', 'warn'); return false; }
+  try { await dl.save({ filename: name, data: blob }); return true; } catch (e) { if (e && e.code !== 'declined') toast('No se pudo descargar (' + (e.code || e.message) + ')', 'warn'); return false; }
+}
+async function mailAct(act) {
+  if (act === 'mailBack') { openMailRal(MAIL.cfg.a); return; }
+  if (act === 'mailEml') { if (await mailSave(MAIL.file, new Blob([MAIL.eml], { type: 'message/rfc822' }))) toast('Abre el archivo .eml descargado: Outlook lo muestra como borrador listo para enviar', 'ok'); return; }
+  if (act === 'mailHtml') { if (await mailSave(MAIL.file.replace(/\.eml$/, '.html'), new Blob([MAIL.html], { type: 'text/html' }))) toast('HTML descargado', 'ok'); return; }
+  if (act === 'mailCopy') {
+    try { await navigator.clipboard.write([new ClipboardItem({ 'text/html': new Blob([MAIL.html], { type: 'text/html' }), 'text/plain': new Blob([MAIL.subject], { type: 'text/plain' }) })]); toast('Copiado. Pégalo en el cuerpo de un correo nuevo (Ctrl+V)', 'ok'); }
+    catch (e) { try { const d = $('#mailF').contentDocument; const r = d.createRange(); r.selectNodeContents(d.body); const s = d.getSelection(); s.removeAllRanges(); s.addRange(r); d.execCommand('copy'); s.removeAllRanges(); toast('Copiado. Pégalo en el cuerpo de un correo nuevo (Ctrl+V)', 'ok'); } catch (e2) { toast('No se pudo copiar; usa “Abrir en Outlook”', 'warn'); } }
+  }
+}
+
 /* ===================== Manual de uso de la plataforma (diapositivas con capturas reales) ===================== */
 function manSlide(n, title, intro, steps, shot, tip) {
   return { html: '<div class="mn"><div class="mt"><span class="mnum">' + n + '</span><h2>' + title + '</h2><p class="mi">' + intro + '</p><ol>' + steps.map(s => '<li>' + s + '</li>').join('') + '</ol>' + (tip ? '<div class="mtip">💡 ' + tip + '</div>' : '') + '</div><div class="ms"><div class="frame"><i></i><i></i><i></i></div><img src="' + SHOT[shot] + '" alt=""></div></div>' };
@@ -4044,6 +4215,8 @@ function bindEvents() {
     else if (act === 'xlsTab') { t.disabled = true; try { await tabExcel(t.getAttribute('data-area'), t.getAttribute('data-tab')); } catch (err) { toast('No se pudo generar el Excel: ' + err.message, 'warn'); } t.disabled = false; }
     else if (act === 'pdl') presDownload();
     else if (act === 'manual') openManual();
+    else if (act === 'mailRal') openMailRal(t.getAttribute('data-area'));
+    else if (act === 'mailBack' || act === 'mailEml' || act === 'mailHtml' || act === 'mailCopy') mailAct(act);
     else if (act === 'lgCert') ligaCert(t.getAttribute('data-area'), t.getAttribute('data-kind'));
     else if (act === 'e360' || act === 'e360new') openE360Wizard();
     else if (act === 'e360close') closeE360();
