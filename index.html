@@ -4583,9 +4583,13 @@ function newsData() {
   // Anomalías del último mes con cargas/ralentí
   const pa = latest(['log_cargas', 'ops_cargas', 'log_ral', 'ops_ral']);
   if (pa) { D.anP = pa; D.an = ['log', 'ops'].map(a => e3withF(a, {}, () => anomalies(a, pa + '-01', monthEnd(pa)).list.filter(x => x.sev === 3))); }
-  D.price = ['log', 'ops'].map(a => { const p = priceSummary(a); if (p) p.items.forEach(i => { i.a = a; }); return p; }).filter(Boolean);
-  const all = D.price.flatMap(p => p.items); const cnt = {}; all.forEach(i => { cnt[i.n] = (cnt[i.n] || 0) + 1; });
-  all.forEach(i => { i.lab = i.n.replace(/^Autoconsumo /, '') + (cnt[i.n] > 1 ? (i.a === 'log' ? ' · Log' : ' · Ops') : ''); });
+  // Precios: autoconsumo es el mismo sitio para ambas áreas (se toma el de Logística); externos por área
+  const PL = priceSummary('log'), PO = priceSummary('ops'); const kk = n => FP.norm(String(n).replace(/^Autoconsumo /, ''));
+  const items = []; const seen = new Set();
+  [[PL, 'log'], [PO, 'ops']].forEach(([P, a]) => { if (!P) return; P.items.filter(i => i.auto).forEach(i => { const k = kk(i.n); if (seen.has(k)) return; seen.add(k); items.push(Object.assign({}, i, { a, lab: String(i.n).replace(/^Autoconsumo /, '') })); }); });
+  [[PL, 'log'], [PO, 'ops']].forEach(([P, a]) => { if (!P) return; P.items.filter(i => !i.auto).forEach(i => items.push(Object.assign({}, i, { a, lab: i.n + (a === 'log' ? ' · Log' : ' · Ops') }))); });
+  D.price = items.length ? [{ p: (PL || PO).p, items }] : [];
+  D.asOf = (typeof dsDayBounds === 'function' && (dsDayBounds(['log_cargas', 'ops_cargas', 'log_ral', 'ops_ral']) || {}).hi) || null;
   S.cache.newsData = D; return D;
 }
 function newsStories() {
@@ -4607,6 +4611,17 @@ function newsStories() {
   tryS(() => {
     if (!L || !O) return null; const imp = L.st.imp + O.st.imp; const pimp = L.pst && O.pst ? L.pst.imp + O.pst.imp : null; const d = pimp ? imp / pimp - 1 : null;
     return { k: 'GASTO DEL MES · ' + perLabel(L.p).toUpperCase(), n: imp / 1e6, pre: '$', suf: 'M', dec: 1, t: d === null ? 'Así se repartió el gasto en combustible' : 'Gastamos ' + F.n1(Math.abs(d * 100)) + '% ' + (d < 0 ? 'menos' : 'más') + ' que el mes anterior', s: 'Logística $' + short(L.st.imp) + ' · Operaciones $' + short(O.st.imp) + (d !== null ? '. Son $' + short(Math.abs(imp - pimp)) + ' ' + (d < 0 ? 'menos' : 'más') + ' que el mes anterior.' : '.'), img: IMG.chorro, c: d !== null && d > 0 ? '#ff9f43' : '#4ea1ff', ic: '💰', go: 'logistica-rendimientos' };
+  });
+  // 2b. Compras del mes con cargas diarias (se actualiza con cada archivo)
+  tryS(() => {
+    const pc = latest(['log_cargas', 'ops_cargas']); if (!pc) return null;
+    let imp = 0, lts = 0, n = 0, last = '', pimp = 0; const by = {}; const ar = [];
+    ['log', 'ops'].forEach(a => { const R = e3withF(a, {}, () => cargasRows(a, pc + '-01', monthEnd(pc))); if (!R.length) return; ar.push(a); const st = cargasStats(a, R); by[a] = st; imp += st.imp || 0; lts += st.lts || 0; n += st.c || 0; R.forEach(r => { if (r.fecha > last) last = r.fecha; }); });
+    if (!n || !last) return null;
+    const pp = prevPeriod(pc); const day = Math.min(+last.slice(8), +monthEnd(pp).slice(8)); let okPrev = true;
+    ar.forEach(a => { const R = e3withF(a, {}, () => cargasRows(a, pp + '-01', pp + '-' + String(day).padStart(2, '0'))); if (!R.length) okPrev = false; pimp += cargasStats(a, R).imp || 0; });
+    const d = okPrev && pimp ? imp / pimp - 1 : null; const full = last >= monthEnd(pc); const solo = ar.length === 1 ? ' de ' + AREA_NAME[ar[0]] : '';
+    return { k: 'COMPRAS DE COMBUSTIBLE' + (solo ? ' · ' + AREA_NAME[ar[0]].toUpperCase() : '') + ' · ' + perLabel(pc).toUpperCase() + (full ? '' : ' (AL ' + dLabel(last).toUpperCase() + ')'), n: imp / 1e6, pre: '$', suf: 'M', dec: 1, t: d === null ? 'Así van las compras de combustible' + solo : (full ? 'Cerramos el mes con ' : 'Llevamos ') + F.n1(Math.abs(d * 100)) + '% ' + (d < 0 ? 'menos' : 'más') + ' en compras' + solo + ' que ' + (full ? 'el mes anterior' : 'a esta altura del mes anterior'), s: F.L(lts) + ' en ' + F.n0(n) + ' cargas' + (ar.length > 1 ? '. Logística $' + short(by.log.imp || 0) + ' · Operaciones $' + short(by.ops.imp || 0) : '') + '.' + (ar.length === 1 ? ' ' + AREA_NAME[ar[0] === 'log' ? 'ops' : 'log'] + ' aún no tiene cargas de ' + perLabel(pc).split(' ')[0].toLowerCase() + '.' : '') + (full ? '' : ' Se actualiza con cada archivo diario de cargas.'), img: IMG.chorro || IMG.pistola, c: d !== null && d > 0 ? '#ff9f43' : '#22c58b', ic: '⛽', go: (ar[0] === 'ops' ? 'operaciones' : 'logistica') + '-cargas' };
   });
   // 3. Operaciones
   tryS(() => {
@@ -4674,7 +4689,7 @@ function newsHTML() {
   const tk = it.map(i => '<span>' + esc(i.lab) + ' <b>' + F.money2(i.v) + '</b>' + (i.v === mn && !/gasolina/i.test(i.n) ? ' <span class="u">▼ más barato</span>' : i.v === mx && !/gasolina/i.test(i.n) ? ' <span class="d">▲ más caro</span>' : '') + '</span>').join('');
   const nm = firstName();
   return '<section class="news" id="news" aria-roledescription="carrusel" aria-label="Lo que debes saber hoy"><div class="nw-stage" id="nwStage">' + ST.map((s, i) => '<div class="nw-bg" id="nwbg' + i + '" style="background-image:url(' + s.img + ')"></div>').join('') + '<div class="nw-glow" id="nwGlow"></div><div class="nw-shade"></div>' +
-    '<div class="nw-mast"><span class="nw-mlogo">EL DIARIO <em>del</em> LITRO</span><span class="nw-ed">Edición del ' + esc(new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })) + ' · Paquetexpress</span><span class="nw-air" id="nwAir"><i></i>AL AIRE<b class="eq"><s></s><s></s><s></s><s></s><s></s></b></span></div>' +
+    '<div class="nw-mast"><span class="nw-mlogo">EL DIARIO <em>del</em> LITRO</span><span class="nw-ed">Edición del ' + esc(new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })) + ' · ' + (newsData().asOf ? 'Cifras al ' + esc(dLabel(newsData().asOf)) + ' · ' : '') + 'Paquetexpress</span><span class="nw-air" id="nwAir"><i></i>AL AIRE<b class="eq"><s></s><s></s><s></s><s></s><s></s></b></span></div>' +
     '<div class="nw-greet"><h1>' + greeting() + (nm ? ', <span>' + esc(nm) + '</span>' : '') + '</h1><p>LO QUE DEBES SABER HOY · ' + esc(new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase()) + '</p></div>' +
     '<div class="nw-ctl"><button data-nw="voice" id="nwVoice" class="nw-voice" aria-label="Escuchar el noticiero" title="Escuchar el Diario del Litro">' + NV_IC + '<span>Escuchar</span></button><button data-nw="prev" aria-label="Anterior">‹</button><button data-nw="pause" id="nwPause" aria-label="Pausar">❚❚</button><button data-nw="next" aria-label="Siguiente">›</button><button class="nw-man" data-act="manual">📘 Manual de uso</button></div>' +
     '<div class="nw-bars" id="nwBars">' + ST.map((s, i) => '<i data-nw="go" data-i="' + i + '"><b></b></i>').join('') + '</div><div class="nw-story" id="nwStory" aria-live="polite"></div><div class="nw-queue" id="nwQueue"></div></div>' +
