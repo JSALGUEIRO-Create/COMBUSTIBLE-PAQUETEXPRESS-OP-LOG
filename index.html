@@ -1171,12 +1171,14 @@ const F = {
 };
 const MES_C = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 const MES_L = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-function perLabel(p) { if (!p) return '—'; const [y, m] = p.split('-'); return MES_L[+m - 1] + ' ' + y; }
-function perShort(p) { const [y, m] = p.split('-'); return MES_C[+m - 1] + ' ' + y.slice(2); }
+function isRng(p) { return typeof p === 'string' && p.indexOf('~') > 0; }
+function rngMonths(p) { const [x, y] = p.split('~'); const out = []; let m = x; while (m <= y && out.length < 72) { out.push(m); let [Y, M] = m.split('-').map(Number); M++; if (M > 12) { M = 1; Y++; } m = Y + '-' + String(M).padStart(2, '0'); } return out; }
+function perLabel(p) { if (!p) return '—'; if (isRng(p)) { const [x, y] = p.split('~'); return x.slice(0, 4) === y.slice(0, 4) ? MES_L[+x.slice(5) - 1] + ' – ' + MES_L[+y.slice(5) - 1] + ' ' + y.slice(0, 4) : perLabel(x) + ' – ' + perLabel(y); } const [y, m] = p.split('-'); return MES_L[+m - 1] + ' ' + y; }
+function perShort(p) { if (isRng(p)) { const [x, y] = p.split('~'); return perShort(x) + '–' + perShort(y); } const [y, m] = p.split('-'); return MES_C[+m - 1] + ' ' + y.slice(2); }
 function dLabel(d) { if (!d) return '—'; const [y, m, dd] = d.split('-'); return +dd + ' ' + MES_C[+m - 1] + ' ' + y; }
 function dShort(d) { const [, m, dd] = d.split('-'); return +dd + '/' + +m; }
 function monthEnd(p) { const [y, m] = p.split('-').map(Number); return p + '-' + String(new Date(y, m, 0).getDate()).padStart(2, '0'); }
-function prevPeriod(p) { let [y, m] = p.split('-').map(Number); m--; if (!m) { m = 12; y--; } return y + '-' + String(m).padStart(2, '0'); }
+function prevPeriod(p) { if (isRng(p)) { const ms = rngMonths(p); let a = ms[0], b = ms[ms.length - 1]; for (let i = 0; i < ms.length; i++) { a = prevPeriod(a); b = prevPeriod(b); } return a + '~' + b; } let [y, m] = p.split('-').map(Number); m--; if (!m) { m = 12; y--; } return y + '-' + String(m).padStart(2, '0'); }
 function daysBetween(a, b) { const out = []; let d = new Date(a + 'T12:00:00'); const e = new Date(b + 'T12:00:00'); while (d <= e && out.length < 800) { out.push(d.toISOString().slice(0, 10)); d.setDate(d.getDate() + 1); } return out; }
 const DOW = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 function sum(a, f) { let s = 0; for (const x of a) { const v = typeof f === 'function' ? f(x) : x[f]; if (v) s += +v; } return s; }
@@ -1208,6 +1210,7 @@ function setting(k) { return S.settings[k] !== undefined ? S.settings[k] : DEFAU
 
 /* ---------- Datos (base embebida + cargados) ---------- */
 function arrFor(ds, p) {
+  if (isRng(p)) { for (const m of rngMonths(p)) { const x = arrFor(ds, m); if (x) return x; } return null; }
   const m = S.meta[ds + '__' + p];
   if (m && m.deleted) return null;
   if (S.dbd[ds] && S.dbd[ds][p]) return S.dbd[ds][p];
@@ -1742,6 +1745,8 @@ function tabIcon(k) { return '<svg viewBox="0 0 24 24" width="18" height="18" fi
 function areaMonths(a) { const s = new Set(); const d = AREA_DS[a]; [].concat(d.rend, [d.cargas, d.ral, d.chof]).forEach(x => periodsOf(x).forEach(p => s.add(p))); return Array.from(s).sort(); }
 function latest(dsList) { const all = [].concat(dsList).flatMap(d => periodsOf(d)).sort(); return all[all.length - 1] || null; }
 function tog(k, def) { return S.toggles[k] === undefined ? def : S.toggles[k]; }
+function rendMonths(a) { return Array.from(new Set(AREA_DS[a].rend.flatMap(periodsOf))).sort(); }
+function rendP(a) { const f = S.f[a]; if (f.rAcum !== '1' || !f.mes) return f.mes; let d = f.rDesde; const ms = rendMonths(a); if (!d || ms.indexOf(d) < 0) d = ms.find(m => m.slice(0, 4) === f.mes.slice(0, 4)) || ms[0]; if (!d || d >= f.mes) return f.mes; return d + '~' + f.mes; }
 function ensureFilters(a) {
   const f = S.f[a]; const ms = areaMonths(a);
   if (!f.mes || ms.indexOf(f.mes) < 0) f.mes = latest(AREA_DS[a].rend) || ms[ms.length - 1] || null;
@@ -1781,6 +1786,17 @@ function mixOf(eco, p) {
 }
 function normZona(z) { z = String(z || '').toUpperCase().trim(); return z.replace(/^LOG\s*(?=CENTRO|NORTE|SUR|OCCIDENTE|NOROESTE|PACIFICO|PXGL)/, '') || 'SIN ZONA'; }
 function logRendRows(p, ignoreRegion, src) {
+  if (!isRng(p)) return logRendRows1(p, ignoreRegion, src);
+  const by = new Map();
+  rngMonths(p).forEach(m => { if (!arrFor('log_rend', m)) return; logRendRows1(m, ignoreRegion, src).forEach(r => { let g = by.get(r.eco); if (!g) by.set(r.eco, g = []); g.push(r); }); });
+  return Array.from(by.values()).map(g => {
+    const L = g[g.length - 1]; const km = sum(g, 'km'), lts = sum(g, 'lts'), ltsM = sum(g, r => r.ltsM || 0); const gi = g.filter(r => r.ideal && r.li); const li = sum(gi, 'li'), kmI = sum(gi, 'km');
+    const kf = sum(g, r => (r.km || 0) * (r.full || 0)), ks = sum(g, r => (r.km || 0) * (r.senc || 0)); const gS = g.filter(r => r.rendS > 0 && r.km > 0); const ltsS = sum(gS, r => r.km / r.rendS);
+    const me = g.every(r => r.mixEst) ? g[g.length - 1] : null;
+    return Object.assign({}, L, { km, lts, ltsM, imp: sum(g, 'imp'), ltsCarg: sum(g, r => r.ltsCarg || 0), urea: sum(g, r => r.urea || 0), impUrea: sum(g, r => r.impUrea || 0), rend: div(km, lts), rendM: div(km, ltsM), rendS: ltsS ? sum(gS, 'km') / ltsS : null, full: km ? kf / km : L.full, senc: km ? ks / km : L.senc, li, ideal: li ? kmI / li : null, mixEst: me ? me.mixEst : undefined, precio: div(sum(g, 'imp'), sum(g, r => r.ltsCarg || 0)) || L.precio, meses: g.length });
+  });
+}
+function logRendRows1(p, ignoreRegion, src) {
   const f = S.f.log; src = src || logSrc();
   return rowsOf('log_rend', p).map(r0 => {
     const zona = normZona(r0.zona); const t = (r0.full || 0) + (r0.senc || 0);
@@ -1815,7 +1831,7 @@ function logUnits(rows) {
 }
 
 function viewLogRend() {
-  const f = S.f.log; const p = f.mes;
+  const f = S.f.log; const p = rendP('log');
   if (!p || !arrFor('log_rend', p)) return empty('No hay archivo de rendimientos de Logística para ' + perLabel(p) + '. Cárgalo en <a href="#cargar">Cargar archivos</a>.');
   const rows = logRendRows(p); const st = logRendStats(rows);
   const iF = setting('idealFull'), iS = setting('idealSenc');
@@ -1843,8 +1859,8 @@ function viewLogRend() {
     byM.length > 1 ? 'Por marca/motor el mejor cumplimiento es <b>' + esc(byM[0].n) + '</b> (' + F.pct(byM[0].cump) + '); el menor, <b>' + esc(byM[byM.length - 1].n) + '</b> (' + F.pct(byM[byM.length - 1].cump) + ').' : null,
     'El ' + F.pct(div(kmFull, kmFull + kmSen)) + ' de los km se recorrió en Full. ' + byMod.filter(x => x.n !== 'S/D').map(x => esc(x.n) + ': ' + F.kml(x.rend) + ' vs ideal ' + F.kml(x.ideal) + ' (' + F.pct0(x.cump) + ')').join(' · ') + '.',
     'El ' + F.pct(pctOpt) + ' de los tractos evaluados alcanza su ideal; <b>' + F.n0(stc.bad) + '</b> están debajo de 90%' + (opp.length ? ' y consumieron <b>' + F.L(excTot) + '</b> por encima de su ideal (~' + F.money(excImp) + ')' : '') + '.',
-    st.mixEst > st.u * 0.2 ? '<span class="tw">El semáforo de ' + perLabel(p) + ' no trae % Full / % Sencillo: para ' + F.n0(st.mixEst - st.mixFlota) + ' tractos se tomó la mezcla del mes más cercano' + (st.mixFlota ? ' y para ' + F.n0(st.mixFlota) + ' el promedio de la flota' : '') + '. El ideal ponderado de este mes es estimado.</span>' : null,
-    st.mixEst && st.mixEst <= st.u * 0.2 ? F.n0(st.mixEst) + ' tractos no traen % Full / Sencillo en el semáforo; para su ideal se usó su mezcla de otro mes o la de la flota.' : null,
+    !isRng(p) && st.mixEst > st.u * 0.2 ? '<span class="tw">El semáforo de ' + perLabel(p) + ' no trae % Full / % Sencillo: para ' + F.n0(st.mixEst - st.mixFlota) + ' tractos se tomó la mezcla del mes más cercano' + (st.mixFlota ? ' y para ' + F.n0(st.mixFlota) + ' el promedio de la flota' : '') + '. El ideal ponderado de este mes es estimado.</span>' : null,
+    !isRng(p) && st.mixEst && st.mixEst <= st.u * 0.2 ? F.n0(st.mixEst) + ' tractos no traen % Full / Sencillo en el semáforo; para su ideal se usó su mezcla de otro mes o la de la flota.' : null,
     logSrc() === 'S' && st.sinS ? F.n0(st.sinS) + ' unidades no traen rendimiento Samsara y se evalúan con el cálculo manual.' : null,
     st.sinIdeal ? F.n0(st.sinIdeal) + ' unidades no tienen % Full / Sencillo (o son torton/Kalmar) y no entran al cálculo de cumplimiento.' : null,
     sams.length ? sams.length + ' unidades tienen más de 10% de diferencia entre el cálculo manual y Samsara: conviene revisar cargas, odómetro o telemetría.' : null
@@ -1866,7 +1882,7 @@ function viewLogRend() {
   const tools = srcSel + '<label class="chk"><input type="checkbox" data-act="tg" data-k="logWialon"' + (tog('logWialon', true) ? ' checked' : '') + '> Incluir “No reporta Wialon”</label><label class="chk"><input type="checkbox" data-act="tg" data-k="logTK"' + (tog('logTK', false) ? ' checked' : '') + '> Incluir torton y Kalmar</label>';
   const other = logRendStats(logRendRows(p, false, logSrc() === 'S' ? 'M' : 'S'));
   return '<div class="blockhead"><div><h2>Rendimientos · ' + perLabel(p) + '</h2><p class="sub">' + (logSrc() === 'S' ? '<b>Rendimiento Samsara (oficial)</b>' : '<b class="tw">Cálculo manual · solo consulta, no es el oficial</b>') + ' · ideal ponderado Full ' + F.n2(iF) + ' / Sencillo ' + F.n2(iS) + ' km/L · ' + F.n0(st.u) + ' unidades' + (f.region !== 'ALL' ? ' · ' + esc(f.region) : '') + '</p></div><div class="bh-tools">' + tools + '<button class="btn xls" data-act="xls" data-area="log">⬇ Reporte mensual Excel</button></div></div>' +
-    (st.mixEst > st.u * 0.2 ? '<div class="notice">⚠ El semáforo de ' + perLabel(p) + ' no trae % Full / % Sencillo. Para calcular el ideal ponderado se usó la mezcla de cada tracto en el mes más cercano (' + F.n0(st.mixEst - st.mixFlota) + ' tractos)' + (st.mixFlota ? ' o el promedio de la flota (' + F.n0(st.mixFlota) + ')' : '') + '.</div>' : '') +
+    (!isRng(p) && st.mixEst > st.u * 0.2 ? '<div class="notice">⚠ El semáforo de ' + perLabel(p) + ' no trae % Full / % Sencillo. Para calcular el ideal ponderado se usó la mezcla de cada tracto en el mes más cercano (' + F.n0(st.mixEst - st.mixFlota) + ' tractos)' + (st.mixFlota ? ' o el promedio de la flota (' + F.n0(st.mixFlota) + ')' : '') + '.</div>' : '') +
     '<div class="kpis">' + kpi('Rendimiento flota', F.n2(st.rend) + '<small> km/L</small>', 'Ideal ponderado ' + F.kml(st.ideal) + (prev ? ' ' + delta(prev.rend, st.rend, 'up', F.n3) : ''), 'hero') + kpi('Cumplimiento vs ideal', F.pct(st.cump), badge(st.cump) + (prev ? ' ' + delta(prev.cump, st.cump, 'up', F.pct) : '')) + kpi('Kilómetros', F.n0(st.km), prev ? delta(prev.km, st.km, null, F.n0) : '') + kpi('Gasto diésel', F.money(st.imp), 'Precio prom. ' + F.money2(st.precio) + '/L') + kpi(logSrc() === 'S' ? 'Rend. manual (consulta)' : 'Rend. Samsara (oficial)', F.n2(other.rend) + '<small> km/L</small>', F.pct(other.cump) + ' de cumplimiento') + kpi('Litros sobre el ideal', F.L(excTot), F.money(excImp) + ' en tractos debajo de 90%') + '</div>' +
     '<div class="grid2">' + card('Cumplimiento por región', '<div id="' + ids.z + '"></div>', { sub: 'Rendimiento real ÷ ideal ponderado por la mezcla Full / Sencillo de cada región' }) + card('Estado de los tractos', '<div id="' + ids.st + '"></div>', { sub: 'Cumplimiento de cada tracto contra su propio ideal · mínimo ' + F.km(setting('minKmLog')) }) + '</div>' +
     card('Detalle por región', table(gcols('Región'), byZ, { sort: 'cump', onRow: x => DU('Región ' + x.n, r => r.zona === x.n) })) +
@@ -1878,7 +1894,7 @@ function viewLogRend() {
     card('Móviles mejor posicionados', table(ucols, best.slice(0, 80), { sort: 'cump', limit: 15, onRow: u => ficha('log', u.eco) }), { sub: 'Mayor cumplimiento contra su ideal ponderado', cls: 'good-edge' }) + '</div>' +
     '<div class="grid2">' + card('Segmentos con más kilometraje', table([{ k: 'n', l: 'Segmento' }, { k: 'u', l: 'Unid.', num: 1, f: F.n0 }, { k: 'km', l: 'Km', num: 1, f: F.n0 }, { k: 'rend', l: 'Real', num: 1, f: F.n2 }, { k: 'ideal', l: 'Ideal', num: 1, f: F.n2 }, { k: 'cump', l: 'Cumpl.', num: 1, html: r => badge(r.cump, F.pct0(r.cump)) }], segs, { sort: 'km', limit: 10, search: true, onRow: x => DU('Segmento ' + x.n, r => r.segmento === x.n) })) +
     card('Diferencia manual vs Samsara', sams.length ? table([{ k: 'eco', l: 'Económico' }, { k: 'zona', l: 'Región' }, { k: 'rend', l: 'km/L manual', num: 1, f: F.n2 }, { k: 'rendS', l: 'km/L Samsara', num: 1, f: F.n2 }, { k: 'dif', l: 'Diferencia', num: 1, f: F.pct }], sams.map(r => ({ eco: r.eco, zona: r.zona, rend: r.rendM, rendS: r.rendS, dif: r.rendS / r.rendM - 1 })), { sort: 'dif', limit: 10, onRow: x => ficha('log', x.eco) }) : empty('Sin diferencias mayores a 10%'), { sub: 'Unidades con más de 10% de diferencia' }) + '</div>' +
-    card('Análisis del mes', bullets(an), { cls: 'analysis-card' }) +
+    card(isRng(p) ? 'Análisis del periodo acumulado' : 'Análisis del mes', bullets(an), { cls: 'analysis-card' }) +
     compareBlock('logRend', { mode: 'month', ds: ['log_rend'], area: 'log', story: (A, B) => storyRend('log', A, B), compute: sel => { const r = logRendRows(sel.v.slice(0, 7)); const s = logRendStats(r); return { kpis: [{ l: 'Rendimiento', v: s.rend, f: F.n3, good: 'up' }, { l: 'Cumplimiento', v: s.cump, f: F.pct, good: 'up' }, { l: 'Ideal ponderado', v: s.ideal, f: F.n3 }, { l: 'Km recorridos', v: s.km, f: F.n0 }, { l: 'Gasto', v: s.imp, f: F.money, good: 'down' }, { l: 'Precio por litro', v: s.precio, f: F.money2, good: 'down' }], groups: [{ t: 'Cumplimiento por región', k: 'Región', rows: aggLog(r, x => x.zona).map(x => ({ n: x.n, v: x.cump })), f: F.pct, good: 'up' }, { t: 'Cumplimiento por marca / motor', k: 'Marca', rows: aggLog(r, x => sm(x.marca)).map(x => ({ n: x.n, v: x.cump })), f: F.pct, good: 'up' }, { t: 'Cumplimiento por modalidad', k: 'Modalidad', rows: aggLog(r, modalidad).map(x => ({ n: x.n, v: x.cump })), f: F.pct, good: 'up' }] }; } });
 }
 
@@ -1888,6 +1904,12 @@ function tecOps(r) { return r.comb === 'GASOLINA' ? 'Gasolina' : /HIBRIDO/.test(
 function tamOps(r) { return /RABON/.test(r.desc) ? 'Pesado (rabón)' : /HINO|FREIGHTLINER/.test(r.desc) ? 'Mediano (camión)' : 'Ligero (van)'; }
 function idealOf(r) { return r.ideal || (r.comb === 'GASOLINA' ? setting('idealGas') : null); }
 function opsRendRows(p, o) {
+  if (!isRng(p)) return opsRendRows1(p, o);
+  const by = new Map();
+  rngMonths(p).forEach(m => opsRendRows1(m, o).forEach(r => { const k = r.movil + '|' + (r.comb || ''); let g = by.get(k); if (!g) by.set(k, g = []); g.push(r); }));
+  return Array.from(by.values()).map(g => { const L = g[g.length - 1]; const km = sum(g, 'km'), lts = sum(g, 'lts'); const wi = g.filter(r => idealOf(r) && r.km > 0); const li = sum(wi, r => r.km / idealOf(r)); return Object.assign({}, L, { km, lts, imp: sum(g, 'imp'), rend: div(km, lts), ideal: li ? sum(wi, 'km') / li : L.ideal, meses: g.length }); });
+}
+function opsRendRows1(p, o) {
   o = o || {}; const f = S.f.ops; let out = [];
   for (const ds of AREA_DS.ops.rend) { if ((f.comb === 'DIESEL' && ds === 'ops_rend_g') || (f.comb === 'GASOLINA' && ds === 'ops_rend_d')) continue; out = out.concat(rowsOf(ds, p)); }
   return out.filter(r => (o.allCasos || r.caso === 'N' || tog('opsCasos', false)) && (o.ignoreRegion || f.region === 'ALL' || r.region === f.region) && (o.ignoreRegion || f.suc === 'ALL' || r.suc === f.suc) && (o.ignoreRegion || e3ok('ops', r.region, r.desc)) && (!tog('opsAtip', false) || r.caso !== 'N' || !idealOf(r) || (r.rend / idealOf(r) <= 2.5 && r.rend / idealOf(r) >= 0.3)));
@@ -1908,7 +1930,7 @@ function opsUnits(rows) {
 }
 
 function viewOpsRend() {
-  const f = S.f.ops; const p = f.mes;
+  const f = S.f.ops; const p = rendP('ops');
   if (!p || (!arrFor('ops_rend_d', p) && !arrFor('ops_rend_g', p))) return empty('No hay archivos de rendimientos de Operaciones para ' + perLabel(p) + '. Cárgalos en <a href="#cargar">Cargar archivos</a>.');
   const rows = opsRendRows(p); const st = opsStats(rows);
   const pp = prevPeriod(p); const prev = (arrFor('ops_rend_d', pp) || arrFor('ops_rend_g', pp)) ? opsStats(opsRendRows(pp)) : null;
@@ -1970,7 +1992,7 @@ function viewOpsRend() {
     '<div class="grid2">' + card('Móviles con área de oportunidad', table(ucols.concat([{ k: 'exc', l: 'Litros de más', num: 1, f: F.n0 }]), opp, { sort: 'exc', limit: 15, search: true, onRow: u => ficha('ops', u.movil) }), { sub: 'Debajo de 90% de su ideal · ordenados por litros consumidos de más', cls: 'bad-edge' }) + card('Móviles mejor posicionados', table(ucols, best.slice(0, 100), { sort: 'cump', limit: 15, onRow: u => ficha('ops', u.movil) }), { cls: 'good-edge' }) + '</div>' +
     card('Sucursales problema', table([{ k: 'n', l: 'Sucursal' }, { k: 'u', l: 'Unid.', num: 1, f: F.n0 }, { k: 'bajo', l: 'Unid. <90%', num: 1, f: F.n0 }, { k: 'pBajo', l: '% unid. <90%', num: 1, f: F.pct0 }, { k: 'cump', l: 'Cumplimiento', num: 1, html: r => badge(r.cump, F.pct(r.cump)) }, { k: 'lExc', l: 'Litros sobre ideal', num: 1, f: F.n0 }], probl, { sort: 'pBajo', limit: 10, onRow: x => DO('Sucursal ' + x.n + ' · unidades debajo de 90%', r => r.suc === x.n && cO(r) > 0 && cO(r) < 0.9) }), { sub: 'Mayor proporción de unidades debajo de 90% del ideal' }) +
     '<div class="grid2">' + card('Casos: carga sin recorrido (' + csr.length + ')', table(ccols, csr, { sort: 'lts', limit: 8, onRow: x => ficha('ops', x.movil) }), { sub: 'Cargaron combustible pero no registran km' }) + card('Casos: recorrido sin carga (' + rsc.length + ')', table(ccols, rsc, { sort: 'km', limit: 8, onRow: x => ficha('ops', x.movil) }), { sub: 'Registran km sin cargas en el mes' }) + '</div>' +
-    card('Análisis del mes', bullets(an), { cls: 'analysis-card' }) +
+    card(isRng(p) ? 'Análisis del periodo acumulado' : 'Análisis del mes', bullets(an), { cls: 'analysis-card' }) +
     compareBlock('opsRend', { mode: 'month', ds: ['ops_rend_d', 'ops_rend_g'], area: 'ops', story: (A, B) => storyRend('ops', A, B), compute: sel => { const r = opsRendRows(sel.v.slice(0, 7)); const s = opsStats(r); return { kpis: [{ l: 'Rendimiento real', v: s.rend, f: F.n3, good: 'up' }, { l: 'Cumplimiento', v: s.cump, f: F.pct, good: 'up' }, { l: 'Km', v: s.km, f: F.n0 }, { l: 'Litros', v: s.lts, f: F.n0, good: 'down' }, { l: 'Gasto', v: s.imp, f: F.money, good: 'down' }, { l: 'Precio por litro', v: s.precio, f: F.money2, good: 'down' }], groups: [{ t: 'Cumplimiento por región', k: 'Región', rows: aggOps(r, x => x.region).map(x => ({ n: x.n, v: x.cump })), f: F.pct, good: 'up' }, { t: 'Cumplimiento por marca', k: 'Marca', rows: aggOps(r, x => marcaOps(x.desc)).map(x => ({ n: x.n, v: x.cump })), f: F.pct, good: 'up' }, { t: 'Cumplimiento por sucursal', k: 'Sucursal', rows: aggOps(r, x => x.suc).filter(x => x.u >= 3).map(x => ({ n: x.n, v: x.cump })), f: F.pct, good: 'up', top: 15 }] }; } });
 }
 
@@ -2254,7 +2276,7 @@ function viewChof(a) {
 
 /* ---------- Excel mensual ---------- */
 async function excelReport(a) {
-  const f = S.f[a]; const p = f.mes; const sheets = [];
+  const f = S.f[a]; const p = rendP(a); const sheets = [];
   const r2 = v => v === null || v === undefined || !isFinite(v) ? null : Math.round(v * 1000) / 1000;
   if (a === 'log') {
     const rows = logRendRows(p); const st = logRendStats(rows);
@@ -2278,7 +2300,7 @@ async function excelReport(a) {
   const an = $$('.analysis-card li', tmp).map(li => ({ Análisis: li.textContent }));
   sheets.push(['Análisis', an]);
   toast('Generando reporte…');
-  await downloadXLSX('Rendimientos_' + AREA_NAME[a] + '_' + p + '.xlsx', sheets);
+  await downloadXLSX('Rendimientos_' + AREA_NAME[a] + '_' + String(p).replace('~', '_a_') + '.xlsx', sheets);
 }
 
 /* ===================== Comparativos: explicación de causas y comparador de entidades ===================== */
@@ -3499,6 +3521,29 @@ async function downloadXLSX(filename, sheets) {
   try { await dl.save({ filename, data: new Blob([buf]) }); toast('Reporte listo: ' + filename, 'ok'); }
   catch (e) { if (e && e.code !== 'declined') toast('No se pudo descargar (' + (e.code || e.message) + ')', 'warn'); }
 }
+
+
+/* ===== Fechas: no permitir elegir días fuera de la información cargada ===== */
+function dsDayBounds(dss) {
+  let lo = null, hi = null;
+  dss.forEach(ds => { const ps = periodsOf(ds); if (!ps.length) return; const f = rowsOf(ds, ps[0]).reduce((m, r) => r.fecha && (!m || r.fecha < m) ? r.fecha : m, null) || ps[0] + '-01'; const l = rowsOf(ds, ps[ps.length - 1]).reduce((m, r) => r.fecha && (!m || r.fecha > m) ? r.fecha : m, null) || monthEnd(ps[ps.length - 1]); if (!lo || f < lo) lo = f; if (!hi || l > hi) hi = l; });
+  return lo ? { lo, hi } : null;
+}
+function dateCtxBounds(el) {
+  if (!el || el.id === 'mdLim') return null;
+  const rt = String(S.route || ''); const a = rt.indexOf('operaciones') === 0 ? 'ops' : 'log'; const tab = rt.split('-').slice(1).join('-');
+  let dss; if (el.id === 'mdD' || el.id === 'mdH') dss = [a + '_ral']; else if (tab === 'cargas') dss = [CG[a].ds]; else if (tab === 'ralenti') dss = [a + '_ral']; else dss = [CG[a].ds, a + '_ral'];
+  return dsDayBounds(dss);
+}
+function dateTxt(d, desde) { const [y, m, dd] = d.split('-'); const mes = MES_L[+m - 1].toLowerCase(); if (desde && dd === '01') return mes + ' ' + y; return 'el ' + (+dd) + ' de ' + mes + ' de ' + y; }
+document.addEventListener('focusin', e => { const el = e.target; if (!el || el.type !== 'date') return; const b = dateCtxBounds(el); if (b) { el.min = b.lo; el.max = b.hi; } }, true);
+document.addEventListener('change', e => {
+  const el = e.target; if (!el || el.type !== 'date' || !el.value) return; const b = dateCtxBounds(el); if (!b) return;
+  let v = el.value, msg = null;
+  if (v < b.lo) { msg = 'No es posible: la información existe a partir de ' + dateTxt(b.lo, true) + '.'; v = b.lo; }
+  else if (v > b.hi) { msg = 'No es posible: la información llega hasta ' + dateTxt(b.hi) + '.'; v = b.hi; }
+  if (msg) { e.stopImmediatePropagation(); e.preventDefault(); toast(msg, 'warn'); el.value = v; setTimeout(() => el.dispatchEvent(new Event('change', { bubbles: true })), 0); }
+}, true);
 
 /* ---------- Excel por pestaña ---------- */
 async function tabExcel(a, tab) {
@@ -5213,7 +5258,10 @@ function viewArea(a, tab) {
   else regions = Array.from(new Set(Object.values(L.opsU).map(u => u.region))).sort();
   const sucs = a === 'ops' ? Array.from(new Set(Object.values(L.opsU).filter(u => f.region === 'ALL' || u.region === f.region).map(u => u.suc))).sort() : [];
   if (f.suc !== 'ALL' && sucs.indexOf(f.suc) < 0) f.suc = 'ALL';
-  const fb = '<div class="filters"><label>Mes <select data-act="f" data-k="mes">' + months.slice().reverse().map(m => '<option value="' + m + '"' + (f.mes === m ? ' selected' : '') + '>' + perLabel(m) + '</option>').join('') + '</select></label>' +
+  const acum = tab === 'rendimientos' && f.rAcum === '1'; const rms = rendMonths(a); const rp = acum ? rendP(a) : null; const dsel = rp && isRng(rp) ? rp.split('~')[0] : f.mes;
+  const fb = '<div class="filters">' + (tab === 'rendimientos' ? '<div class="seg pseg" role="group" aria-label="Tipo de periodo"><button data-act="f" data-k="rAcum" data-v="0" class="' + (acum ? '' : 'on') + '" title="Ver un solo mes">Mes</button><button data-act="f" data-k="rAcum" data-v="1" class="' + (acum ? 'on' : '') + '" title="Sumar varios meses">Acumulado</button></div>' : '') +
+    (acum ? '<label>Desde <select data-act="f" data-k="rDesde">' + rms.filter(m => m <= f.mes).reverse().map(m => '<option value="' + m + '"' + (dsel === m ? ' selected' : '') + '>' + perLabel(m) + '</option>').join('') + '</select></label>' : '') +
+    '<label>' + (acum ? 'Hasta' : 'Mes') + ' <select data-act="f" data-k="mes">' + months.slice().reverse().map(m => '<option value="' + m + '"' + (f.mes === m ? ' selected' : '') + '>' + perLabel(m) + '</option>').join('') + '</select></label>' +
     '<label>Región <select data-act="f" data-k="region"><option value="ALL">Todas</option>' + regions.map(r => '<option' + (f.region === r ? ' selected' : '') + '>' + esc(r) + '</option>').join('') + '</select></label>' +
     (a === 'ops' ? '<label>Sucursal <select data-act="f" data-k="suc"><option value="ALL">Todas</option>' + sucs.map(r => '<option' + (f.suc === r ? ' selected' : '') + '>' + esc(r) + '</option>').join('') + '</select></label><div class="seg" role="group" aria-label="Combustible">' + [['ALL', 'Todo'], ['DIESEL', 'Diésel'], ['GASOLINA', 'Gasolina']].map(([v, l]) => '<button data-act="f" data-k="comb" data-v="' + v + '" class="' + (f.comb === v ? 'on' : '') + '">' + l + '</button>').join('') + '</div>' : '') +
     '</div>';
@@ -5241,13 +5289,13 @@ function viewArea(a, tab) {
   return '<div class="alay ' + a + '">' + side + '<div class="amain"><div class="areahead ' + a + '">' + slog + fb + '</div><div class="tabbody">' + body + '</div></div></div>';
 }
 function asideKpis(a) {
-  const f = S.f[a]; const key = 'as|' + a + '|' + f.mes + '|' + f.region + '|' + f.suc + '|' + f.comb + '|' + S.ver;
+  const f = S.f[a]; const key = 'as|' + a + '|' + f.mes + '|' + (f.rAcum === '1' ? rendP(a) : '') + '|' + f.region + '|' + f.suc + '|' + f.comb + '|' + S.ver;
   if (S.cache[key]) return S.cache[key];
   const p = f.mes; const out = {}; if (!p) return out;
   const from = p + '-01', to = monthEnd(p); const pp = prevPeriod(p);
   const M = v => v >= 1e6 ? '$' + (v / 1e6).toFixed(1) + ' M' : F.money(v);
   const T = (k, fn) => { try { const r = fn(); if (r) out[k] = r; } catch (e) { console.warn('aside', k, e); } };
-  T('rendimientos', () => { const r = a === 'log' ? logRendRows(p, false) : opsRendRows(p, {}); if (!r.length) return null; const st = a === 'log' ? logRendStats(r) : opsStats(r); const s = statusOf(st.cump).k; return { v: F.n2(st.rend) + ' km/L', s: st.cump ? F.pct(st.cump) + ' del ideal' : '', st: s === 'good' ? 'ok' : s }; });
+  T('rendimientos', () => { const rp = rendP(a); const r = a === 'log' ? logRendRows(rp, false) : opsRendRows(rp, {}); if (!r.length) return null; const st = a === 'log' ? logRendStats(r) : opsStats(r); const s = statusOf(st.cump).k; return { v: F.n2(st.rend) + ' km/L', s: st.cump ? F.pct(st.cump) + ' del ideal' : '', st: s === 'good' ? 'ok' : s }; });
   T('cargas', () => { const cs = cargasStats(a, cargasRows(a, from, to)); return cs.c ? { v: M(cs.imp), s: F.n0(cs.c) + ' cargas', st: 'ok' } : null; });
   T('ralenti', () => {
     const E = ralRows(a, from, to); if (!E.length) return null; const st = ralStats(E); const d = new Set(E.map(r => r.fecha)).size || 1;
@@ -5397,6 +5445,8 @@ function openSettings() {
 }
 
 /* ---------- Router y eventos ---------- */
+function fitKpis() { document.querySelectorAll('#main .kv').forEach(el => { el.style.fontSize = ''; let fs = parseFloat(getComputedStyle(el).fontSize) || 24, n = 0; while (el.scrollWidth > el.clientWidth + 1 && fs > 13 && n++ < 14) { fs -= 1; el.style.fontSize = fs + 'px'; } }); }
+window.addEventListener('resize', () => { clearTimeout(window.__fk); window.__fk = setTimeout(fitKpis, 150); });
 function render() {
   const main = $('#main'); const r = (location.hash || '#inicio').slice(1) || 'inicio';
   S.route = r; CID = 0; POST.length = 0; DR.length = 0;
@@ -5409,7 +5459,7 @@ function render() {
     else if (r === 'cargar') html = viewUpload();
     else html = viewHome();
   } catch (e) { console.error(e); html = empty('Ocurrió un error al calcular esta vista: ' + esc(e.message)); }
-  main.innerHTML = html; flush();
+  main.innerHTML = html; flush(); requestAnimationFrame(fitKpis);
   if (r === 'cargar') loadHist();
   $('#upbtn').style.display = (S.canWrite || !S.db) && canUpAny() ? '' : 'none';
   const sb = $('[data-act="settings"]'); if (sb) sb.style.display = isAdmin() ? '' : 'none';
@@ -5421,6 +5471,9 @@ function onFilter(el) {
   f[k] = v;
   if (k === 'mes') { f.desde = v + '-01'; f.hasta = monthEnd(v); }
   if (k === 'region' && a === 'ops') f.suc = 'ALL';
+  if (k === 'rAcum' && v === '1' && !f.rDesde) { const ms = rendMonths(a); f.rDesde = ms.find(m => f.mes && m.slice(0, 4) === f.mes.slice(0, 4)) || ms[0]; }
+  if (k === 'rDesde' && f.mes && v > f.mes) f.mes = v;
+  if (k === 'mes' && f.rDesde && f.rDesde > v) f.rDesde = v;
   if (k === 'desde' && f.hasta < v) f.hasta = v;
   if (k === 'hasta' && f.desde > v) f.desde = v;
   const y = window.scrollY; render(); window.scrollTo(0, y);
