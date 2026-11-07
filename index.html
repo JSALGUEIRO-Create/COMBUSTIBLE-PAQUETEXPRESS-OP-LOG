@@ -1058,7 +1058,7 @@ const SHOT={"anomalias": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wB
         if (total === null && precio !== null) total = precio * lts;
         if (precio === null && total) precio = total / lts;
         const fuente = norm(r[cF]) || 'EXTERNO';
-        out.push({ fecha: d.fecha, movil: movil.toUpperCase(), suc: txt(r[cSuc]).toUpperCase() || 'S/D', prov: txt(r[I['PROVEEDOR']]).toUpperCase() || 'S/D', fuente: fuente === 'AUTOCONSUMO' ? 'AUTOCONSUMO' : 'EXTERNO', lts: r2(lts, 3), precio: r2(precio, 4), total: r2(total, 2), folio: txt(r[I['FOLIO']]), oc: txt(r[I['O.C']]) });
+        out.push({ fecha: d.fecha, movil: movil.toUpperCase(), suc: txt(r[cSuc]).toUpperCase() || 'S/D', prov: txt(r[I['PROVEEDOR']]).toUpperCase() || 'S/D', fuente: /AUTOCONSUMO/.test(fuente) ? 'AUTOCONSUMO' : /DESCUENTO/.test(fuente) ? 'DESCUENTO' : 'EXTERNO', lts: r2(lts, 3), precio: r2(precio, 4), total: r2(total, 2), folio: txt(r[I['FOLIO']]), oc: txt(r[I['O.C']]) });
       }
       if (out.length) return out;
     }
@@ -2021,7 +2021,7 @@ function viewOpsRend() {
 
 /* ---------- Cargas de combustible (genérico) ---------- */
 const CG = {
-  log: { ds: 'log_cargas', amt: r => r.total || 0, prov: r => r.prov, fuente: r => r.fuente === 'AUTOCONSUMO' ? 'Autoconsumo' : 'Gasolinera externa', sitio: r => r.suc, auto: r => r.fuente === 'AUTOCONSUMO' },
+  log: { ds: 'log_cargas', amt: r => r.total || 0, prov: r => r.prov, fuente: r => r.fuente === 'AUTOCONSUMO' ? 'Autoconsumo' : r.fuente === 'DESCUENTO' ? 'Gasolinera externa con descuento' : 'Gasolinera externa', sitio: r => r.suc, auto: r => r.fuente === 'AUTOCONSUMO' },
   ops: { ds: 'ops_cargas', amt: r => r.imp || 0, prov: r => r.tipo === 'AUTOCONSUMO' ? r.sitio : 'EDENRED', fuente: r => r.tipo === 'AUTOCONSUMO' ? 'Autoconsumo' : 'Gasolinera (EDENRED)', sitio: r => r.sitio, auto: r => r.tipo === 'AUTOCONSUMO' }
 };
 function cargasRows(a, from, to) {
@@ -2106,7 +2106,7 @@ function viewCargas(a) {
   return '<div class="blockhead"><div><h2>Cargas de combustible</h2><p class="sub">' + dLabel(f.desde) + ' – ' + dLabel(f.hasta) + ' · se actualiza con cada archivo diario</p></div>' + rangeInputs(a) + '</div>' +
     '<div class="kpis">' + kpi('Litros cargados', F.n0(st.lts), F.n0(st.c) + ' cargas', 'hero') + kpi('Importe', F.money(st.imp)) + kpi('Precio promedio', F.money2(st.precio) + '<small>/L</small>') + kpi('% autoconsumo', F.pct(st.pAuto), 'de los litros') + kpi('Unidades', F.n0(st.u), F.n1(div(st.c, st.u)) + ' cargas por unidad') + kpi('Litros por carga', F.n0(div(st.lts, st.c))) + '</div>' +
     card('Consumo general por día', '<div id="' + ids.d + '"></div>', { tools: provSel }) +
-    '<div class="grid2">' + card('Cargas por proveedor', '<div id="' + ids.p + '"></div>') + card('Autoconsumo vs gasolinera', '<div id="' + ids.fu + '"></div>', { sub: 'Participación en litros' }) + '</div>' +
+    '<div class="grid2">' + card('Cargas por proveedor', '<div id="' + ids.p + '"></div>') + card('Fuente de carga', '<div id="' + ids.fu + '"></div>', { sub: 'Participación en litros' }) + '</div>' +
     card('% de consumo por proveedor', table(pcols, byP, { sort: 'lts', limit: 10, onRow: x => DC('Proveedor ' + x.n, r => cg.prov(r) === x.n) })) +
     '<div class="grid2">' + card('Cargas por sitio (top 20)', '<div id="' + ids.s + '"></div>', { sub: '<i class="sw" style="background:var(--s1)"></i> Autoconsumo · <i class="sw" style="background:var(--s3)"></i> Gasolinera' }) + card('% de consumo por sitio', table([{ k: 'n', l: 'Sitio' }, { k: 'c', l: 'Cargas', num: 1, f: F.n0 }, { k: 'lts', l: 'Litros', num: 1, f: F.n0 }, { k: 'pct', l: '% litros', num: 1, f: F.pct }, { k: 'precio', l: '$/L', num: 1, f: F.money2 }], byS, { sort: 'lts', limit: 12, search: true, onRow: x => DC('Sitio ' + x.n, r => cg.sitio(r) === x.n) })) + '</div>' +
     '<div class="grid2">' + card('Comportamiento del precio por fuente', '<div id="' + ids.pf + '"></div>', { sub: 'Precio promedio diario por litro' }) + card('Precio diario por autoconsumo', '<div id="' + ids.ps + '"></div>') + '</div>' +
@@ -2957,7 +2957,7 @@ function pq2Parse(q) {
   const aLog = /\bLOGIST|TRACTO|TRAILER|QUINTA RUEDA|CASCADIA|SAMSARA/.test(n), aOps = /OPERACI|SUCURSAL|CAMIONETA|\bVANS?\b|LIGERA|REPARTO|RECOLECCI|EDENRED|PLAZA/.test(n);
   P.areas = /\bAMBAS\b|\bAMBOS\b|TODA LA FLOTA|LAS DOS AREAS|LAS DOS|EN GENERAL|TODA LA EMPRESA/.test(n) || (aLog && aOps) ? ['log', 'ops'] : aLog ? ['log'] : aOps ? ['ops'] : null;
   const fd = /DIESEL/.test(n), fg = /GASOLINA|MAGNA|PREMIUM/.test(n); P.fuels = fd && fg ? ['DIESEL', 'GASOLINA'] : fd ? ['DIESEL'] : fg ? ['GASOLINA'] : null;
-  P.fuente = /AUTOCONSUMO/.test(n) && !/VS|COMPAR|POR FUENTE/.test(n) ? 'auto' : /(GASOLINERAS? )?EXTERNA|EN GASOLINERA|EDENRED/.test(n) && !/VS|COMPAR/.test(n) ? 'ext' : null;
+  P.fuente = /CON DESCUENTO|DESCUENTO/.test(n) && !/VS|COMPAR|POR FUENTE/.test(n) ? 'desc' : /AUTOCONSUMO/.test(n) && !/VS|COMPAR|POR FUENTE/.test(n) ? 'auto' : /(GASOLINERAS? )?EXTERNA|EN GASOLINERA|EDENRED/.test(n) && !/VS|COMPAR/.test(n) ? 'ext' : null;
   P.m = pq2Metric(n); P.ent = pq2Ents(n, q);
   const sv = n.match(/SEVERIDAD (ALTA|MEDIA|BAJA)|\b(CRITICAS|GRAVES)\b/); if (sv && /ANOMAL|ALERTA/.test(n)) { P.sev = sv[1] === 'MEDIA' ? 2 : sv[1] === 'BAJA' ? 1 : 3; }
   P.when = /\b(MEJOR|PEOR) (MES|DIA|HORA)\b|\b(MES|DIA) (CON|DE) (MAS|MENOS|MAYOR|MENOR)|A QUE HORA|EN QUE HORA|EN QUE (MES|DIA|FECHA|SEMANA)|\bQUE MES\b|CUAL (FUE |ES )?(EL )?MES|\bCUANDO\b|\bQUE DIA\b|CUAL (FUE |ES )?(EL )?DIA/.test(n);
@@ -3047,7 +3047,7 @@ function pq2Rows(src, a, per, P, fuel) {
     else { if (E.modalidad && modalidad(r) !== E.modalidad[0]) return false; if (fuel === 'GASOLINA') return false; }
     return true;
   });
-  if (src === 'cargas') return e3withF(a, {}, () => cargasRows(a, per.from, per.to)).filter(r => okVeh(r.movil) && (!E.sitio || inL(E.sitio, CG[a].sitio(r))) && (!P.fuente || (P.fuente === 'auto') === !!CG[a].auto(r)));
+  if (src === 'cargas') return e3withF(a, {}, () => cargasRows(a, per.from, per.to)).filter(r => okVeh(r.movil) && (!E.sitio || inL(E.sitio, CG[a].sitio(r))) && (!P.fuente || (P.fuente === 'desc' ? r.fuente === 'DESCUENTO' : (P.fuente === 'auto') === !!CG[a].auto(r))));
   if (src === 'ral') return e3withF(a, {}, () => ralRows(a, per.from, per.to, true)).filter(r => okVeh(r.veh) && (!E.chofer || inL(E.chofer, r.chofer)));
   if (src === 'chof') return per.months.flatMap(m => choferRows(a, m).map(r => Object.assign({ _m: m }, r))).filter(r => r.km >= setting('minKmChof') && (!E.chofer || inL(E.chofer, r.chofer)));
   if (src === 'anom') { const flt = E.region || E.sucursal || E.marca || E.tipo || E.movil || fuel; return e3withF(a, {}, () => anomalies(a, per.from, per.to).list).filter(x => (!P.sev || (P.sev === 3 ? x.sev >= 3 : x.sev === P.sev)) && (x.veh ? okVeh(x.veh) : !flt)); }
@@ -3117,7 +3117,7 @@ function pq2Bars(G, m, hl) {
 }
 function pq2Int(P, src, per, extra) {
   const E = []; ['log', 'ops'].forEach(a => { const e = P.ent[a]; if (!e) return; Object.keys(e).forEach(k => { if (k === 'any') return; e[k].forEach(v => E.push((k === 'modalidad' ? 'Modalidad ' : k === 'movil' ? 'Móvil ' : k === 'chofer' ? 'Chofer ' : '') + (k === 'marca' && a === 'log' ? v : v))); }); });
-  const parts = [PQ_ML[P.m], extra, P.fuels ? P.fuels.map(f => f === 'DIESEL' ? 'Diésel' : 'Gasolina').join(' y ') : null, P.fuente === 'auto' ? 'Solo autoconsumo' : P.fuente === 'ext' ? 'Solo gasolineras externas' : null, Array.from(new Set(E)).join(', ') || null, per ? per.label : null].filter(Boolean);
+  const parts = [PQ_ML[P.m], extra, P.fuels ? P.fuels.map(f => f === 'DIESEL' ? 'Diésel' : 'Gasolina').join(' y ') : null, P.fuente === 'auto' ? 'Solo autoconsumo' : P.fuente === 'ext' ? 'Solo gasolineras externas' : P.fuente === 'desc' ? 'Solo gasolineras con descuento' : null, Array.from(new Set(E)).join(', ') || null, per ? per.label : null].filter(Boolean);
   return '<div class="pqint">🔎 Entendí: ' + parts.map(x => '<b>' + esc(x) + '</b>').join(' · ') + '</div>';
 }
 function pq2Dir(P) { const hiG = !!PQ_HI[P.m]; if (P.hi === 'better') return hiG ? 1 : 0; if (P.hi === 'worse') return hiG ? 0 : 1; if (P.hi === 0 || P.hi === 1) return P.hi; return hiG ? 1 : 1; }
@@ -3567,6 +3567,46 @@ document.addEventListener('change', e => {
   else if (v > b.hi) { msg = 'No es posible: la información llega hasta ' + dateTxt(b.hi) + '.'; v = b.hi; }
   if (msg) { e.stopImmediatePropagation(); e.preventDefault(); toast(msg, 'warn'); el.value = v; setTimeout(() => el.dispatchEvent(new Event('change', { bubbles: true })), 0); }
 }, true);
+
+
+/* ===== Lector alterno de Excel (ignora dibujos/objetos pesados; respaldo del lector principal) ===== */
+async function pxInflate(u8) { const ds = new DecompressionStream('deflate-raw'); const w = ds.writable.getWriter(); w.write(u8); w.close(); return new Uint8Array(await new Response(ds.readable).arrayBuffer()); }
+async function pxUnzip(buf, want) {
+  const u8 = new Uint8Array(buf), dv = new DataView(buf); let e = u8.length - 22; while (e >= 0 && dv.getUint32(e, true) !== 0x06054b50) e--; if (e < 0) throw new Error('El archivo no es un Excel válido');
+  const n = dv.getUint16(e + 10, true); let off = dv.getUint32(e + 16, true); const out = {}; const dec = new TextDecoder();
+  for (let i = 0; i < n; i++) {
+    const m = dv.getUint16(off + 10, true), csz = dv.getUint32(off + 20, true), nl = dv.getUint16(off + 28, true), xl = dv.getUint16(off + 30, true), cl = dv.getUint16(off + 32, true), lo = dv.getUint32(off + 42, true);
+    const name = dec.decode(u8.subarray(off + 46, off + 46 + nl)); off += 46 + nl + xl + cl; if (!want(name)) continue;
+    const st = lo + 30 + dv.getUint16(lo + 26, true) + dv.getUint16(lo + 28, true); const data = u8.subarray(st, st + csz); out[name] = m === 8 ? await pxInflate(data) : data.slice();
+  }
+  return out;
+}
+async function pxReadXlsx(buf) {
+  const f = await pxUnzip(buf, n => /^xl\/(workbook\.xml|_rels\/workbook\.xml\.rels|sharedStrings\.xml|worksheets\/[^\/]+\.xml)$/.test(n));
+  const dec = new TextDecoder(); const tx = n => f[n] ? dec.decode(f[n]) : '';
+  const un = s => s.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&#x([0-9a-f]+);/gi, (m, c) => String.fromCharCode(parseInt(c, 16))).replace(/&#(\d+);/g, (m, c) => String.fromCharCode(+c)).replace(/&amp;/g, '&');
+  const sst = []; const ss = tx('xl/sharedStrings.xml').replace(/<rPh[\s\S]*?<\/rPh>/g, ''); const reSi = /<si>([\s\S]*?)<\/si>|<si\/>/g; let m;
+  while ((m = reSi.exec(ss))) { let t = ''; if (m[1]) { const reT = /<t(?:\s[^>]*)?>([\s\S]*?)<\/t>/g; let k; while ((k = reT.exec(m[1]))) t += k[1]; } sst.push(un(t)); }
+  const rels = {}; tx('xl/_rels/workbook.xml.rels').replace(/<Relationship\b[^>]*>/g, r => { const id = (r.match(/Id="([^"]+)"/) || [])[1], tg = (r.match(/Target="([^"]+)"/) || [])[1]; if (id && tg) rels[id] = tg.replace(/^\/?xl\//, '').replace(/^\//, ''); return r; });
+  const sheets = {}; const wbx = tx('xl/workbook.xml'); const reS = /<sheet\b[^>]*>/g; let sm;
+  const colN = s => { let n = 0; for (let i = 0; i < s.length; i++) n = n * 26 + s.charCodeAt(i) - 64; return n - 1; };
+  while ((sm = reS.exec(wbx))) {
+    const nm = un((sm[0].match(/name="([^"]*)"/) || [])[1] || 'Hoja'); const rid = (sm[0].match(/r:id="([^"]+)"/) || [])[1]; const path = 'xl/' + (rels[rid] || ''); const x = tx(path); if (!x) continue;
+    const aoa = []; const reR = /<row\b[^>]*>([\s\S]*?)<\/row>/g; let rm;
+    while ((rm = reR.exec(x))) {
+      const row = []; let any = false; const reC = /<c r="([A-Z]+)\d+"([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g; let cm;
+      while ((cm = reC.exec(rm[1]))) {
+        const at = cm[2], body = cm[3] || ''; const t = (at.match(/\bt="([^"]+)"/) || [])[1]; let v = null;
+        if (t === 'inlineStr') { const k = body.match(/<t(?:\s[^>]*)?>([\s\S]*?)<\/t>/); v = k ? un(k[1]) : null; }
+        else { const k = body.match(/<v>([\s\S]*?)<\/v>/); if (k) { if (t === 's') v = sst[+k[1]]; else if (t === 'str' || t === 'e') v = un(k[1]); else if (t === 'b') v = k[1] === '1'; else v = +k[1]; } }
+        if (v !== null && v !== '') { row[colN(cm[1])] = v; any = true; }
+      }
+      if (any) { for (let i = 0; i < row.length; i++) if (row[i] === undefined) row[i] = null; aoa.push(row); }
+    }
+    sheets[nm] = aoa;
+  }
+  return sheets;
+}
 
 /* ---------- Excel por pestaña ---------- */
 async function tabExcel(a, tab) {
@@ -5251,7 +5291,7 @@ function priceSummary(a) {
   const items = [];
   const auto = aggC(a, rows.filter(cg.auto), cg.sitio).sort((x, y) => y.lts - x.lts);
   auto.forEach(s => { const g = rows.filter(r => cg.auto(r) && cg.sitio(r) === s.n).sort((x, y) => x.fecha < y.fecha ? 1 : -1); items.push({ n: 'Autoconsumo ' + s.n.replace(/^AUTOCONSUMO /, ''), v: s.precio, last: g[0] ? div(cg.amt(g[0]), g[0].lts) : null, auto: 1 }); });
-  if (a === 'log') { const ext = rows.filter(r => !cg.auto(r)); if (ext.length) items.push({ n: 'Gasolineras externas', v: div(sum(ext, cg.amt), sum(ext, 'lts')) }); }
+  if (a === 'log') { const ext = rows.filter(r => !cg.auto(r) && r.fuente !== 'DESCUENTO'), dsc = rows.filter(r => r.fuente === 'DESCUENTO'); if (ext.length) items.push({ n: 'Gasolineras externas', v: div(sum(ext, cg.amt), sum(ext, 'lts')) }); if (dsc.length) items.push({ n: 'Externas con descuento', v: div(sum(dsc, cg.amt), sum(dsc, 'lts')) }); }
   else {
     const ext = rows.filter(r => !cg.auto(r));
     const d = ext.filter(r => combOf(r.movil) === 'DIESEL'), g = ext.filter(r => combOf(r.movil) === 'GASOLINA');
@@ -5446,7 +5486,7 @@ function pendCard(x, i) {
     const monthly = FP.MONTHLY[r.ds];
     let det = '';
     if (monthly) det = 'Periodo <select data-act="pper" data-i="' + i + '" data-j="' + j + '">' + monthOptions(r.period) + '</select>' + (r.period && arrFor(r.ds, r.period) ? ' <span class="warn">Ya existe información de ese mes: se reemplazará.</span>' : '') + (!r.period ? ' <span class="warn">No detecté el mes; elígelo.</span>' : '');
-    else det = Object.keys(r.byMonth).sort().map(p => perLabel(p) + ': <b>' + F.n0(r.byMonth[p].nuevos) + '</b> nuevos, ' + F.n0(r.byMonth[p].dup) + ' repetidos').join(' · ');
+    else det = Object.keys(r.byMonth).sort().map(p => perLabel(p) + ': <b>' + F.n0(r.byMonth[p].nuevos) + '</b> nuevos, ' + F.n0(r.byMonth[p].dup) + ' repetidos' + (r.byMonth[p].upd ? ', <b>' + F.n0(r.byMonth[p].upd) + '</b> con fuente actualizada' : '')).join(' · ');
     return '<div class="pend"><div><b>' + esc(x.file) + '</b><span class="tag">' + FP.LABEL[r.ds] + '</span><span class="muted">' + F.n0(r.rows.length) + ' registros</span></div><div class="pdet">' + det + (r.warn ? ' <span class="warn">' + esc(r.warn) + '</span>' : '') + '</div><button class="lnk" data-act="rmPend" data-i="' + i + '">Quitar</button></div>';
   }).join('');
 }
@@ -5454,10 +5494,10 @@ function dedupPlan(ds, rows) {
   const by = {}; for (const r of rows) (by[r.fecha.slice(0, 7)] = by[r.fecha.slice(0, 7)] || []).push(r);
   const plan = {};
   for (const p in by) {
-    const cnt = new Map(); for (const r of rowsOf(ds, p)) { const k = FP.rowKey(ds, r); cnt.set(k, (cnt.get(k) || 0) + 1); }
-    const nuevos = []; let dup = 0;
-    for (const r of by[p]) { const k = FP.rowKey(ds, r); const c = cnt.get(k) || 0; if (c > 0) { cnt.set(k, c - 1); dup++; } else nuevos.push(r); }
-    plan[p] = { nuevos: nuevos.length, dup, add: nuevos };
+    const base = rowsOf(ds, p).slice(); const cnt = new Map(); base.forEach((r, i) => { const k = FP.rowKey(ds, r); let l = cnt.get(k); if (!l) cnt.set(k, l = []); l.push(i); });
+    const nuevos = []; let dup = 0, upd = 0;
+    for (const r of by[p]) { const k = FP.rowKey(ds, r); const l = cnt.get(k); if (l && l.length) { const i = l.shift(); dup++; if (ds === 'log_cargas' && r.fuente && base[i].fuente !== r.fuente) { base[i] = Object.assign({}, base[i], { fuente: r.fuente }); upd++; } } else nuevos.push(r); }
+    plan[p] = { nuevos: nuevos.length, dup, add: nuevos, upd, base: upd ? base : null };
   }
   return plan;
 }
@@ -5467,12 +5507,13 @@ async function readFile(file, area) {
     let payload;
     if (/\.csv$/i.test(name)) { const buf = await file.arrayBuffer(); let txt = new TextDecoder('utf-8', { fatal: false }).decode(buf); if (txt.indexOf('\uFFFD') >= 0) txt = new TextDecoder('windows-1252').decode(buf); payload = { text: txt }; }
     else {
-      const XLSX = await loadXLSX(); const buf = await file.arrayBuffer();
-      const wb = XLSX.read(buf, { type: 'array', cellDates: true });
-      const sheets = {}; wb.SheetNames.forEach(sn => { sheets[sn] = XLSX.utils.sheet_to_json(wb.Sheets[sn], { header: 1, raw: true, defval: null, blankrows: false }); });
-      payload = { sheets };
+      const buf = await file.arrayBuffer(); let sheets = null, rdErr = null;
+      try { const XLSX = await loadXLSX(); const wb = XLSX.read(buf, { type: 'array', cellDates: true }); sheets = {}; wb.SheetNames.forEach(sn => { sheets[sn] = XLSX.utils.sheet_to_json(wb.Sheets[sn], { header: 1, raw: true, defval: null, blankrows: false }); }); } catch (e) { rdErr = e; console.warn('Lector principal', e); }
+      let o1 = sheets ? FP.parseFile(area, name, { sheets }) : null;
+      if (!o1 || o1.error) { try { const sh2 = await pxReadXlsx(buf); const o2 = FP.parseFile(area, name, { sheets: sh2 }); if (!o2.error || !o1) o1 = o2; } catch (e) { console.warn('Lector alterno', e); if (!o1) throw rdErr || e; } }
+      payload = { parsed: o1 };
     }
-    const out = FP.parseFile(area, name, payload);
+    const out = payload.parsed || FP.parseFile(area, name, payload);
     if (out.error) return { file: name, error: out.error };
     const bad = out.results.filter(r => !canUp(r.ds)); out.results = out.results.filter(r => canUp(r.ds));
     if (!out.results.length) return { file: name, error: 'Tu usuario no tiene permiso para cargar ' + bad.map(r => FP.LABEL[r.ds]).join(', ') + '.' };
@@ -5494,10 +5535,10 @@ async function saveAll() {
         } else {
           const plan = dedupPlan(r.ds, r.rows);
           for (const p in plan) {
-            if (!plan[p].add.length) continue;
-            const merged = rowsOf(r.ds, p).concat(plan[p].add).sort((u, v) => (u.fecha + (u.hora || '')) < (v.fecha + (v.hora || '')) ? -1 : 1);
+            if (!plan[p].add.length && !plan[p].upd) continue;
+            const merged = (plan[p].base || rowsOf(r.ds, p)).concat(plan[p].add).sort((u, v) => (u.fecha + (u.hora || '')) < (v.fecha + (v.hora || '')) ? -1 : 1);
             await savePeriod(r.ds, p, merged, { file: x.file });
-            await logUpload({ at: new Date().toISOString(), file: x.file, ds: r.ds, period: p, added: plan[p].add.length, dup: plan[p].dup, mode: 'suma' });
+            await logUpload({ at: new Date().toISOString(), file: x.file, ds: r.ds, period: p, added: plan[p].add.length, dup: plan[p].dup, upd: plan[p].upd || 0, mode: 'suma' });
           }
         }
         ok++;
