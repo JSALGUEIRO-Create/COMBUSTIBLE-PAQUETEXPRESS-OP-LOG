@@ -206,6 +206,36 @@ table.cov td{text-align:center}table.cov td:first-child{text-align:left;white-sp
 .upgrid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:14px 0 18px}
 .upcol{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--shadow)}
 .upcol h3{display:flex;align-items:center;gap:8px;margin-bottom:10px;color:var(--logc)}.upcol.ops h3{color:var(--opsc)}
+.fmbtn{background:linear-gradient(135deg,#F2A900,#ffc94d)!important;color:#0B2A5B!important;font-weight:800;letter-spacing:.04em;border:0!important}
+.fmbtn.on{box-shadow:0 0 0 2px #fff inset}
+.fm-q{font-size:20px;margin:6px 0 12px;color:var(--ink)}
+.fm-opts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:18px}
+.fm-opt{position:relative;text-align:left;border:2px solid var(--line);background:var(--surface);border-radius:16px;padding:0 0 14px;cursor:pointer;overflow:hidden;display:flex;flex-direction:column;gap:4px;color:var(--ink);font:inherit;transition:transform .15s,border-color .15s,box-shadow .15s}
+.fm-opt:hover{transform:translateY(-2px);border-color:var(--s1);box-shadow:0 10px 24px rgba(0,48,135,.12)}
+.fm-opt.on{border-color:#F2A900;box-shadow:0 0 0 3px rgba(242,169,0,.25)}
+.fm-opt .fm-ph{height:96px;background:linear-gradient(135deg,#003087,#0B2A5B);display:flex;align-items:center;justify-content:center;margin-bottom:6px}
+.fm-opt .fm-ph img{max-height:84px;max-width:85%;object-fit:contain}
+.fm-opt b{padding:0 14px;font-size:15px;color:var(--s1)}
+.fm-opt>span:not(.fm-ph){padding:0 14px;font-size:12.5px;color:var(--muted)}
+.fm-opt.soon{opacity:.72}.fm-opt.soon .fm-ph{filter:grayscale(.7)}
+.fm-opt i{position:absolute;top:10px;right:10px;font-style:normal;font-size:11px;font-weight:700;background:#F2A900;color:#0B2A5B;padding:3px 8px;border-radius:99px}
+.fm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:10px}
+.fmdrop{display:flex;align-items:center;gap:12px;border:2px dashed var(--line);border-radius:12px;padding:12px 14px;cursor:pointer;position:relative;transition:border-color .15s,background .15s}
+.fmdrop:hover{border-color:var(--s1);background:var(--surface2)}
+.fmdrop input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.fmdrop .fm-n{width:24px;height:24px;border-radius:50%;background:var(--s1);color:#fff;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;flex:none}
+.fmdrop .fm-ic{font-size:22px;flex:none}
+.fmdrop .fm-tx{display:flex;flex-direction:column;min-width:0}.fmdrop .fm-tx span{font-size:12px;color:var(--muted);overflow-wrap:anywhere}
+.fmdrop.ok{border-style:solid;border-color:#16a34a;background:rgba(22,163,74,.06)}.fmdrop.ok .fm-n{background:#16a34a}
+.fmdrop.err{border-style:solid;border-color:#dc2626;background:rgba(220,38,38,.06)}.fmdrop.err .fm-tx span{color:#dc2626}
+.fmdrop.busy{opacity:.6}
+.fm-act{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px}
+.fm-iva{font-size:13px;display:flex;align-items:center;gap:8px}.fm-iva select{padding:6px 8px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.fm-warn{margin:10px 0 0;padding:8px 12px;border-radius:10px;background:rgba(242,169,0,.14);font-size:13px}
+.fm-res{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:4px 0 14px}.fm-res h4,.card h4{margin:6px 0 8px;color:var(--s1)}
+.fm-iss{margin:0;padding-left:18px;font-size:13px;line-height:1.6}
+.fm-tag{font-size:10px;font-weight:700;background:#dbe7ff;color:#003087;padding:1px 6px;border-radius:99px}
+@media(max-width:900px){.fm-opts,.fm-res{grid-template-columns:1fr}}
 .drop{display:block;border:2px dashed var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px;cursor:pointer;position:relative;transition:border-color .15s,background .15s}
 .drop:hover{border-color:var(--s1);background:var(--surface2)}
 .drop.busy{opacity:.6}
@@ -806,6 +836,7 @@ html,body{overflow-x:clip}
   <nav class="topnav"><a href="#inicio">Inicio</a><a href="#logistica">Logística</a><a href="#operaciones">Operaciones</a><button class="e360btn" data-act="e360" title="Diagnóstico integral de combustible"><span class="e3w-ic">360°</span><span>Evaluación 360</span></button><button class="wabtn" data-act="wa" title="Generar mensaje para WhatsApp"><span class="wa-ic"><svg viewBox="0 0 32 32" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M16.04 3C9.4 3 4 8.36 4 14.97c0 2.11.56 4.17 1.62 5.99L4 29l8.27-1.58a12.1 12.1 0 0 0 3.77.6C22.66 28.02 28 22.66 28 16.05 28 9.42 22.66 3 16.04 3Zm0 22.86c-1.17 0-2.32-.19-3.41-.55l-.24-.08-4.9.94.96-4.72-.16-.25a9.87 9.87 0 0 1-1.52-5.23c0-5.47 4.47-9.92 9.27-9.92 5.5 0 9.81 4.45 9.81 9.99 0 5.46-4.4 9.82-9.81 9.82Zm5.4-7.36c-.3-.15-1.75-.86-2.02-.96-.27-.1-.47-.15-.67.15-.2.3-.77.96-.94 1.16-.17.2-.35.22-.64.07-.3-.15-1.25-.46-2.38-1.47-.88-.78-1.47-1.75-1.65-2.04-.17-.3-.02-.46.13-.6.13-.13.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.6-.92-2.2-.24-.57-.48-.5-.67-.5h-.57c-.2 0-.52.08-.79.37-.27.3-1.04 1.01-1.04 2.47 0 1.45 1.06 2.86 1.21 3.06.15.2 2.09 3.18 5.06 4.46.71.3 1.26.49 1.69.62.71.23 1.36.2 1.87.12.57-.08 1.75-.71 2-1.4.25-.7.25-1.29.17-1.41-.07-.12-.27-.2-.57-.35Z"/></svg></span><span>WhatsApp</span></button></nav>
   <div class="tright">
     <span id="userchip" class="userchip"></span><span id="dbdot" class="dbdot" title="Conectando…"></span>
+    <button class="ibtn fmbtn" id="fmbtn" data-act="route" data-to="formulador" style="display:none" title="Formulador de semáforos">🧪 FORMULADOR</button>
     <button class="ibtn" id="upbtn" data-act="route" data-to="cargar">⬆ Cargar archivos</button>
     <button class="ibtn" data-act="settings" title="Ajustes" aria-label="Ajustes"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg></button>
     <button class="ibtn" data-act="logout" title="Cerrar sesión" aria-label="Cerrar sesión">Salir</button>
@@ -4745,7 +4776,7 @@ const NV_IC = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" strok
 const NV_OFF = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor"/></svg>';
 function nvVoice() {
   const vs = (window.speechSynthesis && speechSynthesis.getVoices()) || []; const es = vs.filter(v => /^es/i.test(v.lang)); if (!es.length) return null;
-  const nice = v => /Natural|Neural|Online|Google|Paulina|Dalia|Jorge|Sabina|Raul|Raúl|Gerardo|Elvira|Alvaro|Álvaro/i.test(v.name) ? 1 : 0;
+  const nice = v => /Natural|Neural|Online/i.test(v.name) ? 2 : /Google|Paulina|Dalia|Jorge|Sabina|Raul|Raúl|Gerardo|Elvira|Alvaro|Álvaro/i.test(v.name) ? 1 : 0;
   const rk = v => (/es[-_]MX/i.test(v.lang) ? 40 : /es[-_](US|419)/i.test(v.lang) ? 30 : /es[-_]ES/i.test(v.lang) ? 10 : 20) + nice(v) * 25 + (/Jorge|Gerardo|Raul|Raúl|Alvaro|Álvaro/i.test(v.name) ? 5 : 0);
   return es.sort((a, b) => rk(b) - rk(a))[0];
 }
@@ -4753,6 +4784,7 @@ function nvTxt(t) {
   t = String(t || '').replace(/<[^>]+>/g, ' ').replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}️]/gu, ' ');
   t = t.replace(/\$\s?([\d,]+(?:\.\d+)?)\s?[kK]\b/g, (m, n) => n + ' mil pesos');
   t = t.replace(/\$\s?([\d,]+(?:\.\d+)?)\s?M\b/g, (m, n) => n + ' millones de pesos').replace(/\$\s?([\d,]+(?:\.\d+)?)\s?(?:K|mil)\b/g, (m, n) => n + ' mil pesos');
+  t = t.replace(/\$\s?0\.(\d{2})\b/g, (m, b) => (+b) + ' centavos');
   t = t.replace(/\$\s?(\d+)\.(\d{2})\s?\/\s?L\b/g, (m, a, b) => a + ' pesos con ' + (+b) + ' centavos por litro').replace(/\$\s?(\d+)\.(\d{2})\b/g, (m, a, b) => a + ' pesos con ' + (+b) + ' centavos');
   t = t.replace(/\$\s?([\d,]+)/g, '$1 pesos').replace(/km\s?\/\s?L/gi, ' kilómetros por litro').replace(/(\d)\s?L\b/g, '$1 litros').replace(/(\d)\s?km\b/gi, '$1 kilómetros');
   t = t.replace(/\bvs\.?\b/gi, 'contra').replace(/·/g, ', ').replace(/→/g, ' a ').replace(/▲/g, ' sube ').replace(/▼/g, ' baja ').replace(/\bLog(?![\wáéíóúñÁÉÍÓÚÑ])/g, 'Logística').replace(/\bOps(?![\wáéíóúñÁÉÍÓÚÑ])/g, 'Operaciones').replace(/360°/g, '360').replace(/\bS\/D\b/g, 'sin dato').replace(/\(EN CURSO\)/gi, ', mes en curso,');
@@ -4773,7 +4805,7 @@ function nvJingle(kind) {
   return new Promise(res => {
     try {
       const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return res(); const ac = NV.ac || (NV.ac = new AC()); if (ac.state === 'suspended') ac.resume();
-      const t0 = ac.currentTime + 0.05; const notes = kind === 'out' ? [784, 659, 523, 1047] : [523, 659, 784, 1047, 1319]; const g0 = ac.createGain(); g0.gain.value = 0.16; g0.connect(ac.destination);
+      const t0 = ac.currentTime + 0.05; const notes = kind === 'out' ? [784, 659, 523, 1047] : kind === 'good' ? [659, 880, 1319] : kind === 'bad' ? [440, 415, 440] : [523, 659, 784, 1047, 1319]; const g0 = ac.createGain(); g0.gain.value = 0.16; g0.connect(ac.destination);
       notes.forEach((f, i) => { const o = ac.createOscillator(), g = ac.createGain(); o.type = i === notes.length - 1 ? 'triangle' : 'square'; o.frequency.value = f; const st = t0 + i * 0.12, ln = i === notes.length - 1 ? 0.7 : 0.14; g.gain.setValueAtTime(0.0001, st); g.gain.exponentialRampToValueAtTime(i === notes.length - 1 ? 0.9 : 0.55, st + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, st + ln); o.connect(g); g.connect(g0); o.start(st); o.stop(st + ln + 0.05); });
       setTimeout(res, (notes.length * 0.12 + 0.75) * 1000);
     } catch (e) { res(); }
@@ -4796,18 +4828,39 @@ async function nvPlay() {
   const fecha = new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' });
   newsShow(0);
   await nvJingle('in'); if (!alive()) return;
-  await nvSay(sal + (nm ? ', ' + nm : '') + '! Está usted sintonizando El Diario del Litro de Paquetexpress, y aquí tiene lo más relevante de este ' + fecha + '. ¡Arrancamos!', { rate: 1.08, pitch: 1.18 }); if (!alive()) return;
-  const lead = ['Abrimos con la nota principal.', 'En otras noticias.', 'Seguimos con esto.', 'Atención, porque esto es importante.', 'Pasamos a otro tema.', 'Y ojo con esta.', 'Cambiamos de sección.', 'No se despegue, que hay más.', 'Vamos con la siguiente.', 'Y para cerrar el bloque.'];
+  await nvSay(sal + (nm ? ', ' + nm : '') + '! ¡Bienvenidos a El Diario del Litro de Paquetexpress! Les saluda su locutor, con todo lo más relevante de este ' + fecha + '. ¡Hay noticias importantes, así que súbanle el volumen y arrancamos!', { rate: 1.08, pitch: 1.18 }); if (!alive()) return;
+  const pick = (arr, i) => arr[(i * 7 + new Date().getDate()) % arr.length];
+  const L = {
+    good: ['¡Buenas noticias, señoras y señores!', '¡Y esta nota nos llena de orgullo!', '¡Noticia que hay que celebrar!', '¡Atención, que aquí viene una gran noticia!', '¡Esto es lo que nos gusta reportar!'],
+    bad: ['¡Atención, atención! Noticia que requiere toda su atención.', '¡Ojo aquí, equipo! Esta nota es importante.', '¡Alerta en la redacción! Pongan mucha atención.', '¡Aquí tenemos un foco rojo, compañeros!', '¡Nota de último momento que no podemos dejar pasar!'],
+    neu: ['Seguimos con la información.', '¡Y no se despegue, que hay más!', 'Vamos con el siguiente dato importante.', 'Pasamos a otra sección del Diario.', 'Y les informamos lo siguiente.']
+  };
+  const C = {
+    good: ['¡Excelente trabajo, equipo! Así se hace en Paquetexpress.', '¡Un fuerte aplauso para todos los que lo hicieron posible!', '¡Esto es trabajo de campeones! A seguir así.', '¡Felicidades! Cada litro bien cuidado se nota en los resultados.', '¡Bravo! Este es el nivel que nos distingue.'],
+    bad: ['Este es un punto al que debemos ponerle atención desde hoy. ¡Lo podemos corregir!', 'Equipo, aquí tenemos tarea, y estoy seguro de que la vamos a sacar adelante.', 'Hay que revisarlo a fondo y actuar rápido. ¡Cada litro cuenta!', 'No es para alarmarse, pero sí para actuar. ¡Manos a la obra!', 'Tomemos nota y vamos por la mejora el próximo mes.'],
+    neu: ['Un dato para tomar en cuenta.', 'Información clave para la operación.', '', 'Téngalo presente.', '']
+  };
+  const tone = s => { const c = String(s.c || '').toLowerCase(); const tx = (s.k || '') + ' ' + (s.t || '') + ' ' + (s.s || '');
+    if (/ff5d5d|ff6b6b|e5484d|ef4444/.test(c) || /frenan|cayó|cayo|foco|alertas de severidad|por revisar|más que el mes anterior|gastamos [\d.,]+% más|subió|empeor/i.test(tx)) return 'bad';
+    if (/^Así (van|se repartió)/i.test(String(s.t || ''))) return 'neu';
+    if (/22c58b|16a34a|2ecc71/.test(c) || /repunt|mejor|ejemplo a seguir|campe|menos que el mes anterior|sin alertas|más barato|se mantiene estable/i.test(tx)) return 'good';
+    return 'neu'; };
+  const pause = ms => new Promise(r => setTimeout(r, ms));
   for (let i = 0; i < ST.length; i++) {
-    if (!alive()) return; newsShow(i); const s = ST[i];
-    const ln = i === ST.length - 1 && ST.length > 1 ? 'Y la última nota del día.' : lead[i % lead.length];
+    if (!alive()) return; newsShow(i); const s = ST[i]; const tn = tone(s);
     const nt = isFinite(s.n) ? (s.pre || '') + Number(s.n).toLocaleString('es-MX', { maximumFractionDigits: s.dec || 0 }) + (s.suf || '') : '';
     const tt = /^[a-záéíóúñ]/.test(String(s.t || '')) && nt ? nt + ' ' + s.t : s.t;
-    await nvSay(ln + ' ' + (s.k ? String(s.k).toLowerCase() + ': ' : '') + tt + '. ' + (s.s || ''));
-    if (!alive()) return; await new Promise(r => setTimeout(r, 350));
+    const ln = i === 0 ? (tn === 'bad' ? '¡Abrimos con una nota que exige atención!' : tn === 'good' ? '¡Y abrimos con una gran noticia!' : '¡Abrimos con la nota principal!') : i === ST.length - 1 && ST.length > 1 ? (tn === 'bad' ? '¡Y cerramos con una nota importante!' : '¡Y para cerrar, la última nota del día!') : pick(L[tn], i);
+    const pr = tn === 'good' ? { rate: 1.1, pitch: 1.22 } : tn === 'bad' ? { rate: 1.0, pitch: 1.02 } : { rate: 1.06, pitch: 1.12 };
+    await nvJingle(tn === 'bad' ? 'bad' : 'good'); if (!alive()) return;
+    await nvSay(ln, { rate: pr.rate + 0.04, pitch: pr.pitch + 0.04 }); if (!alive()) return; await pause(250);
+    await nvSay((s.k ? String(s.k).toLowerCase() + '. ' : '') + tt + (tn === 'bad' ? '.' : '!'), pr); if (!alive()) return; await pause(200);
+    if (s.s) { await nvSay(s.s, { rate: pr.rate - 0.02, pitch: pr.pitch - 0.04 }); if (!alive()) return; }
+    const cm = pick(C[tn], i + 3); if (cm) { await pause(250); await nvSay(cm, { rate: pr.rate, pitch: pr.pitch + (tn === 'good' ? 0.04 : 0) }); }
+    if (!alive()) return; await pause(450);
   }
   if (!alive()) return;
-  await nvSay('Y eso es todo por ahora en El Diario del Litro. Recuerde: ¡cada litro cuenta! Le habló su locutor de Paquetexpress, ' + desp, { rate: 1.06, pitch: 1.18 }); if (!alive()) return;
+  await nvSay('¡Y eso es todo por hoy en El Diario del Litro! Gracias a cada operador, a cada sucursal y a cada persona que cuida el combustible: ese esfuerzo se ve en los números. Recuerde: ¡cada litro cuenta! Le habló su locutor de Paquetexpress, ' + desp, { rate: 1.07, pitch: 1.2 }); if (!alive()) return;
   await nvJingle('out');
   if (NV.run === run) nvStop();
 }
@@ -5609,6 +5662,360 @@ function openSettings() {
   void s;
 }
 
+/* ===================== FORMULADOR (solo usuario Jsalgueiro) ===================== */
+const FM = { tipo: null, files: {}, data: {}, res: null, iva: 1.16, busy: '' };
+const FM_MES = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
+const FM_SRC = [
+  { k: 'prev', ic: '🚦', t: 'Semáforo del mes anterior', d: 'Marca, modelo, norma, transmisión y su Combustible Final (pasa a Inicial)', acc: '.xlsx,.xls,.xlsm' },
+  { k: 'cargas', ic: '⛽', t: 'Cargas de combustible del mes', d: 'Define qué móviles van en el reporte · litros e importe', acc: '.xlsx,.xls,.xlsm,.csv' },
+  { k: 'viajes', ic: '🛣️', t: 'Viajes realizados', d: 'Ruta y segmento más recorridos · % en ruta · % full / sencillo', acc: '.csv,.xlsx,.xls' },
+  { k: 'samsara', ic: '📡', t: 'Reporte de Samsara', d: 'Kilometraje y, si trae combustible o eficiencia, el Rendimiento Samsara', acc: '.xlsx,.xls,.csv' },
+  { k: 'flota', ic: '🚛', t: 'Flota', d: 'Zona de circulación (Región) · datos de unidades nuevas', acc: '.xlsx,.xls,.xlsm' }
+];
+function fmAllowed() { return String(S.user_name || '').trim().toLowerCase() === 'jsalgueiro'; }
+const fmN = s => String(s === null || s === undefined ? '' : s).normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/[^A-Z0-9%$]/g, '');
+const fmT = v => v === null || v === undefined ? '' : String(v).replace(/\s+/g, ' ').trim();
+function fmNum(v) { if (v === null || v === undefined || v === '') return null; if (typeof v === 'number') return isFinite(v) ? v : null; let s = String(v).trim().replace(/[$\s]/g, ''); if (/^-?\d{1,3}(,\d{3})+(\.\d+)?$/.test(s)) s = s.replace(/,/g, ''); else if (/^-?\d+,\d+$/.test(s)) s = s.replace(',', '.'); const n = parseFloat(s); return isFinite(n) ? n : null; }
+function fmEco(v) {
+  const raw = String(v === null || v === undefined ? '' : v).trim().toUpperCase(); const pm = raw.match(/^M\s*-?\s*0*(\d{3,6})(?!\d)/); if (pm && raw.length > pm[0].length) return 'M' + pm[1].padStart(6, '0');
+  let s = raw.replace(/[\s\-_.]/g, '');
+  if (typeof v === 'number') s = String(Math.round(v));
+  let m = s.match(/^M0*(\d{1,6})$/); if (m) return 'M' + m[1].padStart(6, '0');
+  m = s.match(/^0*(\d{3,6})$/); if (m) return 'M' + m[1].padStart(6, '0');
+  return s;
+}
+function fmDate(v) {
+  if (v instanceof Date) return isNaN(v) ? null : v;
+  if (typeof v === 'number' && v > 20000 && v < 80000) return new Date(Math.round((v - 25569) * 864e5) + 12 * 36e5);
+  const s = String(v || '').trim(); let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/); if (m) return new Date(+m[1], m[2] - 1, +m[3]);
+  m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/); if (m) return new Date(m[3].length === 2 ? 2000 + +m[3] : +m[3], m[2] - 1, +m[1]);
+  return null;
+}
+function fmCSV(txt) {
+  txt = txt.replace(/^﻿/, ''); const first = txt.slice(0, txt.indexOf('\n') > 0 ? txt.indexOf('\n') : txt.length);
+  const dl = (first.match(/;/g) || []).length > (first.match(/,/g) || []).length ? ';' : (first.match(/\t/g) || []).length > (first.match(/,/g) || []).length ? '\t' : ',';
+  const out = []; let row = [], cur = '', q = false;
+  for (let i = 0; i < txt.length; i++) {
+    const c = txt[i];
+    if (q) { if (c === '"') { if (txt[i + 1] === '"') { cur += '"'; i++; } else q = false; } else cur += c; }
+    else if (c === '"') q = true; else if (c === dl) { row.push(cur); cur = ''; }
+    else if (c === '\n' || c === '\r') { if (c === '\r' && txt[i + 1] === '\n') i++; row.push(cur); cur = ''; if (row.some(x => x !== '')) out.push(row); row = []; }
+    else cur += c;
+  }
+  row.push(cur); if (row.some(x => x !== '')) out.push(row);
+  return out;
+}
+async function fmRead(file) {
+  const buf = await file.arrayBuffer();
+  if (/\.csv$/i.test(file.name) || /\.txt$/i.test(file.name)) { let t = new TextDecoder('utf-8').decode(buf); if (t.indexOf('�') >= 0) t = new TextDecoder('windows-1252').decode(buf); return { CSV: fmCSV(t) }; }
+  try { const XLSX = await loadXLSX(); const wb = XLSX.read(buf, { type: 'array', cellDates: true }); const sh = {}; wb.SheetNames.forEach(sn => { sh[sn] = XLSX.utils.sheet_to_json(wb.Sheets[sn], { header: 1, raw: true, defval: null, blankrows: true }); }); return sh; }
+  catch (e) { console.warn('Formulador: lector alterno', e); return await pxReadXlsx(buf); }
+}
+function fmHdr(aoa, need, lim) {
+  for (let i = 0; i < Math.min(aoa.length, lim || 40); i++) { const r = (aoa[i] || []).map(fmN); if (need.every(n => r.some(c => typeof n === 'string' ? c === n : n.test(c)))) return { row: i, cols: r }; }
+  return null;
+}
+const fmCol = (cols, ...ts) => { for (const t of ts) { const j = cols.findIndex(c => typeof t === 'string' ? c === t : t.test(c)); if (j >= 0) return j; } return -1; };
+
+// ---------- lectores de cada fuente ----------
+function fmParsePrev(sheets) {
+  const units = {}; let period = null; const order = { T: [], N: [], TORTON: [], KALMAR: [] };
+  for (const sn of Object.keys(sheets)) {
+    const nsn = fmN(sn); if (/ANALISIS|RUTAS|CARGAS|BITACORA/.test(nsn)) continue;
+    const aoa = sheets[sn]; let sec = -1, I = null;
+    const grp = /NOREPORTA/.test(nsn) ? 'N' : /TORTON|KALMAR|RABON/.test(nsn) ? 'TK' : 'T';
+    for (let i = 0; i < aoa.length; i++) {
+      const r = aoa[i] || []; const nr = r.map(fmN);
+      if (nr.some(c => c === 'ECONOMICO') && nr.some(c => /^MARCA/.test(c))) {
+        sec++; I = { eco: fmCol(nr, 'ECONOMICO'), marca: fmCol(nr, /^MARCA/), modelo: fmCol(nr, 'MODELO'), norma: fmCol(nr, 'NORMA'), trans: fmCol(nr, /^TRANSMISION/), fin: fmCol(nr, /^COMBUSTIBLEFINAL/), zona: fmCol(nr, /^ZONA/) };
+        if (!period) for (let k = 0; k < i && !period; k++) for (const c of (aoa[k] || [])) { const p = FP.periodFromText(c); if (p) { period = p; break; } }
+        if (!period) period = FP.periodFromText(sn);
+        continue;
+      }
+      if (!I) continue;
+      const eco = fmEco(r[I.eco]); if (!/^M\d{6}$/.test(eco) || units[eco]) continue;
+      const marca = fmT(r[I.marca]); if (!marca) continue;
+      const g = grp === 'TK' ? (/KALMAR/.test(nsn) && !/TORTON/.test(nsn) ? 'KALMAR' : sec >= 1 ? 'KALMAR' : 'TORTON') : grp;
+      units[eco] = { g, marca: marca, modelo: I.modelo >= 0 ? r[I.modelo] : null, norma: fmT(r[I.norma]), trans: fmT(r[I.trans]), fin: I.fin >= 0 ? fmNum(r[I.fin]) : null, zona: I.zona >= 0 ? fmT(r[I.zona]) : '' };
+      order[g].push(eco);
+    }
+  }
+  const n = Object.keys(units).length; if (!n) return { error: 'No encontré la tabla del semáforo (encabezados Economico / Marca Sub / Motor).' };
+  return { units, order, period, n, info: n + ' unidades' + (period ? ' · ' + perLabel(period) : '') };
+}
+function fmParseCargas(sheets) {
+  for (const sn of Object.keys(sheets)) {
+    const aoa = sheets[sn]; const h = fmHdr(aoa, ['MOVIL', 'LITROS']); if (!h) continue;
+    const C = h.cols; const I = { f: fmCol(C, 'FECHA', /^FECHA/), m: fmCol(C, 'MOVIL'), l: fmCol(C, 'LITROS'), sin: fmCol(C, 'TOTALSINIVA', 'IMPORTESINIVA', 'SUBTOTAL'), t: fmCol(C, 'TOTAL', 'IMPORTE', 'TOTALCONIVA'), fu: fmCol(C, /^FUENTE/) };
+    if (I.m < 0 || I.l < 0 || (I.t < 0 && I.sin < 0)) continue;
+    const agg = {}; const mc = {}; let n = 0;
+    for (let i = h.row + 1; i < aoa.length; i++) {
+      const r = aoa[i]; if (!r) continue; const eco = fmEco(r[I.m]); if (!eco || !/^M/.test(eco)) continue;
+      const l = fmNum(r[I.l]) || 0; const sin = I.sin >= 0 ? fmNum(r[I.sin]) : null; const tot = I.t >= 0 ? fmNum(r[I.t]) : null;
+      if (!l && !tot && !sin) continue;
+      const a = agg[eco] || (agg[eco] = { l: 0, t: 0, sin: 0, n: 0 }); a.l += l; a.t += tot || 0; a.sin += sin || 0; a.n++; n++;
+      const d = I.f >= 0 ? fmDate(r[I.f]) : null; if (d) { const k = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); mc[k] = (mc[k] || 0) + 1; }
+    }
+    if (!n) continue;
+    const period = Object.keys(mc).sort((a, b) => mc[b] - mc[a])[0] || null;
+    return { agg, period, n, hasSin: I.sin >= 0, months: Object.keys(mc).sort(), info: F.n0(n) + ' cargas · ' + Object.keys(agg).length + ' móviles' + (period ? ' · ' + perLabel(period) : '') };
+  }
+  return { error: 'No encontré las columnas MOVIL, LITROS y TOTAL.' };
+}
+function fmParseViajes(sheets) {
+  for (const sn of Object.keys(sheets)) {
+    const aoa = sheets[sn]; const h = fmHdr(aoa, ['MOVIL', 'SEGMENTO']); if (!h) continue;
+    const C = h.cols; const I = { m: fmCol(C, 'MOVIL'), ru: fmCol(C, 'RUTA2', 'RUTA', /^RUTA/), s: fmCol(C, 'SEGMENTO'), c1: fmCol(C, 'CAJA1'), c2: fmCol(C, 'CAJA2'), mo: fmCol(C, 'MODALIDAD'), b: fmCol(C, 'BITACORA') };
+    const U = {}; let n = 0;
+    for (let i = h.row + 1; i < aoa.length; i++) {
+      const r = aoa[i]; if (!r) continue; const eco = fmEco(r[I.m]); if (!eco) continue;
+      const u = U[eco] || (U[eco] = { n: 0, ru: {}, sg: {}, full: 0, senc: 0, bit: {} }); u.n++; n++;
+      const ru = fmT(r[I.ru]); if (ru) u.ru[ru] = (u.ru[ru] || 0) + 1;
+      const sg = fmT(r[I.s]); if (sg) { const k = sg + '\u0001' + ru; u.sg[k] = (u.sg[k] || 0) + 1; }
+      if (I.b >= 0 && r[I.b]) u.bit[r[I.b]] = 1;
+      const cj = (I.c1 >= 0 && fmT(r[I.c1]) ? 1 : 0) + (I.c2 >= 0 && fmT(r[I.c2]) ? 1 : 0);
+      if (cj === 2) u.full++; else if (cj === 1) u.senc++;
+      else { const mo = fmN(r[I.mo]); if (mo === 'FULL') u.full++; else if (mo === 'SENCILLO') u.senc++; }
+    }
+    if (!n) continue;
+    return { U, n, info: F.n0(n) + ' tramos · ' + Object.keys(U).length + ' móviles' };
+  }
+  return { error: 'No encontré las columnas Movil y Segmento.' };
+}
+function fmParseSamsara(sheets) {
+  for (const sn of Object.keys(sheets)) {
+    const aoa = sheets[sn]; const h = fmHdr(aoa, [/^NOMBREDELVEHICULO|^VEHICULO$|^NOMBRE$/, /^DISTANCIA/]); if (!h) continue;
+    const C = h.cols; const iN = fmCol(C, /^NOMBREDELVEHICULO/, 'VEHICULO', 'NOMBRE'), iD = fmCol(C, /^DISTANCIA/);
+    const iE = C.findIndex(c => /RENDIMIENTO|EFICIENCIA|KML|KMPORLITRO|KMLITRO|KMXL/.test(c) && !/VARIACION|DIFERENCIA|OBJETIVO|IDEAL/.test(c));
+    const l100 = iE >= 0 && /L100|LITROSPOR100|LPOR100/.test(C[iE]);
+    const iF = C.findIndex(c => /COMBUSTIBLE|LITROS|CONSUMO|FUEL/.test(c) && !/TIEMPO|RALENTI|INACTIV|EFICIENCIA|RENDIMIENTO|COSTO|PRECIO|KML|L100/.test(c));
+    const km = {}, eff = {}, fuel = {}, note = {}; let n = 0;
+    for (let i = h.row + 1; i < aoa.length; i++) {
+      const r = aoa[i]; if (!r) continue; const eco = fmEco(r[iN]); const d = fmNum(r[iD]); if (!eco || d === null) continue; km[eco] = (km[eco] || 0) + d; n++;
+      const sfx = fmT(r[iN]).replace(/^M\s*-?\s*\d+\s*[-–:]?\s*/i, ''); if (sfx && /^M\s*-?\s*\d/i.test(fmT(r[iN]))) note[eco] = sfx;
+      if (iF >= 0) { const f = fmNum(r[iF]); if (f) fuel[eco] = (fuel[eco] || 0) + f; }
+      if (iE >= 0) { let e = fmNum(r[iE]); if (e && l100) e = 100 / e; if (e && e > 0 && e < 50) eff[eco] = e; }
+    }
+    if (!n) continue;
+    const rendS = {}; for (const e in km) { if (eff[e]) rendS[e] = eff[e]; else if (iE < 0 && fuel[e] > 0 && km[e] > 0) rendS[e] = km[e] / fuel[e]; }
+    const nr = Object.keys(rendS).length;
+    return { km, rendS, note, n, nRend: nr, info: F.n0(n) + ' vehículos · ' + (nr ? 'rendimiento Samsara de ' + F.n0(nr) + ' (' + (iE >= 0 ? fmT(aoa[h.row][iE]) : 'km ÷ ' + fmT(aoa[h.row][iF])) + ')' : '⚠ este reporte no trae combustible ni rendimiento: solo km') };
+  }
+  return { error: 'No encontré las columnas “Nombre del vehículo” y “Distancia (km)”.' };
+}
+function fmParseFlota(sheets) {
+  const names = Object.keys(sheets).sort((a, b) => (/FLOTA/.test(fmN(b)) ? 1 : 0) - (/FLOTA/.test(fmN(a)) ? 1 : 0));
+  for (const sn of names) {
+    const aoa = sheets[sn]; const h = fmHdr(aoa, ['ECONOMICO', /^REGION/], 5); if (!h) continue;
+    const C = h.cols; const I = { e: fmCol(C, 'ECONOMICO'), v: fmCol(C, 'VEHICULO'), ma: fmCol(C, 'MARCA'), mo: fmCol(C, 'MODELO'), mt: fmCol(C, 'MOTOR'), tr: fmCol(C, /^CAJADEVELOCIDADES/, /^TRANSMISION/), rg: fmCol(C, /^REGION/), cl: fmCol(C, /^CLASIFICACION/), es: fmCol(C, 'ESTADO') };
+    const U = {}; let n = 0;
+    for (let i = h.row + 1; i < aoa.length; i++) {
+      const r = aoa[i]; if (!r) continue; const eco = fmEco(r[I.e]); if (!eco) continue;
+      U[eco] = { veh: fmT(r[I.v]).toUpperCase(), marca: fmT(r[I.ma]), modelo: r[I.mo], motor: fmT(r[I.mt]), trans: fmT(r[I.tr]), region: fmT(r[I.rg]).toUpperCase(), clas: fmT(r[I.cl]).toUpperCase() }; n++;
+    }
+    if (!n) continue;
+    return { U, n, sheet: sn, info: F.n0(n) + ' unidades · hoja “' + sn + '”' };
+  }
+  return { error: 'No encontré la hoja de flota (columnas Economico y Región).' };
+}
+const FM_PARSE = { prev: fmParsePrev, cargas: fmParseCargas, viajes: fmParseViajes, samsara: fmParseSamsara, flota: fmParseFlota };
+
+// ---------- historial del portal (marca, modelo, norma y transmisión de meses previos) ----------
+function fmHist() {
+  const H = {}; let ps = []; try { ps = periodsOf('log_rend').slice().sort().reverse(); } catch (e) { }
+  for (const p of ps) { let rows = []; try { rows = rowsOf('log_rend', p) || []; } catch (e) { } for (const r of rows) { const k = fmEco(r.eco); if (!H[k] && r.marca) H[k] = { marca: r.marca, modelo: r.modelo, norma: r.norma, trans: r.trans, zona: r.zona, p }; } }
+  return H;
+}
+const fmMode = o => { let b = null, bv = -1; for (const k in o) if (o[k] > bv) { bv = o[k]; b = k; } return b; };
+const fmMonthName = p => { const [y, m] = p.split('-'); return FM_MES[+m - 1] + ' ' + y; };
+
+// ---------- cálculo del semáforo de Logística ----------
+function fmCalcLog() {
+  const D = FM.data; const P = D.prev, CG = D.cargas, V = D.viajes, SM = D.samsara, FL = D.flota;
+  const iva = +FM.iva || 1.16; const H = fmHist();
+  const period = CG.period; const prevP = P.period;
+  const rows = []; const issues = [];
+  const ecos = Object.keys(CG.agg);
+  for (const eco of ecos) {
+    const c = CG.agg[eco]; const p = P.units[eco]; const h = H[eco]; const f = FL.U[eco]; const v = V.U[eco]; const km = SM.km[eco];
+    const nota = [];
+    let g = p ? p.g : f && /RABON|TORTON/.test(f.veh) ? 'TORTON' : f && f.clas === 'DC' ? 'KALMAR' : 'T';
+    const src = p ? 'prev' : h ? 'hist' : f ? 'flota' : 'none';
+    const tr = s => /AUTOM/i.test(s) ? 'automatica' : /MANUAL|STD|ESTANDAR/i.test(s) ? 'manual' : fmT(s).toLowerCase();
+    const marca = p ? p.marca : h ? h.marca : f ? fmT((f.marca || '') + ' ' + (f.motor || '')) : '';
+    const modelo = p && p.modelo !== null && p.modelo !== '' ? p.modelo : h && h.modelo ? h.modelo : f ? f.modelo : null;
+    const norma = p && p.norma ? p.norma : h && h.norma ? h.norma : '';
+    const trans = p && p.trans ? p.trans : h && h.trans ? h.trans : f ? tr(f.trans) : '';
+    if (!p) nota.push(h ? 'No estaba en el semáforo anterior: datos de la unidad tomados del portal (' + perLabel(h.p) + ')' : f ? 'Unidad nueva: marca, modelo y transmisión tomados de Flota (falta Norma)' : 'Unidad nueva sin datos: capturar marca, modelo, norma y transmisión (sin marca el portal no la toma al cargar)');
+    let ruta = '', seg = '', pctRuta = null, full = null, senc = null;
+    if (v && v.n) {
+      ruta = fmMode(v.ru) || ''; pctRuta = ruta ? v.ru[ruta] / v.n : null;
+      let best = null, bv = -1; for (const k in v.sg) { const [s, r] = k.split('\u0001'); const cnt = v.sg[k]; if (cnt > bv || (cnt === bv && r === ruta)) { bv = cnt; best = s; } } seg = best || '';
+      const t = v.full + v.senc; if (t) { full = v.full / t; senc = v.senc / t; }
+    } else nota.push('Sin viajes realizados en el mes (segmento, ruta y % full/sencillo vacíos)');
+    let zona = f && f.region ? f.region : '';
+    if (!zona) { zona = (p && p.zona) || (h && h.zona) || ''; nota.push(f ? 'Sin Región en Flota' + (zona ? ': se dejó la zona anterior' : '') : 'No está en el archivo de Flota' + (zona ? ': se dejó la zona anterior' : '')); }
+    if (km === undefined) nota.push('Sin kilometraje en Samsara (capturar)');
+    else if (km <= 0) nota.push('Samsara reporta 0 km');
+    const imp = CG.hasSin && c.sin ? c.sin : c.t / iva;
+    const ini = p && p.fin !== null && p.fin !== undefined ? p.fin : 0;
+    if (p && (p.fin === null || p.fin === undefined)) nota.push('El semáforo anterior no tenía Combustible Final: Inicial = 0');
+    const rendS = SM.rendS && SM.rendS[eco] ? SM.rendS[eco] : null; if (SM.nRend && km !== undefined && !rendS) nota.push('Samsara sin rendimiento para este móvil (capturar)'); if (SM.note && SM.note[eco]) nota.push('Samsara: ' + SM.note[eco]);
+    rows.push({ eco, g, src, marca, modelo, norma, trans, seg, ruta, pctRuta, zona, full, senc, km: km === undefined ? null : km, imp, lts: c.l, ini, rendS, nota });
+    if (nota.length) issues.push({ eco, g, txt: nota.join(' · ') });
+  }
+  const notIn = Object.keys(P.units).filter(e => !CG.agg[e]);
+  const grpRows = {};
+  ['T', 'N', 'TORTON', 'KALMAR'].forEach(g => {
+    const ord = P.order[g] || []; const pos = {}; ord.forEach((e, i) => pos[e] = i);
+    grpRows[g] = rows.filter(r => r.g === g).sort((a, b) => (pos[a.eco] !== undefined ? pos[a.eco] : 1e6) - (pos[b.eco] !== undefined ? pos[b.eco] : 1e6) || (a.eco < b.eco ? -1 : 1));
+  });
+  const tot = rs => { const o = { n: rs.length, km: 0, imp: 0, lts: 0, cons: 0 }; rs.forEach(r => { o.km += r.km || 0; o.imp += r.imp; o.lts += r.lts; o.cons += r.ini + r.lts; }); o.rend = o.cons ? o.km / o.cons : null; return o; };
+  const T = {}; for (const g in grpRows) T[g] = tot(grpRows[g]); T.ALL = tot(rows);
+  return { period, prevP, rows, grp: grpRows, T, issues, notIn, iva, hasSin: CG.hasSin, nNew: rows.filter(r => r.src !== 'prev').length };
+}
+
+// ---------- Excel del semáforo (mismo formato que el mes anterior) ----------
+function fmPack(title, all, ST) {
+  const files = []; const ct = [];
+  all.forEach((W, i) => { files.push(['xl/worksheets/sheet' + (i + 1) + '.xml', W.xml()]); ct.push('<Override PartName="/xl/worksheets/sheet' + (i + 1) + '.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'); });
+  const dn = []; all.forEach((W, i) => { if (W.filter) dn.push('<definedName name="_xlnm._FilterDatabase" localSheetId="' + i + '" hidden="1">\'' + PXL.esc(W.name.replace(/'/g, "''")) + '\'!' + W.filter.replace(/([A-Z]+)(\d+):([A-Z]+)(\d+)/, '$$$1$$$2:$$$3$$$4') + '</definedName>'); });
+  files.push(['xl/workbook.xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><bookViews><workbookView activeTab="0"/></bookViews><sheets>' + all.map((W, i) => '<sheet name="' + PXL.esc(W.name) + '" sheetId="' + (i + 1) + '" r:id="rId' + (i + 1) + '"/>').join('') + '</sheets>' + (dn.length ? '<definedNames>' + dn.join('') + '</definedNames>' : '') + '<calcPr calcId="191029" fullCalcOnLoad="1"/></workbook>']);
+  files.push(['xl/_rels/workbook.xml.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' + all.map((W, i) => '<Relationship Id="rId' + (i + 1) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet' + (i + 1) + '.xml"/>').join('') + '<Relationship Id="rIdSt" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>']);
+  files.push(['xl/styles.xml', ST.xml()]);
+  const iso = new Date().toISOString().replace(/\.\d+Z$/, 'Z');
+  files.push(['docProps/core.xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dc:title>' + PXL.esc(title) + '</dc:title><dc:creator>Formulador · Portal de Combustible Paquetexpress</dc:creator><dcterms:created xsi:type="dcterms:W3CDTF">' + iso + '</dcterms:created><dcterms:modified xsi:type="dcterms:W3CDTF">' + iso + '</dcterms:modified></cp:coreProperties>']);
+  files.push(['docProps/app.xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties"><Application>Microsoft Excel</Application><Company>Paquetexpress</Company></Properties>']);
+  files.push(['_rels/.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docProps/app.xml"/></Relationships>']);
+  files.unshift(['[Content_Types].xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/><Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/><Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/>' + ct.join('') + '</Types>']);
+  return pxZip(files);
+}
+const FM_HEAD = ['Economico', 'Marca Sub / Motor', 'Modelo', 'Norma', 'Transmision', 'Segmento', 'Ruta', '% en Ruta', 'Zona Circulación', '% Full', '% Sencillo', 'Kilometraje Recorridos', 'Importe en pesos diesel', 'Precio Diesel', 'Combustible Incial (LTS)', 'Combustible Cargado', 'Combustible Consumido (LTS)', 'Combustible Final (LTS)', 'Rendimiento Mes Actual', 'Rendimiento Samsara Mes Actual', 'Variación de Rendimiento Samsara / Rendimiento Actual', 'Consumo Urea', '% de Urea', '$ Urea', 'Observaciones Bajo Rendimiento', 'Observaciones Diferencia Rendimiento Samsara'];
+const FM_MANUAL = { 18: 1, 22: 1, 23: 1, 24: 1, 25: 1, 26: 1 };
+async function fmBuildLog(R) {
+  const ST = pxStyles(); const mes = fmMonthName(R.period); const mesU = mes.replace(' ', '-');
+  const bd = { b: 'thin', t: 'thin', l: 'thin', r: 'thin', c: 'FFD9E1EC' };
+  const sx = {
+    title: ST.get({ font: { b: 1, sz: 16, color: PXL.NAVY } }),
+    sub: ST.get({ font: { i: 1, sz: 9, color: PXL.MUTED } }),
+    hd: ST.get({ font: { b: 1, sz: 10, color: PXL.WHITE }, fill: PXL.NAVY, align: { h: 'center', wrap: 1 }, border: { b: 'thin', t: 'thin', l: 'thin', r: 'thin', c: 'FF0B2A5B' } }),
+    hdM: ST.get({ font: { b: 1, sz: 10, color: PXL.NAVY2 }, fill: PXL.GOLD, align: { h: 'center', wrap: 1 }, border: { b: 'thin', t: 'thin', l: 'thin', r: 'thin', c: 'FF0B2A5B' } }),
+    lab: ST.get({ font: { b: 1, sz: 10, color: PXL.NAVY }, align: { h: 'right' } }),
+    tl: ST.get({ font: { b: 1, sz: 9, color: PXL.WHITE }, fill: PXL.NAVY2, align: { h: 'center', wrap: 1 } })
+  };
+  const cache = {};
+  const st = (k, man, flag) => { const key = k + (man ? 'm' : '') + (flag || ''); if (cache[key] !== undefined) return cache[key]; const base = { font: { sz: 10 }, border: bd }; const fm = { txt: null, int: '0', pct: '0%', pct2: '0.0%;[Red]-0.0%', num: '#,##0.00', money: '_-"$"* #,##0.00_-;\\-"$"* #,##0.00_-;_-"$"* "-"??_-;_-@_-', eco: null }[k]; if (fm) base.fmt = fm; if (k === 'eco') base.font = { b: 1, sz: 10, color: PXL.NAVY }; if (man) base.fill = 'FFFFF8DC'; if (flag === 'new') base.fill = 'FFE3EEFF'; if (flag === 'fl') base.fill = 'FFFFE9D6'; return cache[key] = ST.get(base); };
+  const tot = { km: ST.get({ font: { b: 1 }, fmt: '#,##0.00', border: { t: 'medium', tc: PXL.NAVY } }), money: ST.get({ font: { b: 1 }, fmt: '"$"#,##0.00', border: { t: 'medium', tc: PXL.NAVY } }), num: ST.get({ font: { b: 1 }, fmt: '#,##0.00', border: { t: 'medium', tc: PXL.NAVY } }), rend: ST.get({ font: { b: 1, color: PXL.NAVY }, fmt: '0.00', border: { t: 'medium', tc: PXL.NAVY } }) };
+  const red = ST.dxf('FFFFC7CE', 'FF9C0006'), green = ST.dxf('FFC6EFCE', 'FF006100');
+  const widths = { 0: 2, 1: 12, 2: 44, 3: 8, 4: 10, 5: 12, 6: 15, 7: 9, 8: 9, 9: 14, 10: 8, 11: 9, 12: 14, 13: 17, 14: 12, 15: 12, 16: 13, 17: 14, 18: 13, 19: 12, 20: 13, 21: 15, 22: 11, 23: 9, 24: 11, 25: 30, 26: 30 };
+  const header = (W, r) => { FM_HEAD.forEach((t, j) => W.set(r, j + 1, t, FM_MANUAL[j + 1] ? sx.hdM : sx.hd)); W.heights[r] = 48; };
+  const dataRow = (W, r, x) => {
+    const R1 = r + 1; const fl = x.src === 'flota' || x.src === 'none' ? 'fl' : null;
+    W.set(r, 1, x.eco, st('eco', 0, x.src !== 'prev' ? 'new' : null));
+    W.set(r, 2, x.marca, st('txt', 0, fl)); W.set(r, 3, typeof x.modelo === 'number' ? x.modelo : (fmNum(x.modelo) !== null && /^\d{4}$/.test(fmT(x.modelo)) ? +fmT(x.modelo) : fmT(x.modelo)), st('int', 0, fl)); W.set(r, 4, x.norma, st('txt', 0, fl)); W.set(r, 5, x.trans, st('txt', 0, fl));
+    W.set(r, 6, x.seg, st('txt')); W.set(r, 7, x.ruta, st('txt')); W.set(r, 8, x.pctRuta, st('pct')); W.set(r, 9, x.zona, st('txt'));
+    W.set(r, 10, x.full, st('pct')); W.set(r, 11, x.senc, st('pct'));
+    W.set(r, 12, x.km, st('num', x.km === null)); W.set(r, 13, x.imp, st('money'));
+    W.set(r, 14, x.lts ? x.imp / x.lts : null, st('money'), 'IF(Q' + R1 + '>0,N' + R1 + '/Q' + R1 + ',"")');
+    W.set(r, 15, x.ini, st('num')); W.set(r, 16, x.lts, st('num'));
+    W.set(r, 17, x.ini + x.lts, st('num'), 'P' + R1 + '+Q' + R1 + '-S' + R1);
+    W.set(r, 18, null, st('num', 1));
+    const cons = x.ini + x.lts; W.set(r, 19, x.km !== null && cons > 0 ? x.km / cons : '', st('num'), 'IF(OR(M' + R1 + '="",R' + R1 + '<=0),"",M' + R1 + '/R' + R1 + ')');
+    W.set(r, 20, x.rendS, st('num', x.rendS === null));
+    const rm = x.km !== null && cons > 0 ? x.km / cons : null; W.set(r, 21, rm && x.rendS ? x.rendS / rm - 1 : '', st('pct2'), 'IF(OR(T' + R1 + '="",U' + R1 + '=""),"",U' + R1 + '/T' + R1 + '-1)');
+    for (let j = 22; j <= 26; j++) W.set(r, j, null, st(j === 22 ? 'num' : j === 23 ? 'pct' : j === 24 ? 'money' : 'txt', 1));
+  };
+  const cf = (W, r1, r2) => { if (r2 < r1) return; const sq = 'T' + (r1 + 1) + ':U' + (r2 + 1); W.cf.push('<conditionalFormatting sqref="' + sq + '"><cfRule type="expression" dxfId="' + red + '" priority="' + (W.cf.length * 2 + 1) + '"><formula>AND(ISNUMBER(T' + (r1 + 1) + '),T' + (r1 + 1) + '&lt;2)</formula></cfRule><cfRule type="expression" dxfId="' + green + '" priority="' + (W.cf.length * 2 + 2) + '"><formula>AND(ISNUMBER(T' + (r1 + 1) + '),T' + (r1 + 1) + '&gt;=2)</formula></cfRule></conditionalFormatting>'); };
+  const totRow = (W, r, r1, r2, sheetRef, label) => {
+    const rg = c => c + (r1 + 1) + ':' + c + (r2 + 1); const t = R._t;
+    if (label) W.set(r, 11, label, sx.lab);
+    W.set(r, 12, t.km, tot.km, 'SUM(' + rg('M') + ')'); W.set(r, 13, t.imp, tot.money, 'SUM(' + rg('N') + ')');
+    W.set(r, 16, t.lts, tot.num, 'SUM(' + rg('Q') + ')'); W.set(r, 17, t.cons, tot.num, 'SUM(' + rg('R') + ')');
+    W.set(r, 19, t.rend === null ? '' : t.rend, tot.rend, 'IFERROR(M' + (r + 1) + '/R' + (r + 1) + ',"")');
+    W.set(r, 20, '', tot.rend, 'IFERROR(SUMPRODUCT((' + rg('U') + '>0)*' + rg('M') + ')/SUMPRODUCT((' + rg('U') + '>0)*' + rg('M') + '/(' + rg('U') + '+(' + rg('U') + '=0))),"")');
+  };
+  const setup = (W, freeze) => { Object.assign(W.cols, widths); W.freeze = freeze; W.tab = PXL.NAVY; };
+  // --- una sola hoja con todas las unidades (la separación No reporta / Torton / Kalmar la hace el usuario)
+  const sheets = [];
+  const W1 = pxSheet('TRACTOS ' + mesU); W1.first = true; setup(W1, 2); sheets.push(W1);
+  W1.set(0, 1, mes, sx.title); W1.set(0, 6, 'Formulado en el portal el ' + new Date().toLocaleDateString('es-MX') + ' · Columnas doradas = captura manual (Combustible Final, urea y observaciones). Rendimiento Samsara viene del reporte de Samsara; Variación = Samsara ÷ Manual − 1. Azul = unidad nueva · naranja = dato tomado de Flota.', sx.sub); W1.heights[0] = 26;
+  header(W1, 1);
+  const ALL = ['T', 'N', 'TORTON', 'KALMAR'].reduce((a, g) => a.concat(R.grp[g].filter(x => x.src === 'prev')), []).concat(R.rows.filter(x => x.src !== 'prev').sort((a, b) => a.eco < b.eco ? -1 : 1));
+  ALL.forEach((x, i) => dataRow(W1, 2 + i, x));
+  const e1 = 1 + ALL.length; W1.filter = 'A2:AA' + (e1 + 1); cf(W1, 2, e1);
+  let r = e1 + 3; ['KM RECORRIDOS', 'GASTO EN COMBUSTIBLE', 'LITROS CARGADOS', 'LITROS CONSUMIDOS', 'RENDIMIENTO MANUAL', 'RENDIMIENTO SAMSARA'].forEach((t, j) => W1.set(r, [12, 13, 16, 17, 19, 20][j], t, sx.tl)); W1.heights[r] = 30;
+  r += 2; R._t = R.T.ALL; totRow(W1, r, 2, Math.max(2, e1), null, 'TOTAL');
+  // bitácora del formulador
+  const W4 = pxSheet('BITACORA FORMULADOR'); W4.tab = PXL.GOLD; W4.cols = { 0: 2, 1: 13, 2: 16, 3: 110 };
+  W4.set(0, 1, 'Bitácora del Formulador · ' + mes, sx.title); W4.heights[0] = 26;
+  const lines = [
+    ['Base', 'Semáforo anterior', (R.prevP ? perLabel(R.prevP) : 'sin periodo') + ' · ' + FM.files.prev],
+    ['Fuente', 'Cargas', FM.files.cargas + ' · ' + FM.data.cargas.info],
+    ['Fuente', 'Viajes', FM.files.viajes + ' · ' + FM.data.viajes.info],
+    ['Fuente', 'Samsara', FM.files.samsara + ' · ' + FM.data.samsara.info],
+    ['Fuente', 'Flota', FM.files.flota + ' · ' + FM.data.flota.info],
+    ['Regla', 'Importe', R.hasSin ? 'Se usó la columna sin IVA del archivo de cargas' : 'Importe sin IVA = TOTAL ÷ ' + R.iva],
+    ['Regla', '% Full / Sencillo', 'Por tramo de viaje: 2 remolques = full, 1 remolque = sencillo (sin remolques: se usa la Modalidad)'],
+    ['Regla', 'Ruta / Segmento', 'La ruta y el segmento que más tramos recorrió el móvil · % en ruta = tramos de esa ruta ÷ tramos del mes'],
+    ['Regla', 'Combustible', 'Inicial = Final del semáforo anterior · Consumido = Inicial + Cargado − Final · Rendimiento = Km ÷ Consumido'],
+    ['Regla', 'Rendimiento Samsara', FM.data.samsara.nRend ? 'Del reporte de Samsara: Eficiencia (km/L); kilometraje = Distancia (km) · Variación = Rend. Samsara ÷ Rend. Manual − 1 (se recalcula al capturar el Combustible Final)' : 'El reporte de Samsara cargado no traía combustible ni eficiencia: capturar a mano']
+  ];
+  const sxk = ST.get({ font: { b: 1, color: PXL.NAVY }, border: bd }), sxv = ST.get({ border: bd, align: { wrap: 1 } });
+  lines.forEach((l, i) => { W4.set(2 + i, 1, l[0], sxk); W4.set(2 + i, 2, l[1], sxk); W4.set(2 + i, 3, l[2], sxv); });
+  let b = 3 + lines.length; W4.set(b, 1, 'Económico', sx.hd); W4.set(b, 2, 'Tipo', sx.hd); W4.set(b, 3, 'Observación del formulador', sx.hd);
+  const gl = { T: 'TRACTO', N: 'NO REPORTA (ant.)', TORTON: 'TORTON', KALMAR: 'KALMAR' };
+  R.issues.forEach((x, i) => { W4.set(b + 1 + i, 1, x.eco, sxk); W4.set(b + 1 + i, 2, gl[x.g], sxv); W4.set(b + 1 + i, 3, x.txt, sxv); });
+  b += R.issues.length + 2;
+  R.notIn.forEach((e, i) => { W4.set(b + i, 1, e, sxk); W4.set(b + i, 2, 'No incluida', sxv); W4.set(b + i, 3, 'Estaba en el semáforo anterior pero no tuvo cargas en ' + mes.toLowerCase() + ' (Combustible Final anterior: ' + F.n2(FM.data.prev.units[e].fin || 0) + ' L)', sxv); });
+  sheets.push(W4);
+  return { buf: await fmPack('Semáforo de Logística ' + mes, sheets, ST), name: 'Semáforo de Tractos de Logistica ' + mes + '.xlsx' };
+}
+
+// ---------- vista ----------
+function viewFormulador() {
+  if (!fmAllowed()) return empty('El Formulador solo está disponible para el usuario <b>Jsalgueiro</b>.');
+  const head = '<div class="areahead"><div class="ah-t"><div><p class="crumb"><a href="#inicio">Inicio</a> / Formulador</p><h1>🧪 Formulador</h1></div></div><p class="lead2">Arma los semáforos del mes a partir de los archivos fuente, con las mismas reglas y el mismo formato de siempre.</p></div>';
+  const opts = [
+    { k: 'log', t: 'SEMÁFORO DE LOGÍSTICA', d: 'Todas las unidades en una sola pestaña · a partir de cargas, viajes, Samsara y Flota', ok: 1, img: IMG.cascadia_caja },
+    { k: 'opsd', t: 'SEMÁFORO OPERACIONES DIÉSEL', d: 'Pendiente: explícame cómo se formula y lo agrego', ok: 0, img: IMG.hino },
+    { k: 'opsg', t: 'SEMÁFORO OPERACIONES GASOLINA', d: 'Pendiente: explícame cómo se formula y lo agrego', ok: 0, img: IMG.hino }
+  ];
+  const pick = '<h2 class="fm-q">¿Qué quieres formular?</h2><div class="fm-opts">' + opts.map(o => '<button class="fm-opt' + (FM.tipo === o.k ? ' on' : '') + (o.ok ? '' : ' soon') + '" data-fm-act="tipo" data-k="' + o.k + '"><span class="fm-ph"><img src="' + o.img + '" alt=""></span><b>' + o.t + '</b><span>' + o.d + '</span>' + (o.ok ? '' : '<i>Por definir</i>') + '</button>').join('') + '</div>';
+  if (FM.tipo !== 'log') return head + pick;
+  const slots = FM_SRC.map((s, i) => { const d = FM.data[s.k]; const st = FM.busy === s.k ? 'busy' : d ? (d.error ? 'err' : 'ok') : ''; return '<label class="fmdrop ' + st + '" data-fm="' + s.k + '"><input type="file" accept="' + s.acc + '" data-fm="' + s.k + '"><span class="fm-n">' + (i + 1) + '</span><span class="fm-ic">' + s.ic + '</span><span class="fm-tx"><b>' + s.t + '</b><span>' + (FM.busy === s.k ? 'Leyendo archivo…' : d ? (d.error ? '⚠ ' + esc(d.error) : '✓ ' + esc(FM.files[s.k]) + ' · ' + esc(d.info)) : s.d) + '</span></span></label>'; }).join('');
+  const ready = FM_SRC.every(s => FM.data[s.k] && !FM.data[s.k].error);
+  const D = FM.data; let warn = '';
+  if (D.prev && D.cargas && !D.prev.error && !D.cargas.error && D.prev.period && D.cargas.period && prevPeriod(D.cargas.period) !== D.prev.period) warn = '<p class="fm-warn">⚠ El semáforo base es de <b>' + perLabel(D.prev.period) + '</b> y las cargas son de <b>' + perLabel(D.cargas.period) + '</b>: el Combustible Inicial normalmente sale del mes inmediato anterior.</p>';
+  if (D.cargas && !D.cargas.error && D.cargas.months.length > 1) warn += '<p class="fm-warn">⚠ El archivo de cargas trae varios meses (' + D.cargas.months.map(perLabel).join(', ') + '). Se usan todas sus filas; el mes del semáforo es ' + perLabel(D.cargas.period) + '.</p>';
+  const ivaSel = D.cargas && D.cargas.hasSin ? '<span class="muted">El archivo de cargas trae columna sin IVA: se usa tal cual.</span>' : '<label class="fm-iva">Importe sin IVA = TOTAL ÷ <select data-fm-act="iva"><option value="1.16"' + (+FM.iva === 1.16 ? ' selected' : '') + '>1.16 (IVA 16%)</option><option value="1.15"' + (+FM.iva === 1.15 ? ' selected' : '') + '>1.15 (como el semáforo de septiembre)</option></select></label>';
+  const step2 = card('Semáforo de Logística · archivos fuente', '<div class="fm-grid">' + slots + '</div>' + warn + '<div class="fm-act">' + ivaSel + '<button class="btn" data-fm-act="run"' + (ready ? '' : ' disabled') + '>⚙ Formular' + (D.cargas && D.cargas.period ? ' ' + perLabel(D.cargas.period) : '') + '</button></div>', { sub: 'Sube los 5 archivos (puedes arrastrarlos a su recuadro). Nada se guarda en el portal: el resultado es un Excel para revisar y completar.', tools: '<button class="btn ghost" data-fm-act="reset">Reiniciar</button>' });
+  return head + pick + step2 + (FM.res ? fmResult(FM.res) : '');
+}
+function fmResult(R) {
+  const T = R.T; const n = g => R.grp[g].length;
+  const k = '<div class="kpis">' + kpi('Unidades', F.n0(R.rows.length), n('T') + ' tractos · ' + n('N') + ' no reporta · ' + n('TORTON') + ' torton · ' + n('KALMAR') + ' kalmar') + kpi('Kilometraje', F.n0(T.ALL.km), 'Samsara') + kpi('Litros cargados', F.n0(T.ALL.lts), 'cargas del mes') + kpi('Importe sin IVA', F.money(T.ALL.imp), R.hasSin ? 'columna sin IVA' : 'TOTAL ÷ ' + R.iva) + kpi('Precio promedio', F.money2(T.ALL.lts ? T.ALL.imp / T.ALL.lts : 0), 'por litro') + kpi('Rend. preliminar', T.T.rend ? F.n2(T.T.rend) : '—', 'tractos · sin Combustible Final') + '</div>';
+  const cnt = {}; R.issues.forEach(x => x.txt.split(' · ').forEach(t => { const key = t.replace(/\(.*?\)/g, '').replace(/:.*$/, '').trim(); cnt[key] = (cnt[key] || 0) + 1; }));
+  const sum = Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a]).map(t => '<li><b>' + cnt[t] + '</b> ' + esc(t) + '</li>').join('') + (R.notIn.length ? '<li><b>' + R.notIn.length + '</b> unidades del semáforo anterior sin cargas este mes (no se incluyen)</li>' : '');
+  const prev = R.grp.T.slice(0, 12).map(x => '<tr><td><b>' + esc(x.eco) + '</b>' + (x.src !== 'prev' ? ' <span class="fm-tag">nueva</span>' : '') + '</td><td>' + esc(x.marca) + '</td><td>' + esc(x.seg) + '</td><td>' + esc(x.ruta) + '</td><td class="num">' + (x.pctRuta === null ? '—' : F.pct(x.pctRuta)) + '</td><td>' + esc(x.zona) + '</td><td class="num">' + (x.full === null ? '—' : F.pct(x.full)) + '</td><td class="num">' + (x.km === null ? '—' : F.n1(x.km)) + '</td><td class="num">' + F.money(x.imp) + '</td><td class="num">' + F.n2(x.lts ? x.imp / x.lts : 0) + '</td><td class="num">' + F.n0(x.ini) + '</td><td class="num">' + F.n1(x.lts) + '</td></tr>').join('');
+  const tbl = '<div class="tscroll"><table><thead><tr><th>Económico</th><th>Marca / Motor</th><th>Segmento</th><th>Ruta</th><th class="num">% ruta</th><th>Zona</th><th class="num">% full</th><th class="num">Km</th><th class="num">Importe</th><th class="num">Precio</th><th class="num">Inicial</th><th class="num">Cargado</th></tr></thead><tbody>' + prev + '</tbody></table></div>';
+  return card('Semáforo ' + fmMonthName(R.period) + ' formulado', k + '<div class="fm-res"><div><h4>Revisa antes de cerrar</h4><ul class="fm-iss">' + (sum || '<li>Sin observaciones 🎉</li>') + '</ul><p class="muted">El detalle unidad por unidad va en la hoja <b>BITÁCORA FORMULADOR</b> del Excel.</p></div><div><h4>Lo que falta capturar a mano</h4><ul class="fm-iss"><li><b>Combustible Final (LTS)</b> · al capturarlo se recalculan Consumido y Rendimiento</li>' + (FM.data.samsara && FM.data.samsara.nRend ? '' : '<li><b>Rendimiento Samsara Mes Actual</b> (el reporte de Samsara no lo traía)</li>') + '<li>Urea y observaciones</li></ul><p class="muted">Ya con esos datos, súbelo al portal en Cargar archivos como siempre.</p></div></div><h4>Vista previa · primeras filas (todas las unidades van en una sola pestaña)</h4>' + tbl, { tools: '<button class="btn" data-fm-act="dl">⬇ Descargar Excel del semáforo</button>' });
+}
+async function fmFile(k, file) {
+  FM.busy = k; FM.res = null; render();
+  try { const sh = await fmRead(file); FM.files[k] = file.name; FM.data[k] = FM_PARSE[k](sh); }
+  catch (e) { console.error(e); FM.files[k] = file.name; FM.data[k] = { error: 'No se pudo leer: ' + e.message }; }
+  FM.busy = ''; render();
+}
+document.addEventListener('change', e => { const t = e.target; if (!t || !t.matches) return; if (t.matches('input[type=file][data-fm]') && t.files && t.files[0]) { e.stopPropagation(); fmFile(t.getAttribute('data-fm'), t.files[0]); } else if (t.matches('select[data-fm-act="iva"]')) { FM.iva = +t.value; FM.res = null; render(); } }, true);
+['dragover', 'drop'].forEach(ev => document.addEventListener(ev, e => { const d = e.target && e.target.closest && e.target.closest('.fmdrop'); if (!d) return; e.preventDefault(); e.stopPropagation(); if (ev === 'drop' && e.dataTransfer.files[0]) fmFile(d.getAttribute('data-fm'), e.dataTransfer.files[0]); }, true));
+document.addEventListener('click', async e => {
+  const b = e.target.closest && e.target.closest('[data-fm-act]'); if (!b || b.tagName === 'SELECT') return; const act = b.getAttribute('data-fm-act');
+  if (act === 'tipo') { const k = b.getAttribute('data-k'); if (k !== 'log') { toast('Esta fórmula aún no está definida. Explícame cómo se arma y la agrego al Formulador.'); return; } FM.tipo = k; render(); }
+  else if (act === 'reset') { FM.files = {}; FM.data = {}; FM.res = null; render(); }
+  else if (act === 'run') { try { FM.res = fmCalcLog(); render(); setTimeout(() => { const c = document.querySelector('.fm-res'); if (c) c.closest('.card').scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 60); } catch (err) { console.error(err); toast('No se pudo formular: ' + err.message, 'err'); } }
+  else if (act === 'dl') { if (!FM.res) return; b.disabled = true; const o = b.textContent; b.textContent = 'Generando…'; try { const x = await fmBuildLog(FM.res); const url = URL.createObjectURL(new Blob([x.buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })); const a = document.createElement('a'); a.href = url; a.download = x.name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 4000); toast('Semáforo descargado ✓'); } catch (err) { console.error(err); toast('No se pudo generar el Excel: ' + err.message, 'err'); } b.disabled = false; b.textContent = o; }
+});
+
 /* ---------- Router y eventos ---------- */
 function fitKpis() { document.querySelectorAll('#main .kv').forEach(el => { el.style.fontSize = ''; let fs = parseFloat(getComputedStyle(el).fontSize) || 24, n = 0; while (el.scrollWidth > el.clientWidth + 1 && fs > 13 && n++ < 14) { fs -= 1; el.style.fontSize = fs + 'px'; } }); }
 window.addEventListener('resize', () => { clearTimeout(window.__fk); window.__fk = setTimeout(fitKpis, 150); });
@@ -5622,10 +6029,12 @@ function render() {
   try {
     if (m) html = viewArea(m[1] === 'logistica' ? 'log' : 'ops', m[2] || 'rendimientos');
     else if (r === 'cargar') html = viewUpload();
+    else if (r === 'formulador') html = viewFormulador();
     else html = viewHome();
   } catch (e) { console.error(e); html = empty('Ocurrió un error al calcular esta vista: ' + esc(e.message)); }
   main.innerHTML = html; flush(); requestAnimationFrame(fitKpis);
   if (r === 'cargar') loadHist();
+  { const fb = $('#fmbtn'); if (fb) { fb.style.display = fmAllowed() ? '' : 'none'; fb.classList.toggle('on', r === 'formulador'); } }
   $('#upbtn').style.display = (S.canWrite || !S.db) && canUpAny() ? '' : 'none';
   const sb = $('[data-act="settings"]'); if (sb) sb.style.display = isAdmin() ? '' : 'none';
   const uc = $('#userchip'); if (uc) { uc.textContent = (S.name || S.user_name || '') + ' · ' + (ROLE_LABEL[S.role || 'consulta']); }
