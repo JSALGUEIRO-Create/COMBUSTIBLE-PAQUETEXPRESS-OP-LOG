@@ -2297,6 +2297,7 @@ function chofStats(rows) { const km = sum(rows, 'km'), l = sum(rows, 'lts'), hm 
 function viewChof(a) {
   const f = S.f[a]; const ds = a + '_chof';
   const ps = periodsOf(ds); if (!ps.length) return empty('Aún no hay archivo de choferes. Súbelo en <a href="#cargar">Cargar archivos</a>.');
+  if (f.mes && !arrFor(ds, f.mes)) return empty('No hay archivo de choferes de ' + AREA_NAME[a] + ' para <b>' + perLabel(f.mes) + '</b>. Meses con choferes cargados: <b>' + ps.slice().reverse().map(perLabel).join(', ') + '</b>. Elige uno de esos meses en el filtro o sube el archivo del mes en <a href="#cargar">Cargar archivos</a>.');
   const p = arrFor(ds, f.mes) ? f.mes : ps[ps.length - 1];
   const minKm = setting('minKmChof');
   let all = choferRows(a, p);
