@@ -6321,10 +6321,10 @@ function rmCalc(cfg) {
     const cpu = aggC(a, C, r => r.movil).sort((x, y) => y.imp - x.imp).slice(0, 10);
     // Casos a revisar
     let csr = [], rsc = [], sams = [];
-    if (!isL) { const all = opsRendRows(p, { allCasos: true, ignoreRegion: true }); csr = all.filter(r => r.caso === 'CSR').sort((x, y) => y.lts - x.lts); rsc = all.filter(r => r.caso === 'RSC').sort((x, y) => y.km - x.km); }
+    let prsc = 0; if (!isL) { const all = opsRendRows(p, { allCasos: true, ignoreRegion: true }); csr = all.filter(r => r.caso === 'CSR').sort((x, y) => y.lts - x.lts); rsc = all.filter(r => r.caso === 'RSC').sort((x, y) => y.km - x.km); if (hasP) prsc = sum(opsRendRows(pp, { allCasos: true, ignoreRegion: true }).filter(r => r.caso === 'RSC'), 'km'); }
     else sams = rows.filter(r => r.rendS && r.rendM && Math.abs(r.rendS / r.rendM - 1) > 0.1);
     let an = null; try { const A = anomalies(a, p + '-01', monthEnd(p)).list.filter(x => x.sev === 3); an = { n: A.length, m: sum(A, 'monto') }; } catch (e) { }
-    return { a, p, pp, hasP, st, pst, byR, groups, sucs, sucAll, U, stc, crit, best, excL, excM, trend, C, cs, pcs, fu, pA, pE, ahorro, sitios, autoS, cReg, cpu, csr, rsc, sams, an, isL };
+    return { a, p, pp, hasP, prsc, st, pst, byR, groups, sucs, sucAll, U, stc, crit, best, excL, excM, trend, C, cs, pcs, fu, pA, pE, ahorro, sitios, autoS, cReg, cpu, csr, rsc, sams, an, isL };
   });
 }
 const rmCol = c => c === null || c === undefined || !isFinite(c) ? MC.mut : c >= 1 ? MC.grn : c >= 0.95 ? '#5a9e3a' : c >= 0.9 ? MC.amb : MC.red;
@@ -6342,14 +6342,17 @@ function rmHTML(cfg, X, logo) {
   const vcol = rmCol(st.cump);
   const dl = (x, y, inv) => mDelta(x !== null && y ? x / y - 1 : null, inv);
   const cs = X.cs, pcs = X.pcs;
+  const kmR = sum(X.rsc, 'km'), ltC = sum(X.csr, 'lts'), kmT = st.km + kmR;
+  const kmNote = X.rsc.length ? '<div style="color:' + MC.mut + ';font-size:11px;margin-top:3px">incluye ' + F.n0(kmR) + ' km de ' + X.rsc.length + ' unidades con recorrido sin carga</div>' : '';
+  const ltNote = X.csr.length ? '<div style="color:' + MC.mut + ';font-size:11px;margin-top:3px">incluye ' + F.n0(ltC) + ' L de ' + X.csr.length + ' unidades con carga sin recorrido</div>' : '';
   const kp = [
     ['Rendimiento real', F.kml(st.rend), pst ? dl(st.rend, pst.rend, true) + ' <span style="color:' + MC.mut + '">vs ' + F.n2(pst.rend) + '</span>' : ''],
     ['Ideal ponderado', F.kml(st.ideal), '<span style="color:' + MC.mut + '">según la mezcla de unidades</span>'],
     ['Cumplimiento', F.pct(st.cump), pst ? rmPts(st.cump, pst.cump) : ''],
     ['Gasto en combustible', F.money(cs.imp || st.imp), pcs ? dl(cs.imp, pcs.imp) + ' <span style="color:' + MC.mut + '">vs ' + F.money(pcs.imp) + '</span>' : ''],
-    ['Litros cargados', F.n0(cs.lts || st.lts), pcs ? dl(cs.lts, pcs.lts) : ''],
+    ['Litros cargados', F.n0(cs.lts || (st.lts + ltC)), (pcs ? dl(cs.lts, pcs.lts) : '') + ltNote],
     ['Precio promedio', F.money2(cs.precio || st.precio) + '/L', pcs ? dl(cs.precio, pcs.precio) : ''],
-    ['Kilómetros', F.n0(st.km), pst ? dl(st.km, pst.km, true) : ''],
+    ['Kilómetros recorridos', F.n0(kmT), (pst ? dl(kmT, pst.km + (X.prsc || 0), true) : '') + kmNote],
     [isL ? 'Tractos evaluados' : 'Unidades evaluadas', F.n0(X.U.length), '<span style="color:' + MC.mut + '">' + F.pct0(div(X.stc.good, X.U.length)) + ' en su ideal</span>'],
     ['Exceso sobre el ideal', F.n0(X.excL) + ' L', '<span style="color:' + MC.red + ';font-weight:bold">' + F.money(X.excM) + '</span> <span style="color:' + MC.mut + '">en unidades críticas</span>']
   ];
@@ -6369,7 +6372,7 @@ function rmHTML(cfg, X, logo) {
   acts.push('Responder este correo con el <b>plan de acción y responsables a más tardar el ' + (cfg.lim ? dLabel(cfg.lim) : '—') + '</b>.');
   let body = '';
   body += rmSec(acc, 'Resumen ejecutivo', mes + (X.hasP ? ' · comparado contra ' + mesA : ''), '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="background:' + vcol + ';color:#ffffff;padding:14px 18px;border-radius:10px;font-family:Arial,sans-serif;font-size:16px;font-weight:bold">' + verdict + '</td></tr></table><div style="height:12px"></div>' + kpH,
-    'La flota ' + (isL ? 'de tractos' : 'operativa') + ' recorrió <b>' + F.n0(st.km) + ' km</b> con <b>' + F.kml(st.rend) + '</b> contra un ideal de ' + F.kml(st.ideal) + '. ' + F.n0(X.stc.good) + ' unidades alcanzan su ideal, ' + F.n0(X.stc.ok) + ' están en aceptable (95–100%), ' + F.n0(X.stc.warn) + ' en vigilancia (90–95%) y <b>' + F.n0(X.stc.bad) + ' en crítico (&lt;90%)</b>.' + (pcs ? ' El gasto en combustible ' + (cs.imp >= pcs.imp ? 'subió' : 'bajó') + ' ' + F.money(Math.abs(cs.imp - pcs.imp)) + ' contra ' + mesA + (cs.precio && pcs.precio ? ', con un precio promedio ' + (cs.precio >= pcs.precio ? 'mayor' : 'menor') + ' en ' + F.money2(Math.abs(cs.precio - pcs.precio)) + ' por litro' : '') + '.' : ''));
+    'La flota ' + (isL ? 'de tractos' : 'operativa') + ' recorrió <b>' + F.n0(kmT) + ' km</b>' + (X.rsc.length ? ' (' + F.n0(kmR) + ' km de ' + X.rsc.length + ' unidades con recorrido sin carga, que no entran al cálculo de rendimiento)' : '') + '. Con carga y recorrido registró <b>' + F.kml(st.rend) + '</b> contra un ideal de ' + F.kml(st.ideal) + '. ' + (X.csr.length ? 'Además, ' + X.csr.length + ' unidades cargaron ' + F.n0(ltC) + ' L sin registrar recorrido. ' : '') + F.n0(X.stc.good) + ' unidades alcanzan su ideal, ' + F.n0(X.stc.ok) + ' están en aceptable (95–100%), ' + F.n0(X.stc.warn) + ' en vigilancia (90–95%) y <b>' + F.n0(X.stc.bad) + ' en crítico (&lt;90%)</b>.' + (pcs ? ' El gasto en combustible ' + (cs.imp >= pcs.imp ? 'subió' : 'bajó') + ' ' + F.money(Math.abs(cs.imp - pcs.imp)) + ' contra ' + mesA + (cs.precio && pcs.precio ? ', con un precio promedio ' + (cs.precio >= pcs.precio ? 'mayor' : 'menor') + ' en ' + F.money2(Math.abs(cs.precio - pcs.precio)) + ' por litro' : '') + '.' : ''));
   body += rmSec(acc, '✅ Acciones requeridas', 'Lo que necesitamos de cada región y sucursal', '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">' + acts.map((t, i) => '<tr><td valign="top" width="30" style="padding:6px 0"><div style="width:24px;height:24px;line-height:24px;border-radius:12px;background:' + acc + ';color:#fff;text-align:center;font-weight:bold;font-size:12px;font-family:Arial,sans-serif">' + (i + 1) + '</div></td><td style="padding:6px 0 6px 8px;font-size:13.5px;line-height:1.5;color:' + MC.ink + ';font-family:Arial,sans-serif">' + t + '</td></tr>').join('') + '</table>');
   if (X.trend.length >= 2) {
     const tr = X.trend; const best = tr.slice().sort((x, y) => (y.cump || 0) - (x.cump || 0))[0];
