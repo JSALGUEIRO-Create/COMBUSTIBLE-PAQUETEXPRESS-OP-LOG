@@ -5765,6 +5765,7 @@ const FM_SRC = [
   { k: 'samsara', ic: '📡', t: 'Reporte de Samsara', d: 'Kilometraje y, si trae combustible o eficiencia, el Rendimiento Samsara', acc: '.xlsx,.xls,.csv' },
   { k: 'flota', ic: '🚛', t: 'Flota', d: 'Zona de circulación (Región) · datos de unidades nuevas', acc: '.xlsx,.xls,.xlsm' }
 ];
+function igAllowed() { return ['jsalgueiro', 'jruelas'].indexOf(String(S.user_name || '').trim().toLowerCase()) >= 0; }
 function fmAllowed() { return String(S.user_name || '').trim().toLowerCase() === 'jsalgueiro'; }
 const fmN = s => String(s === null || s === undefined ? '' : s).normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/[^A-Z0-9%$]/g, '');
 const fmT = v => v === null || v === undefined ? '' : String(v).replace(/\s+/g, ' ').trim();
@@ -6827,7 +6828,7 @@ function igDownload(blob, name) { const u = URL.createObjectURL(blob); const a =
 // ---------- ventana ----------
 const IGS = { a: 'log', p: null, svgs: null };
 function openInfografias() {
-  if (!fmAllowed()) return;
+  if (!igAllowed()) return;
   const ps = Array.from(new Set(['log_rend', 'ops_rend_d', 'ops_rend_g'].flatMap(periodsOf))).sort().reverse(); if (!ps.length) { toast('Aún no hay rendimientos cargados', 'warn'); return; }
   IGS.p = IGS.p && ps.indexOf(IGS.p) >= 0 ? IGS.p : ps[0];
   const m = $('#modal'); DSTACK.length = 0; m.classList.remove('drill');
@@ -6874,7 +6875,7 @@ function render() {
   } catch (e) { console.error(e); html = empty('Ocurrió un error al calcular esta vista: ' + esc(e.message)); }
   main.innerHTML = html; flush(); requestAnimationFrame(fitKpis);
   if (r === 'cargar') loadHist();
-  { const ib = $('#igbtn'); if (ib) ib.style.display = fmAllowed() ? '' : 'none'; }
+  { const ib = $('#igbtn'); if (ib) ib.style.display = igAllowed() ? '' : 'none'; }
   later(fitTopbar);
   { const fb = $('#fmbtn'); if (fb) { fb.style.display = fmAllowed() ? '' : 'none'; fb.classList.toggle('on', r === 'formulador'); } }
   $('#upbtn').style.display = (S.canWrite || !S.db) && canUpAny() ? '' : 'none';
