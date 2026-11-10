@@ -627,7 +627,21 @@ body.e3open{overflow:hidden}body.e3open .floatbtn{display:none}
 @media (max-width:1500px){.e360btn{font-size:12.5px;margin-left:6px}.e360btn span:last-child{max-width:110px}}
 @media (max-width:1380px){#userchip{max-width:230px}.e360btn span:last-child{display:none}.e360btn{padding:6px}}
 .topbar .ibtn{white-space:nowrap}
-@media (max-width:1500px){#upbtn{font-size:0;padding:0 12px}#upbtn:before{content:"⬆ Cargar";font-size:13.5px}}
+
+/* ===== Barra superior auto-ajustable (sin encimarse) ===== */
+.topnav{flex:0 0 auto!important}
+.tright{flex:0 0 auto!important;gap:6px}
+.topbar .ibtn .bi{font-size:14px;line-height:1}
+.topbar .fmbtn{gap:6px;padding:0 12px}
+.topbar.k1 #userchip{max-width:150px}
+.topbar.k2 .igbtn .bl,.topbar.k2 #fmbtn .bl{display:none}
+.topbar.k2 .igbtn,.topbar.k2 #fmbtn{padding:0 10px}
+.topbar.k3 #userchip{display:none}
+.topbar.k4 .wabtn span:last-child,.topbar.k4 .e360btn span:last-child{display:none}
+.topbar.k4 .wabtn,.topbar.k4 .e360btn{padding:5px;margin-left:4px}
+.topbar.k5 #upbtn .bl{display:none}
+.topbar.k6 .logo .sep,.topbar.k6 .logo>span:not(.sep){display:none}
+.topbar.k6 .topnav a{padding:8px 8px}
 /* Noticiero de inicio */
 .news{position:relative;margin:0 0 22px;border-radius:26px;overflow:hidden;background:#030914;color:#fff;box-shadow:0 24px 60px rgba(3,9,20,.35)}
 .nw-stage{position:relative;height:560px;overflow:hidden}
@@ -848,9 +862,9 @@ html,body{overflow-x:clip}
   <nav class="topnav"><a href="#inicio">Inicio</a><a href="#logistica">Logística</a><a href="#operaciones">Operaciones</a><button class="e360btn" data-act="e360" title="Diagnóstico integral de combustible"><span class="e3w-ic">360°</span><span>Evaluación 360</span></button><button class="wabtn" data-act="wa" title="Generar mensaje para WhatsApp"><span class="wa-ic"><svg viewBox="0 0 32 32" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M16.04 3C9.4 3 4 8.36 4 14.97c0 2.11.56 4.17 1.62 5.99L4 29l8.27-1.58a12.1 12.1 0 0 0 3.77.6C22.66 28.02 28 22.66 28 16.05 28 9.42 22.66 3 16.04 3Zm0 22.86c-1.17 0-2.32-.19-3.41-.55l-.24-.08-4.9.94.96-4.72-.16-.25a9.87 9.87 0 0 1-1.52-5.23c0-5.47 4.47-9.92 9.27-9.92 5.5 0 9.81 4.45 9.81 9.99 0 5.46-4.4 9.82-9.81 9.82Zm5.4-7.36c-.3-.15-1.75-.86-2.02-.96-.27-.1-.47-.15-.67.15-.2.3-.77.96-.94 1.16-.17.2-.35.22-.64.07-.3-.15-1.25-.46-2.38-1.47-.88-.78-1.47-1.75-1.65-2.04-.17-.3-.02-.46.13-.6.13-.13.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.6-.92-2.2-.24-.57-.48-.5-.67-.5h-.57c-.2 0-.52.08-.79.37-.27.3-1.04 1.01-1.04 2.47 0 1.45 1.06 2.86 1.21 3.06.15.2 2.09 3.18 5.06 4.46.71.3 1.26.49 1.69.62.71.23 1.36.2 1.87.12.57-.08 1.75-.71 2-1.4.25-.7.25-1.29.17-1.41-.07-.12-.27-.2-.57-.35Z"/></svg></span><span>WhatsApp</span></button></nav>
   <div class="tright">
     <span id="userchip" class="userchip"></span><span id="dbdot" class="dbdot" title="Conectando…"></span>
-    <button class="ibtn fmbtn igbtn" id="igbtn" data-act="infog" style="display:none" title="Infografías en PDF">▦ INFOGRAFÍAS</button>
-    <button class="ibtn fmbtn" id="fmbtn" data-act="route" data-to="formulador" style="display:none" title="Formulador de semáforos">🧪 FORMULADOR</button>
-    <button class="ibtn" id="upbtn" data-act="route" data-to="cargar">⬆ Cargar archivos</button>
+    <button class="ibtn fmbtn igbtn" id="igbtn" data-act="infog" style="display:none" title="Infografías en PDF"><span class="bi">▦</span><span class="bl">INFOGRAFÍAS</span></button>
+    <button class="ibtn fmbtn" id="fmbtn" data-act="route" data-to="formulador" style="display:none" title="Formulador de semáforos"><span class="bi">🧪</span><span class="bl">FORMULADOR</span></button>
+    <button class="ibtn" id="upbtn" data-act="route" data-to="cargar" title="Cargar archivos"><span class="bi">⬆</span><span class="bl">Cargar archivos</span></button>
     <button class="ibtn" data-act="settings" title="Ajustes" aria-label="Ajustes"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg></button>
     <button class="ibtn" data-act="logout" title="Cerrar sesión" aria-label="Cerrar sesión">Salir</button>
     <button class="ibtn" data-act="theme" title="Modo claro / oscuro" aria-label="Cambiar tema"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/></svg></button>
@@ -6832,6 +6846,16 @@ function openInfografias() {
   build();
 }
 
+/* Ajuste de barra superior: compacta por niveles hasta que nada se encime */
+function fitTopbar() {
+  const tb = document.querySelector('.topbar'), inn = tb && tb.querySelector('.topin'); if (!tb || !inn || !tb.offsetParent && getComputedStyle(tb).display === 'none') return;
+  const nav = inn.querySelector('.topnav'), tr = inn.querySelector('.tright');
+  const fits = () => { const w = inn.clientWidth, pad = parseFloat(getComputedStyle(inn).paddingLeft) + parseFloat(getComputedStyle(inn).paddingRight), gap = parseFloat(getComputedStyle(inn).columnGap) || 12; let used = 0, n = 0; [...inn.children].forEach(c => { if (getComputedStyle(c).display !== 'none') { used += c.scrollWidth; n++; } }); return used + gap * (n - 1) + pad + 8 <= w; };
+  for (let k = 1; k <= 6; k++) tb.classList.remove('k' + k);
+  for (let k = 1; k <= 6 && !fits(); k++) tb.classList.add('k' + k);
+}
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => fitTopbar());
+window.addEventListener('resize', () => { clearTimeout(window.__tbf); window.__tbf = setTimeout(fitTopbar, 60); });
 /* ---------- Router y eventos ---------- */
 function fitKpis() { document.querySelectorAll('#main .kv').forEach(el => { el.style.fontSize = ''; let fs = parseFloat(getComputedStyle(el).fontSize) || 24, n = 0; while (el.scrollWidth > el.clientWidth + 1 && fs > 13 && n++ < 14) { fs -= 1; el.style.fontSize = fs + 'px'; } }); }
 window.addEventListener('resize', () => { clearTimeout(window.__fk); window.__fk = setTimeout(fitKpis, 150); });
@@ -6851,6 +6875,7 @@ function render() {
   main.innerHTML = html; flush(); requestAnimationFrame(fitKpis);
   if (r === 'cargar') loadHist();
   { const ib = $('#igbtn'); if (ib) ib.style.display = fmAllowed() ? '' : 'none'; }
+  later(fitTopbar);
   { const fb = $('#fmbtn'); if (fb) { fb.style.display = fmAllowed() ? '' : 'none'; fb.classList.toggle('on', r === 'formulador'); } }
   $('#upbtn').style.display = (S.canWrite || !S.db) && canUpAny() ? '' : 'none';
   const sb = $('[data-act="settings"]'); if (sb) sb.style.display = isAdmin() ? '' : 'none';
