@@ -151,6 +151,7 @@ table.cov td{text-align:center}table.cov td:first-child{text-align:left;white-sp
 .viz .grid{stroke:var(--grid);stroke-width:1}
 .viz .base{stroke:var(--base);stroke-width:1}
 .viz .ax{fill:var(--muted);font-size:10.5px;font-variant-numeric:tabular-nums}
+.viz .vlab{font-size:10.5px;font-weight:700;font-variant-numeric:tabular-nums;paint-order:stroke;stroke:var(--surface);stroke-width:3px;stroke-linejoin:round}
 .viz .lab{fill:var(--ink2);font-size:11.5px}
 .viz .vl{fill:var(--ink2);font-size:10.5px;font-weight:700;font-variant-numeric:tabular-nums}
 .viz .ref{stroke:var(--ink);stroke-width:1.2;stroke-dasharray:4 4;opacity:.55}
@@ -234,6 +235,7 @@ table.cov td{text-align:center}table.cov td:first-child{text-align:left;white-sp
 .fm-warn{margin:10px 0 0;padding:8px 12px;border-radius:10px;background:rgba(242,169,0,.14);font-size:13px}
 .fm-res{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:4px 0 14px}.fm-res h4,.card h4{margin:6px 0 8px;color:var(--s1)}
 .fm-iss{margin:0;padding-left:18px;font-size:13px;line-height:1.6}
+.tr-an{margin:6px 0 14px;padding:10px 14px;border-radius:12px;background:var(--surface2);border-left:4px solid var(--s1)}.tr-an>b{display:block;font-size:13px;margin-bottom:2px;color:var(--s1)}.tr-an .insights{margin:4px 0 0}
 .fm-idin{width:84px;padding:4px 6px;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit}
 .fm-miss td{background:rgba(220,38,38,.08)}.fm-miss .fm-idin{border-color:#dc2626}
 .fm-sem{padding:1px 7px;border-radius:6px;font-weight:700}.fm-sem.sV{background:#00B050;color:#fff}.fm-sem.sA{background:#FFFF00;color:#000}.fm-sem.sR{background:#FF0000;color:#fff}
@@ -1628,7 +1630,7 @@ function line(el, o) {
   if (!el) return;
   const W = Math.max(280, el.clientWidth || 600), H = o.height || 240;
   const n = o.labels.length; if (!n) { el.innerHTML = empty('Sin datos para graficar'); return; }
-  const left = 50, right = 14, top = 12, bottom = 30;
+  const left = 50, right = o.showVals ? 26 : 14, top = o.showVals ? 22 : 12, bottom = 30;
   const vals = o.series.flatMap(s => s.data).filter(v => v !== null && isFinite(v));
   if (!vals.length) { el.innerHTML = empty('Sin datos para graficar'); return; }
   let mn = Math.min(...vals), mx = Math.max(...vals);
@@ -1647,6 +1649,19 @@ function line(el, o) {
     if (n <= 40) se.data.forEach((v, i) => { if (v !== null && isFinite(v)) s += '<circle cx="' + x(i) + '" cy="' + y(v) + '" r="3" fill="' + (se.color || PAL[j]) + '" stroke="var(--surface)" stroke-width="1.5"/>'; });
   });
   if (o.ref) s += '<line x1="' + left + '" x2="' + (W - right) + '" y1="' + y(o.ref.v) + '" y2="' + y(o.ref.v) + '" class="ref"/><text x="' + (W - right - 4) + '" y="' + (y(o.ref.v) - 5) + '" class="reft" text-anchor="end">' + esc(o.ref.label) + '</text>';
+  if (o.showVals) {
+    const vf = o.vfmt || (v => nf(2).format(v)); const bot = H - bottom - 2;
+    for (let i = 0; i < n; i++) {
+      const it = o.series.map((se, j) => ({ j, v: se.data[i], c: se.color || PAL[j] })).filter(q => q.v !== null && q.v !== undefined && isFinite(q.v)).map(q => Object.assign(q, { py: y(q.v) })).sort((p1, p2) => p1.py - p2.py);
+      let prev = -1e9;
+      it.forEach(q => {
+        let ly = q.py - 8; if (ly < prev + 13) ly = Math.max(q.py + 16, prev + 13); if (ly > bot) ly = bot; if (ly < 10) ly = 10;
+        prev = ly;
+        const anc = i === 0 ? 'start' : i === n - 1 ? 'end' : 'middle'; const dx = i === 0 ? -4 : i === n - 1 ? 4 : 0;
+        s += '<text x="' + (x(i) + dx).toFixed(1) + '" y="' + ly.toFixed(1) + '" text-anchor="' + anc + '" class="vlab" style="fill:' + q.c + '">' + esc(vf(q.v)) + '</text>';
+      });
+    }
+  }
   const bw = n > 1 ? (W - left - right) / (n - 1) : W - left - right;
   o.labels.forEach((lab, i) => {
     const tip = '<b>' + esc(o.tipLabels ? o.tipLabels[i] : lab) + '</b>' + o.series.map((se, j) => '<br><i class="sw" style="background:' + (se.color || PAL[j]) + '"></i>' + esc(se.name) + ': ' + (o.fmt || F.n2)(se.data[i])).join('');
@@ -6481,6 +6496,27 @@ function trData(a) {
   const d = ps.map(q => { const rows = a === 'log' ? logRendRows(q) : opsRendRows(q); const o = { p: q }; TR_SEG[a].forEach(([c, , fn]) => { if (c === 'X') return; const g = fn ? rows.filter(fn) : rows; o[c] = g.length ? agg(g, () => 'T')[0] : null; }); return o; }).filter(o => o.G && o.G.km);
   TR_MEMO[a] = { k, d }; return d;
 }
+function trAnalysis(a, D, seg) {
+  const L = [], pts = d => (d >= 0 ? '+' : '') + F.n1(d * 100) + ' pts';
+  if (seg === 'X') {
+    const ss = TR_SEG[a].filter(s => s[0] !== 'X' && s[0] !== 'G');
+    const g = ss.map(([c, l]) => ({ c, l, f: D.find(o => o[c]), t: D.slice().reverse().find(o => o[c]) })).filter(x => x.f && x.t);
+    if (g.length) L.push('En ' + perLabel(g[0].t.p) + ': ' + g.map(x => '<b>' + x.l + '</b> ' + F.kml(x.t[x.c].rend) + ' (' + F.pct(x.t[x.c].cump) + ' del ideal)').join(' · ') + '.');
+    const ev = g.map(x => ({ l: x.l, d: x.t[x.c].cump - x.f[x.c].cump })).sort((p, q) => q.d - p.d);
+    if (ev.length > 1) L.push(ev[0].d >= 0 ? 'En el periodo, <b>' + ev[0].l + '</b> es el que más mejoró su cumplimiento (' + pts(ev[0].d) + '); ' + ev[1].l + ' ' + (ev[1].d >= 0 ? 'mejoró ' : 'cayó ') + pts(ev[1].d) + '.' : 'En el periodo los dos bajaron su cumplimiento: <b>' + ev[1].l + '</b> ' + pts(ev[1].d) + ' y ' + ev[0].l + ' ' + pts(ev[0].d) + '.');
+    const lw = g.map(x => ({ l: x.l, c: x.t[x.c].cump, exc: Math.max(0, x.t[x.c].lts - x.t[x.c].km / x.t[x.c].ideal) })).sort((p, q) => p.c - q.c)[0];
+    if (lw && lw.c < 1) L.push('La mayor brecha está en <b>' + lw.l + '</b>: ' + F.pct(lw.c) + ' del ideal, ' + F.n0(lw.exc) + ' litros por encima de su ideal en el último mes.');
+    return L;
+  }
+  const S2 = D.filter(o => o[seg]); if (!S2.length) return ['Sin unidades en este segmento.'];
+  const f = S2[0], l = S2[S2.length - 1], pv = S2.length > 1 ? S2[S2.length - 2] : null; const x0 = f[seg], x1 = l[seg];
+  L.push('De ' + perLabel(f.p) + ' a ' + perLabel(l.p) + ' el rendimiento ' + (x1.rend >= x0.rend ? 'subió' : 'bajó') + ' de <b>' + F.kml(x0.rend) + '</b> a <b>' + F.kml(x1.rend) + '</b> (' + (x1.rend >= x0.rend ? '+' : '') + F.pct(x1.rend / x0.rend - 1) + ') y el cumplimiento pasó de ' + F.pct(x0.cump) + ' a ' + F.pct(x1.cump) + ' (' + pts(x1.cump - x0.cump) + ').');
+  if (pv) { const d = x1.cump - pv[seg].cump; L.push('Contra ' + perLabel(pv.p) + ', el último mes ' + (Math.abs(d) < 0.002 ? 'se mantuvo igual' : d > 0 ? 'mejoró ' + pts(d) : 'cayó ' + pts(d)) + ' (' + F.kml(pv[seg].rend) + ' → ' + F.kml(x1.rend) + ').'); }
+  const bs = S2.slice().sort((p, q) => q[seg].cump - p[seg].cump); const ok = S2.filter(o => o[seg].cump >= 1).length;
+  if (S2.length > 2) L.push('Mejor mes: <b>' + perLabel(bs[0].p) + '</b> (' + F.pct(bs[0][seg].cump) + '); el más bajo: <b>' + perLabel(bs[bs.length - 1].p) + '</b> (' + F.pct(bs[bs.length - 1][seg].cump) + '). ' + (ok ? ok + ' de ' + S2.length + ' meses alcanzaron el ideal.' : 'Ningún mes alcanzó el ideal.'));
+  const exc = Math.max(0, x1.lts - x1.km / x1.ideal); if (x1.cump < 1 && exc > 0) L.push('En ' + perLabel(l.p) + ' se consumieron <b>' + F.n0(exc) + ' litros por encima del ideal</b>' + (x1.precio ? ' (~' + F.money(exc * x1.precio) + ')' : '') + '. Recuperar el nivel del mejor mes (' + F.pct(bs[0][seg].cump) + ') equivale a unos ' + F.n0(Math.max(0, x1.lts - x1.lts * x1.cump / bs[0][seg].cump)) + ' L al mes.');
+  return L;
+}
 function trendCard(a) {
   const segs = TR_SEG[a]; let seg = S.toggles['trSeg_' + a] || 'G'; if (!segs.some(s => s[0] === seg)) seg = 'G';
   const D = trData(a); if (D.length < 2) return '';
@@ -6492,7 +6528,7 @@ function trendCard(a) {
     const el = document.getElementById(id); if (!el) return;
     const series = seg === 'X' ? segs.filter(s => s[0] !== 'X').map(([c, l], j) => ({ name: l, data: D.map(o => o[c] ? o[c].rend : null), color: cols[j] }))
       : [{ name: 'Rendimiento real', data: D.map(o => o[seg] ? o[seg].rend : null), color: cols[segs.findIndex(s => s[0] === seg)] || cols[0] }, { name: 'Ideal ponderado', data: D.map(o => o[seg] ? o[seg].ideal : null), color: '#94a3b8', dash: 1 }];
-    line(el, { labels: lbl, tipLabels: tip, series, fmt: v => v === null || v === undefined ? '—' : F.kml(v), axfmt: v => nf(2).format(v), height: 260 });
+    line(el, { labels: lbl, tipLabels: tip, series, fmt: v => v === null || v === undefined ? '—' : F.kml(v), axfmt: v => nf(2).format(v), height: 280, showVals: true, vfmt: v => nf(2).format(v) });
   });
   const pts = (c, p) => c === null || p === null || c === undefined || p === undefined ? '—' : '<span class="' + (c >= p ? 'up' : 'dn') + '">' + (c >= p ? '▲ +' : '▼ ') + F.n1((c - p) * 100) + ' pts</span>';
   let tbl;
@@ -6506,7 +6542,7 @@ function trendCard(a) {
   const first = v[0], last = v[v.length - 1];
   const note = seg === 'X' ? (a === 'log' ? 'Full y Sencillo según la modalidad de cada tracto (70% o más de sus viajes); los mixtos solo cuentan en General.' : 'Vans: Transporter, Caddy, Hiace, Sprinter y similares · Caja seca: Hino, Freightliner y rabones.')
     : (first && last ? lab + ': de ' + F.kml(first.rend) + ' en ' + perLabel(D.find(o => o[seg]).p) + ' a ' + F.kml(last.rend) + ' en ' + perLabel(D.slice().reverse().find(o => o[seg]).p) + ' (' + (last.rend >= first.rend ? '+' : '') + F.n2(last.rend - first.rend) + ' km/L).' + (best ? ' Mejor mes: <b>' + perLabel(best.p) + '</b> (' + F.pct(best[seg].cump) + ' del ideal).' : '') : '');
-  return card('Comportamiento del rendimiento por mes · ' + lab, '<div id="' + id + '"></div><p class="muted" style="margin:6px 0 12px">' + note + '</p>' + tbl, { sub: 'Todos los meses cargados · respeta los filtros de región' + (a === 'ops' ? ', sucursal y combustible' : '') + ' de arriba', tools: sel });
+  return card('Comportamiento del rendimiento por mes · ' + lab, '<div id="' + id + '"></div><div class="tr-an"><b>Análisis</b>' + bullets(trAnalysis(a, D, seg)) + '</div>' + (seg === 'X' ? '<p class="muted" style="margin:0 0 12px">' + note + '</p>' : '') + tbl, { sub: 'Todos los meses cargados · respeta los filtros de región' + (a === 'ops' ? ', sucursal y combustible' : '') + ' de arriba', tools: sel });
 }
 
 /* ---------- Router y eventos ---------- */
