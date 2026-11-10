@@ -869,7 +869,7 @@ const SHOT={"anomalias": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wB
     ops_rend_d: ['suc','region','movil','desc','km','lts','rend','ideal','imp','caso','comb'],
     ops_rend_g: ['suc','region','movil','desc','km','lts','rend','ideal','imp','caso','comb'],
     log_cargas: ['fecha','movil','suc','prov','fuente','lts','precio','total','folio','oc'],
-    ops_cargas: ['fecha','hora','sitio','tipo','movil','lts','imp','tarjeta','nota','cc'],
+    ops_cargas: ['fecha','hora','sitio','tipo','movil','lts','imp','tarjeta','nota','cc','est'],
     log_ral: ['fecha','hora','veh','chofer','min','ubic','geo','lts'],
     ops_ral: ['fecha','hora','veh','chofer','min','ubic','geo','lts'],
     log_chof: ['num','chofer','km','lts','rend','l100','hm','hr','pr'],
@@ -1116,30 +1116,45 @@ const SHOT={"anomalias": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wB
     return s.split(/[\s\-]/)[0] || 'S/D';
   }
 
+  // Económico de Operaciones: 5 dígitos se queda igual; menos de 5 → M + ceros hasta 7 caracteres (555 → M000555)
+  function normOpsMovil(v) {
+    if (v === null || v === undefined) return '';
+    const s = (typeof v === 'number' ? String(Math.round(v)) : String(v)).trim().toUpperCase().replace(/\s+/g, '');
+    const m = s.match(/^(M?)0*(\d{1,6})$/); if (!m) return s;
+    const d = m[2]; if (d.length === 5) return d;
+    if (d.length < 5 || m[1]) return 'M' + d.padStart(6, '0');
+    return s;
+  }
+  function numX(v) { if (typeof v === 'string') { if (/^\s*=/.test(v)) return null; v = v.replace(/\.{2,}/g, '.'); } return num(v); }
   function parseOpsCargas(sheets) {
     for (const sn of Object.keys(sheets)) {
       const aoa = sheets[sn];
-      const h = findHeader(aoa, ['FECHA TRANSACCION', 'CANTIDAD MERCANCIA']);
+      const h = findHeader(aoa, ['FECHA TRANSACCION', 'CANTIDAD MERCANCIA']) || findHeader(aoa, ['FECHA', 'UNIDAD', 'LITROS']);
       if (!h) continue;
       const I = h.idx, out = [];
-      const cVeh = pick(I, ['ID VEHICULO', 'VEHICULO', 'MOVIL']), cCC = pick(I, ['CENTRO COSTOS', 'CENTRO DE COSTOS']), cImp = pick(I, ['IMPORTE TRANSACCION', 'IMPORTE']);
-      // columna con EDENRED / AUTOCONSUMO
-      let cTipo;
+      const cF = pick(I, ['FECHA TRANSACCION', 'FECHA']), cL = pick(I, ['CANTIDAD MERCANCIA', 'LITROS']);
+      const cVeh = pick(I, ['ID VEHICULO', 'UNIDAD', 'VEHICULO', 'MOVIL']), cCC = pick(I, ['CENTRO COSTOS', 'CENTRO DE COSTOS']), cImp = pick(I, ['IMPORTE TRANSACCION', 'M.N.', 'MN', 'IMPORTE']);
+      const cP = pick(I, ['PRECIO UNITARIO MERC', 'PRECIO LTS', 'PRECIO']), cEst = pick(I, ['RAZON SOCIAL AFILIADO', 'ESTACION DE SERVICIO', 'ESTACION', 'PROVEEDOR']), cTar = pick(I, ['NUM TARJETA', 'DISPOSITIVO', 'TARJETA']);
+      // columna con EDENRED / AUTOCONSUMO (puede venir sin encabezado)
+      let cTipo = pick(I, ['FUENTE', 'TIPO']);
       const width = Math.max.apply(null, aoa.slice(h.row, h.row + 60).map(r => (r || []).length));
       for (let j = 0; j < width && cTipo === undefined; j++) {
         let hits = 0;
-        for (let i = h.row + 1; i < Math.min(aoa.length, h.row + 80); i++) { const v = norm((aoa[i] || [])[j]); if (v === 'EDENRED' || v === 'AUTOCONSUMO') hits++; }
+        for (let i = h.row + 1; i < Math.min(aoa.length, h.row + 200); i++) { const v = norm((aoa[i] || [])[j]); if (v === 'EDENRED' || /^AUTOCONSUMO/.test(v)) hits++; }
         if (hits > 10) cTipo = j;
       }
       for (let i = h.row + 1; i < aoa.length; i++) {
         const r = aoa[i]; if (!r) continue;
-        const d = toDate(r[I['FECHA TRANSACCION']]); const lts = num(r[I['CANTIDAD MERCANCIA']]);
+        const d = toDate(r[cF]); const lts = numX(r[cL]);
         if (!d || !lts) continue;
         const cc = txt(r[cCC]);
-        let tipo = cTipo !== undefined ? norm(r[cTipo]) : '';
-        if (tipo !== 'AUTOCONSUMO' && tipo !== 'EDENRED') tipo = /AUTOCONSUMO/.test(norm(cc)) ? 'AUTOCONSUMO' : 'EDENRED';
-        const tarjeta = txt(r[I['NUM TARJETA']]);
-        out.push({ fecha: d.fecha, hora: d.hora, sitio: sitioOps(cc, tipo), tipo: tipo, movil: txt(r[cVeh]).toUpperCase() || 'S/D', lts: r2(lts, 3), imp: r2(num(r[cImp]) || 0, 2), tarjeta: tarjeta ? tarjeta.slice(-4) : '', nota: txt(r[I['CARGAS CON DISP PRESTADO']]), cc: cc });
+        if (/\bLOGDL\b/.test(norm(cc))) continue; // las cargas de LOGDL viven en Logística
+        const tv = cTipo !== undefined ? norm(r[cTipo]) : '';
+        const tipo = /^AUTOCONSUMO/.test(tv) || /AUTOCONSUMO/.test(norm(cc)) ? 'AUTOCONSUMO' : 'EDENRED';
+        let imp = numX(r[cImp]); if (imp === null) { const pr = numX(r[cP]); if (pr !== null) imp = pr * lts; }
+        const tarjeta = txt(r[cTar]);
+        const sitio = tipo === 'AUTOCONSUMO' && /^AUTOCONSUMO\s+\S/.test(tv) ? 'AUTOCONSUMO ' + tv.replace(/^AUTOCONSUMO\s+/, '').split(/[\s\-]/)[0] : sitioOps(cc, tipo);
+        out.push({ fecha: d.fecha, hora: d.hora, sitio: sitio, tipo: tipo, movil: normOpsMovil(r[cVeh]) || 'S/D', lts: r2(lts, 3), imp: r2(imp || 0, 2), tarjeta: tarjeta ? tarjeta.slice(-4) : '', nota: txt(r[I['CARGAS CON DISP PRESTADO']]), cc: cc, est: txt(r[cEst]).toUpperCase() });
       }
       if (out.length) return out;
     }
@@ -1163,7 +1178,7 @@ const SHOT={"anomalias": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wB
       const r = parseLogRend(sheets, fileName); if (r) res.push.apply(res, r);
     } else if (has(['SUCURSAL', 'MOVIL', 'KMS REC'])) {
       const r = parseOpsRend(sheets, fileName); if (r) res.push.apply(res, r);
-    } else if (has(['FECHA TRANSACCION', 'CANTIDAD MERCANCIA'])) {
+    } else if (has(['FECHA TRANSACCION', 'CANTIDAD MERCANCIA']) || has(['FECHA', 'UNIDAD', 'LITROS'])) {
       const r = parseOpsCargas(sheets); if (r) res.push({ ds: 'ops_cargas', rows: r });
     } else if (has(['FECHA', 'MOVIL', 'LITROS', 'PROVEEDOR'])) {
       const r = parseLogCargas(sheets); if (r) res.push({ ds: 'log_cargas', rows: r });
@@ -1181,9 +1196,9 @@ const SHOT={"anomalias": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wB
   // Claves para evitar duplicados al acumular eventos
   function rowKey(ds, r) {
     switch (ds) {
-      case 'log_cargas': return [r.fecha, r.movil, r.lts, r.total, r.folio, r.suc].join('|');
-      case 'ops_cargas': return [r.fecha, r.hora, r.movil, r.lts, r.imp, r.tarjeta].join('|');
-      default: return [r.fecha, r.hora, normVeh(r.veh), r.min, r2(r.lts, 2)].join('|');
+      case 'log_cargas': return [r.fecha, normOpsMovil(r.movil), r.lts, r.total, r.folio, r.suc].join('|');
+      case 'ops_cargas': return [r.fecha, r.hora, normOpsMovil(r.movil), r.lts, r.imp, r.tarjeta].join('|');
+      default: return [r.fecha, r.hora, normOpsMovil(normVeh(r.veh)), r.min, r2(r.lts, 2)].join('|');
     }
   }
   // Texto mal decodificado (UTF-8 leído como Windows-1252): CuautitlÃ¡n -> Cuautitlán
@@ -1208,9 +1223,9 @@ const SHOT={"anomalias": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wB
     return out;
   }
   function toArr(ds, rows) { const c = COLS[ds]; return rows.map(r => c.map(k => r[k] === undefined ? null : r[k])); }
-  function fromArr(ds, arr) { const c = COLS[ds]; const rv = /_ral$/.test(ds); return arr.map(a => { const o = {}; for (let i = 0; i < c.length; i++) o[c[i]] = a[i]; if (rv) o.veh = normVeh(o.veh); return o; }); }
+  function fromArr(ds, arr) { const c = COLS[ds]; const rv = /_ral$/.test(ds), oc = ds === 'ops_cargas'; return arr.map(a => { const o = {}; for (let i = 0; i < c.length; i++) o[c[i]] = a[i]; if (rv) o.veh = normOpsMovil(normVeh(o.veh)) || o.veh; if (o.movil !== undefined && o.movil !== null) o.movil = normOpsMovil(o.movil) || o.movil; if (o.eco !== undefined && o.eco !== null) o.eco = normOpsMovil(o.eco) || o.eco; if (oc && o.est === undefined) o.est = ''; return o; }); }
 
-  const API = { normVeh, COLS, MONTHLY, LABEL, MESES, parseFile, rowKey, toArr, fromArr, encCols, decCols, fixMoji, periodFromText, norm, toDate, parseCSVText };
+  const API = { normVeh, normEco: normOpsMovil, COLS, MONTHLY, LABEL, MESES, parseFile, rowKey, toArr, fromArr, encCols, decCols, fixMoji, periodFromText, norm, toDate, parseCSVText };
   if (typeof module !== 'undefined' && module.exports) module.exports = API; else root.FP = API;
 })(typeof window !== 'undefined' ? window : globalThis);
 
@@ -1293,11 +1308,15 @@ function rowsOf(ds, p) {
   if (ds === 'log_rend') r.forEach(x => { if (x && x.marca) x.marca = mkNorm(x.marca); });
   S.cache[k] = r; return r;
 }
+// Cargas de Operaciones: LOGDL nunca (viven en Logística); MTRIZ según la casilla “Incluir cargas de Mtriz”
+function isLogdlC(r) { return r.sitio === 'LOGDL' || /\bLOGDL\b/.test(String(r.cc || '').toUpperCase()); }
+function isMtrizC(r) { return r.sitio === 'MTRIZ' || /^\s*MTRIZ\b/.test(String(r.cc || '').toUpperCase()); }
+function opsCgOk(r) { return !isLogdlC(r) && (tog('opsMtriz', true) || !isMtrizC(r)); }
 function rowsRange(ds, from, to) {
   const out = [];
   for (const p of periodsOf(ds)) {
     if (p < from.slice(0, 7) || p > to.slice(0, 7)) continue;
-    for (const r of rowsOf(ds, p)) if (r.fecha >= from && r.fecha <= to) out.push(r);
+    for (const r of rowsOf(ds, p)) if (r.fecha >= from && r.fecha <= to && (ds !== 'ops_cargas' || opsCgOk(r))) out.push(r);
   }
   return out;
 }
@@ -2068,7 +2087,7 @@ function viewOpsRend() {
 /* ---------- Cargas de combustible (genérico) ---------- */
 const CG = {
   log: { ds: 'log_cargas', amt: r => r.total || 0, prov: r => r.prov, fuente: r => r.fuente === 'AUTOCONSUMO' ? 'Autoconsumo' : r.fuente === 'DESCUENTO' ? 'Gasolinera externa con descuento' : 'Gasolinera externa', sitio: r => r.suc, auto: r => r.fuente === 'AUTOCONSUMO' },
-  ops: { ds: 'ops_cargas', amt: r => r.imp || 0, prov: r => r.tipo === 'AUTOCONSUMO' ? r.sitio : 'EDENRED', fuente: r => r.tipo === 'AUTOCONSUMO' ? 'Autoconsumo' : 'Gasolinera (EDENRED)', sitio: r => r.sitio, auto: r => r.tipo === 'AUTOCONSUMO' }
+  ops: { ds: 'ops_cargas', amt: r => r.imp || 0, prov: r => r.tipo === 'AUTOCONSUMO' ? r.sitio : (r.est || 'EDENRED · sin estación'), fuente: r => r.tipo === 'AUTOCONSUMO' ? 'Autoconsumo' : 'Gasolinera (EDENRED)', sitio: r => r.sitio, auto: r => r.tipo === 'AUTOCONSUMO' }
 };
 function cargasRows(a, from, to) {
   const f = S.f[a]; const L = lookups(); const ex = a === 'ops' && setting('excluirLog');
@@ -2147,13 +2166,13 @@ function viewCargas(a) {
     multi.length ? '<b>' + multi.length + ' móviles</b> cargaron 3 o más veces en un mismo día: revisar tarjeta, TAG o préstamo de dispositivo.' : null,
     alerts.length ? alerts.length + ' cargas con precio o volumen fuera de rango (precio fuera de ' + F.money2(lo) + '–' + F.money2(hi) + ' o más de ' + F.L(bigL) + ').' : null
   ];
-  const pcols = [{ k: 'n', l: 'Proveedor' }, { k: 'c', l: 'Cargas', num: 1, f: F.n0 }, { k: 'lts', l: 'Litros', num: 1, f: F.n0 }, { k: 'pct', l: '% litros', num: 1, f: F.pct }, { k: 'imp', l: 'Importe', num: 1, f: F.money }, { k: 'precio', l: '$/L', num: 1, f: F.money2 }, { k: 'u', l: 'Unid.', num: 1, f: F.n0 }];
-  const provSel = '<select data-act="f" data-k="cProv"><option value="ALL">Todos los proveedores</option>' + provList.map(p => '<option' + (f.cProv === p ? ' selected' : '') + '>' + esc(p) + '</option>').join('') + '</select><select data-act="f" data-k="cMet"><option value="L"' + (met === 'L' ? ' selected' : '') + '>Litros</option><option value="$"' + (met === '$' ? ' selected' : '') + '>Importe</option><option value="C"' + (met === 'C' ? ' selected' : '') + '>Núm. de cargas</option></select>';
-  return '<div class="blockhead"><div><h2>Cargas de combustible</h2><p class="sub">' + dLabel(f.desde) + ' – ' + dLabel(f.hasta) + ' · se actualiza con cada archivo diario</p></div>' + rangeInputs(a) + '</div>' +
-    '<div class="kpis">' + kpi('Litros cargados', F.n0(st.lts), F.n0(st.c) + ' cargas', 'hero') + kpi('Importe', F.money(st.imp)) + kpi('Precio promedio', F.money2(st.precio) + '<small>/L</small>') + kpi('% autoconsumo', F.pct(st.pAuto), 'de los litros') + kpi('Unidades', F.n0(st.u), F.n1(div(st.c, st.u)) + ' cargas por unidad') + kpi('Litros por carga', F.n0(div(st.lts, st.c))) + '</div>' +
+  const pcols = [{ k: 'n', l: a === 'ops' ? 'Estación / sitio' : 'Proveedor' }, { k: 'c', l: 'Cargas', num: 1, f: F.n0 }, { k: 'lts', l: 'Litros', num: 1, f: F.n0 }, { k: 'pct', l: '% litros', num: 1, f: F.pct }, { k: 'imp', l: 'Importe', num: 1, f: F.money }, { k: 'precio', l: '$/L', num: 1, f: F.money2 }, { k: 'u', l: 'Unid.', num: 1, f: F.n0 }];
+  const provSel = '<select data-act="f" data-k="cProv"><option value="ALL">' + (a === 'ops' ? 'Todas las estaciones' : 'Todos los proveedores') + '</option>' + provList.map(p => '<option' + (f.cProv === p ? ' selected' : '') + '>' + esc(p) + '</option>').join('') + '</select><select data-act="f" data-k="cMet"><option value="L"' + (met === 'L' ? ' selected' : '') + '>Litros</option><option value="$"' + (met === '$' ? ' selected' : '') + '>Importe</option><option value="C"' + (met === 'C' ? ' selected' : '') + '>Núm. de cargas</option></select>';
+  return '<div class="blockhead"><div><h2>Cargas de combustible</h2><p class="sub">' + dLabel(f.desde) + ' – ' + dLabel(f.hasta) + ' · se actualiza con cada archivo diario' + (a === 'ops' ? ' · sin cargas de LOGDL (viven en Logística)' + (tog('opsMtriz', true) ? '' : ' · sin Mtriz') : '') + '</p></div>' + (a === 'ops' ? '<div class="bh-tools"><label class="chk"><input type="checkbox" data-act="tg" data-k="opsMtriz"' + (tog('opsMtriz', true) ? ' checked' : '') + '> Incluir cargas de Mtriz</label>' + rangeInputs(a) + '</div>' : rangeInputs(a)) + '</div>' +
+    '<div class="kpis">' + kpi('Litros cargados', F.n0(st.lts), F.n0(st.c) + ' cargas', 'hero') + kpi('Importe', F.money(st.imp)) + kpi('Precio promedio', F.money2(st.precio) + '<small>/L</small>') + kpi('% autoconsumo', F.pct(st.pAuto), 'de los litros') + kpi('Unidades', F.n0(st.u), F.n1(div(st.c, st.u)) + ' cargas por unidad' + (a === 'ops' ? ' · ' + F.n0(div(st.lts, st.c)) + ' L por carga' : '')) + (a === 'ops' ? '' : kpi('Litros por carga', F.n0(div(st.lts, st.c)))) + (a === 'ops' ? kpi('Estaciones', F.n0(byP.filter(x => !/^AUTOCONSUMO/.test(x.n)).length), byP.filter(x => !/^AUTOCONSUMO/.test(x.n))[0] ? 'la principal: ' + esc(byP.filter(x => !/^AUTOCONSUMO/.test(x.n))[0].n) : '') : '') + '</div>' +
     card('Consumo general por día', '<div id="' + ids.d + '"></div>', { tools: provSel }) +
-    '<div class="grid2">' + card('Cargas por proveedor', '<div id="' + ids.p + '"></div>') + card('Fuente de carga', '<div id="' + ids.fu + '"></div>', { sub: 'Participación en litros' }) + '</div>' +
-    card('% de consumo por proveedor', table(pcols, byP, { sort: 'lts', limit: 10, onRow: x => DC('Proveedor ' + x.n, r => cg.prov(r) === x.n) })) +
+    '<div class="grid2">' + card(a === 'ops' ? 'Litros por estación de servicio (top 15)' : 'Cargas por proveedor', '<div id="' + ids.p + '"></div>', a === 'ops' ? { sub: 'Autoconsumo por sitio · EDENRED por estación' } : {}) + card('Fuente de carga', '<div id="' + ids.fu + '"></div>', { sub: 'Participación en litros' }) + '</div>' +
+    card(a === 'ops' ? '% de consumo por estación de servicio' : '% de consumo por proveedor', table(pcols, byP, { sort: 'lts', limit: a === 'ops' ? 15 : 10, search: a === 'ops', onRow: x => DC((a === 'ops' ? 'Estación ' : 'Proveedor ') + x.n, r => cg.prov(r) === x.n) }), a === 'ops' ? { sub: F.n0(byP.length) + ' estaciones y sitios con cargas en el periodo · busca cualquier estación' } : {}) +
     '<div class="grid2">' + card('Cargas por sitio (top 20)', '<div id="' + ids.s + '"></div>', { sub: '<i class="sw" style="background:var(--s1)"></i> Autoconsumo · <i class="sw" style="background:var(--s3)"></i> Gasolinera' }) + card('% de consumo por sitio', table([{ k: 'n', l: 'Sitio' }, { k: 'c', l: 'Cargas', num: 1, f: F.n0 }, { k: 'lts', l: 'Litros', num: 1, f: F.n0 }, { k: 'pct', l: '% litros', num: 1, f: F.pct }, { k: 'precio', l: '$/L', num: 1, f: F.money2 }], byS, { sort: 'lts', limit: 12, search: true, onRow: x => DC('Sitio ' + x.n, r => cg.sitio(r) === x.n) })) + '</div>' +
     '<div class="grid2">' + card('Comportamiento del precio por fuente', '<div id="' + ids.pf + '"></div>', { sub: 'Precio promedio diario por litro' }) + card('Precio diario por autoconsumo', '<div id="' + ids.ps + '"></div>') + '</div>' +
     card('Precio por sitio', table([{ k: 'n', l: 'Sitio' }, { k: 'fuente', l: 'Fuente' }, { k: 'prom', l: 'Promedio', num: 1, f: F.money2 }, { k: 'min', l: 'Mínimo', num: 1, f: F.money2 }, { k: 'max', l: 'Máximo', num: 1, f: F.money2 }, { k: 'ult', l: 'Último', num: 1, f: F.money2 }, { k: 'uf', l: 'Fecha último', f: dLabel }], priceTbl, { sort: 'prom', limit: 10, search: true, onRow: x => DC('Sitio ' + x.n, r => cg.sitio(r) === x.n) })) +
@@ -5370,7 +5389,7 @@ function firstName() { const n = (S.name || '').trim(); if (!n) return ''; if (U
 
 function priceSummary(a) {
   const cg = CG[a]; const p = latest(cg.ds); if (!p) return null;
-  const rows = rowsOf(cg.ds, p).filter(r => !(a === 'ops' && setting('excluirLog') && lookups().logSet.has(r.movil)));
+  const rows = rowsOf(cg.ds, p).filter(r => !(a === 'ops' && ((setting('excluirLog') && lookups().logSet.has(r.movil)) || !opsCgOk(r))));
   const last = rows.reduce((m, r) => r.fecha > m ? r.fecha : m, '');
   const items = [];
   const auto = aggC(a, rows.filter(cg.auto), cg.sitio).sort((x, y) => y.lts - x.lts);
@@ -5570,7 +5589,7 @@ function pendCard(x, i) {
     const monthly = FP.MONTHLY[r.ds];
     let det = '';
     if (monthly) det = 'Periodo <select data-act="pper" data-i="' + i + '" data-j="' + j + '">' + monthOptions(r.period) + '</select>' + (r.period && arrFor(r.ds, r.period) ? ' <span class="warn">Ya existe información de ese mes: se reemplazará.</span>' : '') + (!r.period ? ' <span class="warn">No detecté el mes; elígelo.</span>' : '');
-    else det = Object.keys(r.byMonth).sort().map(p => perLabel(p) + ': <b>' + F.n0(r.byMonth[p].nuevos) + '</b> nuevos, ' + F.n0(r.byMonth[p].dup) + ' repetidos' + (r.byMonth[p].upd ? ', <b>' + F.n0(r.byMonth[p].upd) + '</b> con fuente actualizada' : '')).join(' · ');
+    else det = Object.keys(r.byMonth).sort().map(p => perLabel(p) + ': <b>' + F.n0(r.byMonth[p].nuevos) + '</b> nuevos, ' + F.n0(r.byMonth[p].dup) + ' repetidos' + (r.byMonth[p].upd ? ', <b>' + F.n0(r.byMonth[p].upd) + '</b> con ' + (r.ds === 'ops_cargas' ? 'estación' : 'fuente') + ' actualizada' : '')).join(' · ');
     return '<div class="pend"><div><b>' + esc(x.file) + '</b><span class="tag">' + FP.LABEL[r.ds] + '</span><span class="muted">' + F.n0(r.rows.length) + ' registros</span></div><div class="pdet">' + det + (r.warn ? ' <span class="warn">' + esc(r.warn) + '</span>' : '') + '</div><button class="lnk" data-act="rmPend" data-i="' + i + '">Quitar</button></div>';
   }).join('');
 }
@@ -5580,7 +5599,7 @@ function dedupPlan(ds, rows) {
   for (const p in by) {
     const base = rowsOf(ds, p).slice(); const cnt = new Map(); base.forEach((r, i) => { const k = FP.rowKey(ds, r); let l = cnt.get(k); if (!l) cnt.set(k, l = []); l.push(i); });
     const nuevos = []; let dup = 0, upd = 0;
-    for (const r of by[p]) { const k = FP.rowKey(ds, r); const l = cnt.get(k); if (l && l.length) { const i = l.shift(); dup++; if (ds === 'log_cargas' && r.fuente && base[i].fuente !== r.fuente) { base[i] = Object.assign({}, base[i], { fuente: r.fuente }); upd++; } } else nuevos.push(r); }
+    for (const r of by[p]) { const k = FP.rowKey(ds, r); const l = cnt.get(k); if (l && l.length) { const i = l.shift(); dup++; if (ds === 'log_cargas' && r.fuente && base[i].fuente !== r.fuente) { base[i] = Object.assign({}, base[i], { fuente: r.fuente }); upd++; } else if (ds === 'ops_cargas' && ((r.est && base[i].est !== r.est) || base[i].tipo !== r.tipo || base[i].sitio !== r.sitio)) { base[i] = Object.assign({}, base[i], { est: r.est, tipo: r.tipo, sitio: r.sitio }); upd++; } } else nuevos.push(r); }
     plan[p] = { nuevos: nuevos.length, dup, add: nuevos, upd, base: upd ? base : null };
   }
   return plan;
@@ -5684,11 +5703,10 @@ const fmN = s => String(s === null || s === undefined ? '' : s).normalize('NFD')
 const fmT = v => v === null || v === undefined ? '' : String(v).replace(/\s+/g, ' ').trim();
 function fmNum(v) { if (v === null || v === undefined || v === '') return null; if (typeof v === 'number') return isFinite(v) ? v : null; let s = String(v).trim().replace(/[$\s]/g, '').replace(/\.{2,}/g, '.'); if (/^=/.test(s)) return null; if (/^-?\d{1,3}(,\d{3})+(\.\d+)?$/.test(s)) s = s.replace(/,/g, ''); else if (/^-?\d+,\d+$/.test(s)) s = s.replace(',', '.'); const n = parseFloat(s); return isFinite(n) ? n : null; }
 function fmEco(v) {
-  const raw = String(v === null || v === undefined ? '' : v).trim().toUpperCase(); const pm = raw.match(/^M\s*-?\s*0*(\d{3,6})(?!\d)/); if (pm && raw.length > pm[0].length) return 'M' + pm[1].padStart(6, '0');
+  const raw = String(v === null || v === undefined ? '' : v).trim().toUpperCase(); const pm = raw.match(/^M\s*-?\s*0*(\d{3,6})(?!\d)/); if (pm && raw.length > pm[0].length) return FP.normEco('M' + pm[1]);
   let s = raw.replace(/[\s\-_.]/g, '');
   if (typeof v === 'number') s = String(Math.round(v));
-  let m = s.match(/^M0*(\d{1,6})$/); if (m) return 'M' + m[1].padStart(6, '0');
-  m = s.match(/^0*(\d{3,6})$/); if (m) return 'M' + m[1].padStart(6, '0');
+  if (/^M?\d{1,7}$/.test(s)) return FP.normEco(s) || s;
   return s;
 }
 function fmDate(v) {
@@ -6322,13 +6340,14 @@ function rmCalc(cfg) {
     const sitios = aggC(a, C, CG[a].sitio).filter(x => x.lts > 0).slice(0, 12);
     const autoS = aggC(a, auto, CG[a].sitio).sort((x, y) => (x.precio || 0) - (y.precio || 0));
     const cReg = aggC(a, C, r => regionOf(a, r.movil) || 'SIN REGIÓN').sort((x, y) => y.imp - x.imp);
+    const estA = isL ? [] : aggC(a, ext.filter(r => r.est), r => r.est); const estT = estA.slice(0, 10); const estCaras = estA.filter(x => x.lts >= 1000).sort((x, y) => (y.precio || 0) - (x.precio || 0)).slice(0, 5);
     const cpu = aggC(a, C, r => r.movil).sort((x, y) => y.imp - x.imp).slice(0, 10);
     // Casos a revisar
     let csr = [], rsc = [], sams = [];
     let prsc = 0; if (!isL) { const all = opsRendRows(p, { allCasos: true, ignoreRegion: true }); csr = all.filter(r => r.caso === 'CSR').sort((x, y) => y.lts - x.lts); rsc = all.filter(r => r.caso === 'RSC').sort((x, y) => y.km - x.km); if (hasP) prsc = sum(opsRendRows(pp, { allCasos: true, ignoreRegion: true }).filter(r => r.caso === 'RSC'), 'km'); }
     else sams = rows.filter(r => r.rendS && r.rendM && Math.abs(r.rendS / r.rendM - 1) > 0.1);
     let an = null; try { const A = anomalies(a, p + '-01', monthEnd(p)).list.filter(x => x.sev === 3); an = { n: A.length, m: sum(A, 'monto') }; } catch (e) { }
-    return { a, p, pp, hasP, prsc, st, pst, byR, groups, sucs, sucAll, U, stc, crit, best, excL, excM, trend, C, cs, pcs, fu, pA, pE, ahorro, sitios, autoS, cReg, cpu, csr, rsc, sams, an, isL };
+    return { a, p, pp, hasP, prsc, estA, estT, estCaras, st, pst, byR, groups, sucs, sucAll, U, stc, crit, best, excL, excM, trend, C, cs, pcs, fu, pA, pE, ahorro, sitios, autoS, cReg, cpu, csr, rsc, sams, an, isL };
   });
 }
 const rmCol = c => c === null || c === undefined || !isFinite(c) ? MC.mut : c >= 1 ? MC.grn : c >= 0.95 ? '#5a9e3a' : c >= 0.9 ? MC.amb : MC.red;
@@ -6406,6 +6425,7 @@ function rmHTML(cfg, X, logo) {
     body += rmSec('#e8a200', '⛽ Combustible del mes', F.n0(cs.c) + ' cargas · ' + F.n0(cs.lts) + ' L · ' + F.money(cs.imp) + ' · ' + F.money2(cs.precio) + '/L promedio', mTable([{ l: 'Fuente', f: x => '<b>' + esc(x.n) + '</b>' }, { l: 'Litros', w: '30%', f: x => mBar(x.lts, fmx, '#e8a200') }, { l: 'L', r: 1, nw: 1, f: x => F.n0(x.lts) }, { l: '% L', r: 1, f: x => F.pct0(x.pct) }, { l: 'Importe', r: 1, nw: 1, f: x => F.money(x.imp) }, { l: 'Precio/L', r: 1, nw: 1, f: x => F.money2(x.precio) }, { l: 'Unid.', r: 1, f: x => F.n0(x.u) }], X.fu),
       'El autoconsumo representa el <b>' + F.pct0(cs.pAuto) + '</b> de los litros' + (X.pA ? ' a ' + F.money2(X.pA) + '/L' : '') + (X.pE ? '; en ' + (isL ? 'gasolineras externas' : 'EDENRED') + ' el litro salió en ' + F.money2(X.pE) : '') + '.' + (X.ahorro > 1000 ? ' Si los litros externos se hubieran cargado al precio de autoconsumo, el ahorro sería de <b>' + F.money(X.ahorro) + '</b>.' : ''));
     if (X.autoS.length) body += rmSec('#e8a200', 'Precio por sitio de autoconsumo', 'Del más barato al más caro', mTable([{ l: 'Sitio', f: x => '<b>' + esc(String(x.n).replace(/^AUTOCONSUMO /, '')) + '</b>' }, { l: 'Litros', r: 1, f: x => F.n0(x.lts) }, { l: 'Importe', r: 1, f: x => F.money(x.imp) }, { l: 'Precio/L', r: 1, f: x => '<b>' + F.money2(x.precio) + '</b>' }, { l: 'Cargas', r: 1, f: x => F.n0(x.c) }], X.autoS));
+    if (X.estT && X.estT.length) { const mx = X.estT[0].lts; const lE = sum(X.estA, 'lts'); body += rmSec('#e8a200', '⛽ Estaciones de servicio con más consumo', F.n0(X.estA.length) + ' estaciones EDENRED usadas en el mes · top 10 por litros', mTable([{ l: '#', r: 1, f: (x, i) => i + 1 }, { l: 'Estación', f: x => '<b>' + esc(x.n) + '</b>' }, { l: 'Litros', w: '24%', f: x => mBar(x.lts, mx, '#e8a200') }, { l: 'L', r: 1, nw: 1, f: x => F.n0(x.lts) }, { l: '% ext.', r: 1, f: x => F.pct0(div(x.lts, lE)) }, { l: 'Precio/L', r: 1, nw: 1, f: x => F.money2(x.precio) }, { l: 'Unid.', r: 1, f: x => F.n0(x.u) }], X.estT), 'Las 10 estaciones principales concentran el <b>' + F.pct0(div(sum(X.estT, 'lts'), lE)) + '</b> de los litros en EDENRED.' + (X.estCaras.length ? ' Las más caras con más de 1,000 L: ' + X.estCaras.slice(0, 3).map(x => '<b>' + esc(x.n) + '</b> (' + F.money2(x.precio) + '/L)').join(', ') + ' contra ' + F.money2(X.pE) + '/L promedio.' : '')); }
     if (X.cReg.length > 1) { const mx = X.cReg[0].imp; body += rmSec('#e8a200', 'Gasto por región', 'Todas las fuentes', mTable([{ l: 'Región', f: x => '<b>' + esc(x.n) + '</b>' }, { l: 'Gasto', w: '30%', f: x => mBar(x.imp, mx, '#e8a200') }, { l: '$', r: 1, nw: 1, f: x => F.money(x.imp) }, { l: 'Litros', r: 1, f: x => F.n0(x.lts) }, { l: 'Precio/L', r: 1, f: x => F.money2(x.precio) }, { l: 'Unid.', r: 1, f: x => F.n0(x.u) }], X.cReg)); }
     if (X.cpu.length) body += rmSec('#e8a200', 'Unidades con mayor gasto', 'Top 10 del mes', mTable([{ l: '#', r: 1, f: (x, i) => i + 1 }, { l: isL ? 'Económico' : 'Móvil', f: x => '<b>' + esc(x.n) + '</b>' }, { l: 'Región', f: x => esc(regionOf(a, x.n) || '') }, { l: 'Cargas', r: 1, f: x => F.n0(x.c) }, { l: 'Litros', r: 1, f: x => F.n0(x.lts) }, { l: 'Importe', r: 1, f: x => F.money(x.imp) }], X.cpu));
   }
@@ -6427,6 +6447,7 @@ async function rmXlsx(cfg, X) {
   SH.push(['Unidades', X.U.slice().sort((a, b) => a.cump - b.cump).map(u => ({ [isL ? 'Económico' : 'Móvil']: u.id, Región: u.reg, Sucursal: u.suc, [isL ? 'Marca · modalidad' : 'Tipo']: u.tipo, Km: r3(u.km), Litros: r3(u.lts), 'Rend. real': r3(u.rend), Ideal: r3(u.ideal), 'Cumplimiento %': r3(u.cump * 100), Estado: statusOf(u.cump).t, 'Litros sobre ideal': r3(u.exc), 'Costo del exceso': r3(u.excImp) }))]);
   SH.push(['Tendencia', X.trend.map(t => ({ Mes: perLabel(t.p), 'Rend. real': r3(t.rend), Ideal: r3(t.ideal), 'Cumplimiento %': r3(t.cump * 100), Litros: r3(t.lts), Gasto: r3(t.imp) }))]);
   SH.push(['Combustible por fuente', X.fu.map(x => ({ Fuente: x.n, Cargas: x.c, Litros: r3(x.lts), '% litros': r3(x.pct * 100), Importe: r3(x.imp), 'Precio por litro': r3(x.precio), Unidades: x.u }))]);
+  if (X.estA && X.estA.length) SH.push(['Estaciones', X.estA.map(x => ({ Estación: x.n, Cargas: x.c, Litros: r3(x.lts), Importe: r3(x.imp), 'Precio por litro': r3(x.precio), Unidades: x.u }))]);
   SH.push(['Combustible por sitio', aggC(cfg.a, X.C, CG[cfg.a].sitio).map(x => ({ Sitio: x.n, Cargas: x.c, Litros: r3(x.lts), Importe: r3(x.imp), 'Precio por litro': r3(x.precio), Unidades: x.u }))]);
   if (!isL) SH.push(['Casos a revisar', X.csr.map(r => ({ Caso: 'Carga sin recorrido', Móvil: r.movil, Sucursal: r.suc, Región: r.region, Tipo: r.desc, Km: r3(r.km), Litros: r3(r.lts), Importe: r3(r.imp) })).concat(X.rsc.map(r => ({ Caso: 'Recorrido sin carga', Móvil: r.movil, Sucursal: r.suc, Región: r.region, Tipo: r.desc, Km: r3(r.km), Litros: r3(r.lts), Importe: r3(r.imp) })))]);
   return pxBuild('Rendimiento y Combustible ' + AREA_NAME[cfg.a] + ' · ' + perLabel(X.p), SH.filter(s => s[1].length), { sub: 'Detalle del correo a la ' + (isL ? 'red logística' : 'red operativa') + ' · Portal de Combustible' });
