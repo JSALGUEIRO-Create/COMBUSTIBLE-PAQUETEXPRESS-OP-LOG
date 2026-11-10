@@ -234,6 +234,9 @@ table.cov td{text-align:center}table.cov td:first-child{text-align:left;white-sp
 .fm-warn{margin:10px 0 0;padding:8px 12px;border-radius:10px;background:rgba(242,169,0,.14);font-size:13px}
 .fm-res{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:4px 0 14px}.fm-res h4,.card h4{margin:6px 0 8px;color:var(--s1)}
 .fm-iss{margin:0;padding-left:18px;font-size:13px;line-height:1.6}
+.fm-idin{width:84px;padding:4px 6px;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit}
+.fm-miss td{background:rgba(220,38,38,.08)}.fm-miss .fm-idin{border-color:#dc2626}
+.fm-sem{padding:1px 7px;border-radius:6px;font-weight:700}.fm-sem.sV{background:#00B050;color:#fff}.fm-sem.sA{background:#FFFF00;color:#000}.fm-sem.sR{background:#FF0000;color:#fff}
 .fm-tag{font-size:10px;font-weight:700;background:#dbe7ff;color:#003087;padding:1px 6px;border-radius:99px}
 @media(max-width:900px){.fm-opts,.fm-res{grid-template-columns:1fr}}
 .drop{display:block;border:2px dashed var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px;cursor:pointer;position:relative;transition:border-color .15s,background .15s}
@@ -1944,7 +1947,7 @@ function viewLogRend() {
   const srcSel = '<div class="seg" role="group" aria-label="Fuente del rendimiento">' + [['S', 'Samsara · oficial'], ['M', 'Cálculo manual · consulta']].map(([v, l]) => '<button data-act="src" data-v="' + v + '" class="' + (logSrc() === v ? 'on' : '') + '">' + l + '</button>').join('') + '</div>';
   const tools = srcSel + '<label class="chk"><input type="checkbox" data-act="tg" data-k="logWialon"' + (tog('logWialon', true) ? ' checked' : '') + '> Incluir “No reporta Wialon”</label><label class="chk"><input type="checkbox" data-act="tg" data-k="logTK"' + (tog('logTK', false) ? ' checked' : '') + '> Incluir torton y Kalmar</label>';
   const other = logRendStats(logRendRows(p, false, logSrc() === 'S' ? 'M' : 'S'));
-  return '<div class="blockhead"><div><h2>Rendimientos · ' + perLabel(p) + '</h2><p class="sub">' + (logSrc() === 'S' ? '<b>Rendimiento Samsara (oficial)</b>' : '<b class="tw">Cálculo manual · solo consulta, no es el oficial</b>') + ' · ideal ponderado Full ' + F.n2(iF) + ' / Sencillo ' + F.n2(iS) + ' km/L · ' + F.n0(st.u) + ' unidades' + (f.region !== 'ALL' ? ' · ' + esc(f.region) : '') + '</p></div><div class="bh-tools">' + tools + '<button class="btn xls" data-act="xls" data-area="log">⬇ Reporte mensual Excel</button></div></div>' +
+  return '<div class="blockhead"><div><h2>Rendimientos · ' + perLabel(p) + '</h2><p class="sub">' + (logSrc() === 'S' ? '<b>Rendimiento Samsara (oficial)</b>' : '<b class="tw">Cálculo manual · solo consulta, no es el oficial</b>') + ' · ideal ponderado Full ' + F.n2(iF) + ' / Sencillo ' + F.n2(iS) + ' km/L · ' + F.n0(st.u) + ' unidades' + (f.region !== 'ALL' ? ' · ' + esc(f.region) : '') + '</p></div><div class="bh-tools">' + tools + '<button class="btn mailbtn" data-act="mailRend" data-area="log">✉ Generar correo</button><button class="btn xls" data-act="xls" data-area="log">⬇ Reporte mensual Excel</button></div></div>' +
     (!isRng(p) && st.mixEst > st.u * 0.2 ? '<div class="notice">⚠ El semáforo de ' + perLabel(p) + ' no trae % Full / % Sencillo. Para calcular el ideal ponderado se usó la mezcla de cada tracto en el mes más cercano (' + F.n0(st.mixEst - st.mixFlota) + ' tractos)' + (st.mixFlota ? ' o el promedio de la flota (' + F.n0(st.mixFlota) + ')' : '') + '.</div>' : '') +
     '<div class="kpis">' + kpi('Rendimiento flota', F.n2(st.rend) + '<small> km/L</small>', 'Ideal ponderado ' + F.kml(st.ideal) + (prev ? ' ' + delta(prev.rend, st.rend, 'up', F.n3) : ''), 'hero') + kpi('Cumplimiento vs ideal', F.pct(st.cump), badge(st.cump) + (prev ? ' ' + delta(prev.cump, st.cump, 'up', F.pct) : '')) + kpi('Kilómetros', F.n0(st.km), prev ? delta(prev.km, st.km, null, F.n0) : '') + kpi('Gasto diésel', F.money(st.imp), 'Precio prom. ' + F.money2(st.precio) + '/L') + kpi(logSrc() === 'S' ? 'Rend. manual (consulta)' : 'Rend. Samsara (oficial)', F.n2(other.rend) + '<small> km/L</small>', F.pct(other.cump) + ' de cumplimiento') + kpi('Litros sobre el ideal', F.L(excTot), F.money(excImp) + ' en tractos debajo de 90%') + '</div>' +
     '<div class="grid2">' + card('Cumplimiento por región', '<div id="' + ids.z + '"></div>', { sub: 'Rendimiento real ÷ ideal ponderado por la mezcla Full / Sencillo de cada región' }) + card('Estado de los tractos', '<div id="' + ids.st + '"></div>', { sub: 'Cumplimiento de cada tracto contra su propio ideal · mínimo ' + F.km(setting('minKmLog')) }) + '</div>' +
@@ -2042,7 +2045,7 @@ function viewOpsRend() {
   const ucols = [{ k: 'movil', l: 'Móvil' }, { k: 'suc', l: 'Suc.' }, { k: 'region', l: 'Región' }, { k: 'desc', l: 'Tipo de unidad' }, { k: 'km', l: 'Km', num: 1, f: F.n0 }, { k: 'rend', l: 'Real', num: 1, f: F.n2 }, { k: 'ideal', l: 'Ideal', num: 1, f: F.n2 }, { k: 'cump', l: 'Cumpl.', num: 1, html: r => badge(r.cump, F.pct0(r.cump)) }];
   const ccols = [{ k: 'movil', l: 'Móvil' }, { k: 'suc', l: 'Suc.' }, { k: 'region', l: 'Región' }, { k: 'desc', l: 'Tipo de unidad' }, { k: 'comb', l: 'Comb.' }, { k: 'km', l: 'Km', num: 1, f: F.n1 }, { k: 'lts', l: 'Litros', num: 1, f: F.n1 }, { k: 'imp', l: '$', num: 1, f: F.money }];
   const tools = '<label class="chk"><input type="checkbox" data-act="tg" data-k="opsCasos"' + (tog('opsCasos', false) ? ' checked' : '') + '> Incluir casos especiales</label><label class="chk"><input type="checkbox" data-act="tg" data-k="opsAtip"' + (tog('opsAtip', false) ? ' checked' : '') + '> Excluir atípicos (&gt;250% o &lt;30% del ideal)</label>';
-  return '<div class="blockhead"><div><h2>Rendimientos · ' + perLabel(p) + '</h2><p class="sub">Semáforo diésel' + (arrFor('ops_rend_g', p) ? ' y gasolina' : '') + ' · ' + F.n0(st.u) + ' unidades · combustible: ' + combTxt + '</p></div><div class="bh-tools">' + tools + '<button class="btn xls" data-act="xls" data-area="ops">⬇ Reporte mensual Excel</button></div></div>' +
+  return '<div class="blockhead"><div><h2>Rendimientos · ' + perLabel(p) + '</h2><p class="sub">Semáforo diésel' + (arrFor('ops_rend_g', p) ? ' y gasolina' : '') + ' · ' + F.n0(st.u) + ' unidades · combustible: ' + combTxt + '</p></div><div class="bh-tools">' + tools + '<button class="btn mailbtn" data-act="mailRend" data-area="ops">✉ Generar correo</button><button class="btn xls" data-act="xls" data-area="ops">⬇ Reporte mensual Excel</button></div></div>' +
     '<div class="kpis">' + kpi('Rendimiento real', F.n2(st.rend) + '<small> km/L</small>', 'Ideal ponderado ' + F.kml(st.ideal) + (prev ? ' ' + delta(prev.rend, st.rend, 'up', F.n3) : ''), 'hero') + kpi('Cumplimiento vs ideal', F.pct(st.cump), badge(st.cump) + (prev ? ' ' + delta(prev.cump, st.cump, 'up', F.pct) : '')) + kpi('Kilómetros', F.n0(st.km), prev ? delta(prev.km, st.km, null, F.n0) : '') + kpi('Litros', F.n0(st.lts), prev ? delta(prev.lts, st.lts, 'down', F.n0) : '') + kpi('Gasto combustible', F.money(st.imp), 'Precio prom. ' + F.money2(st.precio) + '/L') + kpi('Unidades en ideal', F.pct(pctOpt), F.n0(stc.good) + ' de ' + F.n0(units.length) + ' evaluadas') + '</div>' +
     '<div class="grid2">' + card('Cumplimiento por región', '<div id="' + ids.r + '"></div>', { sub: 'Rendimiento real ÷ ideal ponderado por la mezcla de unidades' }) + card('Estado de las unidades', '<div id="' + ids.st + '"></div>', { sub: 'Unidades con al menos ' + F.km(setting('minKmOps')) }) + '</div>' +
     '<div class="grid2">' + card('Podio · 15 mejores sucursales', '<div id="' + ids.top + '"></div>', { sub: 'Sucursales con 3 o más unidades', cls: 'good-edge' }) + card('15 sucursales con menor cumplimiento', '<div id="' + ids.bot + '"></div>', { cls: 'bad-edge' }) + '</div>' +
@@ -5007,7 +5010,7 @@ async function buildMailRal(cfg) {
   const subject = 'Reporte de Ralentí ' + AREA_NAME[a] + ' · ' + per + (cfg.region !== 'ALL' ? ' · ' + cfg.region : '') + (cfg.suc !== 'ALL' ? ' · ' + cfg.suc : '') + ' · ' + F.n0(X.st.lts) + ' L (' + F.money(X.st.lts * X.P) + ')';
   const tag = (a === 'log' ? 'Logistica' : 'Operaciones') + '_' + cfg.d + (cfg.d !== cfg.h ? '_a_' + cfg.h : '');
   let xl = null; if (cfg.xlsx) { try { xl = { name: 'Detalle_Ralenti_' + tag + '.xlsx', buf: await mailXlsx(cfg, X) }; } catch (e) { console.warn(e); toast('No se pudo crear el Excel adjunto; el correo va sin adjunto', 'warn'); } }
-  MAIL.cfg = cfg; MAIL.subject = subject; MAIL.html = mailHTML(cfg, X, 'data:image/png;base64,' + LOGO64);
+  MAIL.kind = 'ral'; MAIL.cfg = cfg; MAIL.subject = subject; MAIL.html = mailHTML(cfg, X, 'data:image/png;base64,' + LOGO64);
   MAIL.eml = buildEml(cfg, subject, mailHTML(cfg, X, 'cid:pxlogo'), xl); MAIL.file = 'Correo_Ralenti_' + tag + '.eml'; MAIL.xlsx = xl;
   const m = $('#modal'); DSTACK.length = 0; m.classList.remove('drill');
   m.innerHTML = '<div class="mbox mailprev"><header><div><h3>✉ Correo listo · ' + AREA_NAME[a] + '</h3><p class="sub"><b>Asunto:</b> ' + esc(subject) + (cfg.to ? '<br><b>Para:</b> ' + esc(cfg.to) : '') + (xl ? '<br>📎 ' + esc(xl.name) : '') + '</p></div><button class="x" data-act="closeModal" aria-label="Cerrar">×</button></header><div class="mbody" style="padding:0"><iframe id="mailF" title="Vista previa del correo" sandbox="allow-same-origin"></iframe></div><footer><button class="btn ghost" data-act="mailBack">⚙ Cambiar periodo</button><button class="btn ghost" data-act="mailHtml">⬇ HTML</button><button class="btn ghost" data-act="mailCopy">📋 Copiar para pegar</button><button class="btn e3go" data-act="mailEml">✉ Abrir en Outlook (.eml)</button></footer></div>';
@@ -5020,7 +5023,7 @@ async function mailSave(name, blob) {
   try { await dl.save({ filename: name, data: blob }); return true; } catch (e) { if (e && e.code !== 'declined') toast('No se pudo descargar (' + (e.code || e.message) + ')', 'warn'); return false; }
 }
 async function mailAct(act) {
-  if (act === 'mailBack') { openMailRal(MAIL.cfg.a); return; }
+  if (act === 'mailBack') { if (MAIL.kind === 'rend') openMailRend(MAIL.cfg.a); else openMailRal(MAIL.cfg.a); return; }
   if (act === 'mailEml') { if (await mailSave(MAIL.file, new Blob([MAIL.eml], { type: 'message/rfc822' }))) toast('Abre el archivo .eml descargado: Outlook lo muestra como borrador listo para enviar', 'ok'); return; }
   if (act === 'mailHtml') { if (await mailSave(MAIL.file.replace(/\.eml$/, '.html'), new Blob([MAIL.html], { type: 'text/html' }))) toast('HTML descargado', 'ok'); return; }
   if (act === 'mailCopy') {
@@ -5675,7 +5678,7 @@ const FM_SRC = [
 function fmAllowed() { return String(S.user_name || '').trim().toLowerCase() === 'jsalgueiro'; }
 const fmN = s => String(s === null || s === undefined ? '' : s).normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/[^A-Z0-9%$]/g, '');
 const fmT = v => v === null || v === undefined ? '' : String(v).replace(/\s+/g, ' ').trim();
-function fmNum(v) { if (v === null || v === undefined || v === '') return null; if (typeof v === 'number') return isFinite(v) ? v : null; let s = String(v).trim().replace(/[$\s]/g, ''); if (/^-?\d{1,3}(,\d{3})+(\.\d+)?$/.test(s)) s = s.replace(/,/g, ''); else if (/^-?\d+,\d+$/.test(s)) s = s.replace(',', '.'); const n = parseFloat(s); return isFinite(n) ? n : null; }
+function fmNum(v) { if (v === null || v === undefined || v === '') return null; if (typeof v === 'number') return isFinite(v) ? v : null; let s = String(v).trim().replace(/[$\s]/g, '').replace(/\.{2,}/g, '.'); if (/^=/.test(s)) return null; if (/^-?\d{1,3}(,\d{3})+(\.\d+)?$/.test(s)) s = s.replace(/,/g, ''); else if (/^-?\d+,\d+$/.test(s)) s = s.replace(',', '.'); const n = parseFloat(s); return isFinite(n) ? n : null; }
 function fmEco(v) {
   const raw = String(v === null || v === undefined ? '' : v).trim().toUpperCase(); const pm = raw.match(/^M\s*-?\s*0*(\d{3,6})(?!\d)/); if (pm && raw.length > pm[0].length) return 'M' + pm[1].padStart(6, '0');
   let s = raw.replace(/[\s\-_.]/g, '');
@@ -5872,7 +5875,7 @@ function fmCalcLog() {
   });
   const tot = rs => { const o = { n: rs.length, km: 0, imp: 0, lts: 0, cons: 0 }; rs.forEach(r => { o.km += r.km || 0; o.imp += r.imp; o.lts += r.lts; o.cons += r.ini + r.lts; }); o.rend = o.cons ? o.km / o.cons : null; return o; };
   const T = {}; for (const g in grpRows) T[g] = tot(grpRows[g]); T.ALL = tot(rows);
-  return { period, prevP, rows, grp: grpRows, T, issues, notIn, iva, hasSin: CG.hasSin, nNew: rows.filter(r => r.src !== 'prev').length };
+  return { tipo: 'log', period, prevP, rows, grp: grpRows, T, issues, notIn, iva, hasSin: CG.hasSin, nNew: rows.filter(r => r.src !== 'prev').length };
 }
 
 // ---------- Excel del semáforo (mismo formato que el mes anterior) ----------
@@ -5977,19 +5980,24 @@ function viewFormulador() {
   const head = '<div class="areahead"><div class="ah-t"><div><p class="crumb"><a href="#inicio">Inicio</a> / Formulador</p><h1>🧪 Formulador</h1></div></div><p class="lead2">Arma los semáforos del mes a partir de los archivos fuente, con las mismas reglas y el mismo formato de siempre.</p></div>';
   const opts = [
     { k: 'log', t: 'SEMÁFORO DE LOGÍSTICA', d: 'Todas las unidades en una sola pestaña · a partir de cargas, viajes, Samsara y Flota', ok: 1, img: IMG.cascadia_caja },
-    { k: 'opsd', t: 'SEMÁFORO OPERACIONES DIÉSEL', d: 'Pendiente: explícame cómo se formula y lo agrego', ok: 0, img: IMG.hino },
-    { k: 'opsg', t: 'SEMÁFORO OPERACIONES GASOLINA', d: 'Pendiente: explícame cómo se formula y lo agrego', ok: 0, img: IMG.hino }
+    { k: 'opsd', t: 'SEMÁFORO OPERACIONES DIÉSEL', d: 'Hino, Rabones, Transporter, Sprinter, Hiace y más · a partir de Activos, cargas y Samsara', ok: 1, img: IMG.hino },
+    { k: 'opsg', t: 'SEMÁFORO OPERACIONES GASOLINA', d: 'Caddy, Hiace gasolina y RAM ProMaster · a partir de Activos, cargas y Samsara', ok: 1, img: IMG.hino }
   ];
   const pick = '<h2 class="fm-q">¿Qué quieres formular?</h2><div class="fm-opts">' + opts.map(o => '<button class="fm-opt' + (FM.tipo === o.k ? ' on' : '') + (o.ok ? '' : ' soon') + '" data-fm-act="tipo" data-k="' + o.k + '"><span class="fm-ph"><img src="' + o.img + '" alt=""></span><b>' + o.t + '</b><span>' + o.d + '</span>' + (o.ok ? '' : '<i>Por definir</i>') + '</button>').join('') + '</div>';
-  if (FM.tipo !== 'log') return head + pick;
-  const slots = FM_SRC.map((s, i) => { const d = FM.data[s.k]; const st = FM.busy === s.k ? 'busy' : d ? (d.error ? 'err' : 'ok') : ''; return '<label class="fmdrop ' + st + '" data-fm="' + s.k + '"><input type="file" accept="' + s.acc + '" data-fm="' + s.k + '"><span class="fm-n">' + (i + 1) + '</span><span class="fm-ic">' + s.ic + '</span><span class="fm-tx"><b>' + s.t + '</b><span>' + (FM.busy === s.k ? 'Leyendo archivo…' : d ? (d.error ? '⚠ ' + esc(d.error) : '✓ ' + esc(FM.files[s.k]) + ' · ' + esc(d.info)) : s.d) + '</span></span></label>'; }).join('');
-  const ready = FM_SRC.every(s => FM.data[s.k] && !FM.data[s.k].error);
+  if (!FM.tipo) return head + pick;
+  const isLog = FM.tipo === 'log'; const SRC = isLog ? FM_SRC : FM_SRC_OPS(FM.tipo === 'opsd' ? 'D' : 'G');
+  const slots = SRC.map((s, i) => { const d = FM.data[s.k]; const st = FM.busy === s.k ? 'busy' : d ? (d.error ? 'err' : 'ok') : ''; return '<label class="fmdrop ' + st + '" data-fm="' + s.k + '"><input type="file" accept="' + s.acc + '" data-fm="' + s.k + '"><span class="fm-n">' + (i + 1) + '</span><span class="fm-ic">' + s.ic + '</span><span class="fm-tx"><b>' + s.t + '</b><span>' + (FM.busy === s.k ? 'Leyendo archivo…' : d ? (d.error ? '⚠ ' + esc(d.error) : '✓ ' + esc(FM.files[s.k]) + ' · ' + esc(d.info)) : s.d) + '</span></span></label>'; }).join('');
+  const ready = SRC.every(s => FM.data[s.k] && !FM.data[s.k].error);
   const D = FM.data; let warn = '';
+  if (!isLog) { const pk = FM.tipo === 'opsd' ? 'prevd' : 'prevg'; const cp = D.opc && !D.opc.error ? D.opc.period : null; if (cp && D[pk] && !D[pk].error && D[pk].period && prevPeriod(cp) !== D[pk].period) warn = '<p class="fm-warn">⚠ El semáforo anterior es de <b>' + perLabel(D[pk].period) + '</b> y las cargas de <b>' + perLabel(cp) + '</b>.</p>'; }
+  else {
   if (D.prev && D.cargas && !D.prev.error && !D.cargas.error && D.prev.period && D.cargas.period && prevPeriod(D.cargas.period) !== D.prev.period) warn = '<p class="fm-warn">⚠ El semáforo base es de <b>' + perLabel(D.prev.period) + '</b> y las cargas son de <b>' + perLabel(D.cargas.period) + '</b>: el Combustible Inicial normalmente sale del mes inmediato anterior.</p>';
   if (D.cargas && !D.cargas.error && D.cargas.months.length > 1) warn += '<p class="fm-warn">⚠ El archivo de cargas trae varios meses (' + D.cargas.months.map(perLabel).join(', ') + '). Se usan todas sus filas; el mes del semáforo es ' + perLabel(D.cargas.period) + '.</p>';
-  const ivaSel = D.cargas && D.cargas.hasSin ? '<span class="muted">El archivo de cargas trae columna sin IVA: se usa tal cual.</span>' : '<label class="fm-iva">Importe sin IVA = TOTAL ÷ <select data-fm-act="iva"><option value="1.16"' + (+FM.iva === 1.16 ? ' selected' : '') + '>1.16 (IVA 16%)</option><option value="1.15"' + (+FM.iva === 1.15 ? ' selected' : '') + '>1.15 (como el semáforo de septiembre)</option></select></label>';
-  const step2 = card('Semáforo de Logística · archivos fuente', '<div class="fm-grid">' + slots + '</div>' + warn + '<div class="fm-act">' + ivaSel + '<button class="btn" data-fm-act="run"' + (ready ? '' : ' disabled') + '>⚙ Formular' + (D.cargas && D.cargas.period ? ' ' + perLabel(D.cargas.period) : '') + '</button></div>', { sub: 'Sube los 5 archivos (puedes arrastrarlos a su recuadro). Nada se guarda en el portal: el resultado es un Excel para revisar y completar.', tools: '<button class="btn ghost" data-fm-act="reset">Reiniciar</button>' });
-  return head + pick + step2 + (FM.res ? fmResult(FM.res) : '');
+  }
+  const runP = isLog ? (D.cargas && D.cargas.period) : (D.opc && !D.opc.error && D.opc.period);
+  const ivaSel = !isLog ? '<span class="muted">Las regiones e ideales salen del semáforo anterior · se excluyen MTRIZ y LOGDL.</span>' : D.cargas && D.cargas.hasSin ? '<span class="muted">El archivo de cargas trae columna sin IVA: se usa tal cual.</span>' : '<label class="fm-iva">Importe sin IVA = TOTAL ÷ <select data-fm-act="iva"><option value="1.16"' + (+FM.iva === 1.16 ? ' selected' : '') + '>1.16 (IVA 16%)</option><option value="1.15"' + (+FM.iva === 1.15 ? ' selected' : '') + '>1.15 (como el semáforo de septiembre)</option></select></label>';
+  const step2 = card((isLog ? 'Semáforo de Logística' : FM.tipo === 'opsd' ? 'Semáforo Operaciones diésel' : 'Semáforo Operaciones gasolina') + ' · archivos fuente', '<div class="fm-grid">' + slots + '</div>' + warn + '<div class="fm-act">' + ivaSel + '<button class="btn" data-fm-act="run"' + (ready ? '' : ' disabled') + '>⚙ Formular' + (runP ? ' ' + perLabel(runP) : '') + '</button></div>', { sub: 'Sube los ' + SRC.length + ' archivos (puedes arrastrarlos a su recuadro). Nada se guarda en el portal: el resultado es un Excel para revisar y completar.', tools: '<button class="btn ghost" data-fm-act="reset">Reiniciar</button>' });
+  return head + pick + step2 + (FM.res && FM.res.tipo === FM.tipo ? (isLog ? fmResult(FM.res) : fmResultOps(FM.res)) : '');
 }
 function fmResult(R) {
   const T = R.T; const n = g => R.grp[g].length;
@@ -6010,11 +6018,424 @@ document.addEventListener('change', e => { const t = e.target; if (!t || !t.matc
 ['dragover', 'drop'].forEach(ev => document.addEventListener(ev, e => { const d = e.target && e.target.closest && e.target.closest('.fmdrop'); if (!d) return; e.preventDefault(); e.stopPropagation(); if (ev === 'drop' && e.dataTransfer.files[0]) fmFile(d.getAttribute('data-fm'), e.dataTransfer.files[0]); }, true));
 document.addEventListener('click', async e => {
   const b = e.target.closest && e.target.closest('[data-fm-act]'); if (!b || b.tagName === 'SELECT') return; const act = b.getAttribute('data-fm-act');
-  if (act === 'tipo') { const k = b.getAttribute('data-k'); if (k !== 'log') { toast('Esta fórmula aún no está definida. Explícame cómo se arma y la agrego al Formulador.'); return; } FM.tipo = k; render(); }
+  if (act === 'tipo') { const k = b.getAttribute('data-k'); FM.tipo = k; FM.res = null; render(); }
   else if (act === 'reset') { FM.files = {}; FM.data = {}; FM.res = null; render(); }
-  else if (act === 'run') { try { FM.res = fmCalcLog(); render(); setTimeout(() => { const c = document.querySelector('.fm-res'); if (c) c.closest('.card').scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 60); } catch (err) { console.error(err); toast('No se pudo formular: ' + err.message, 'err'); } }
-  else if (act === 'dl') { if (!FM.res) return; b.disabled = true; const o = b.textContent; b.textContent = 'Generando…'; try { const x = await fmBuildLog(FM.res); const url = URL.createObjectURL(new Blob([x.buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })); const a = document.createElement('a'); a.href = url; a.download = x.name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 4000); toast('Semáforo descargado ✓'); } catch (err) { console.error(err); toast('No se pudo generar el Excel: ' + err.message, 'err'); } b.disabled = false; b.textContent = o; }
+  else if (act === 'run') { try { FM.res = FM.tipo === 'log' ? fmCalcLog() : fmCalcOps(FM.tipo === 'opsd' ? 'D' : 'G'); render(); setTimeout(() => { const c = document.querySelector('.fm-res'); if (c) c.closest('.card').scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 60); } catch (err) { console.error(err); toast('No se pudo formular: ' + err.message, 'err'); } }
+  else if (act === 'dl') { if (!FM.res) return; b.disabled = true; const o = b.textContent; b.textContent = 'Generando…'; try { const x = FM.res.tipo === 'log' ? await fmBuildLog(FM.res) : await fmBuildOps(FM.res); const url = URL.createObjectURL(new Blob([x.buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })); const a = document.createElement('a'); a.href = url; a.download = x.name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 4000); toast('Semáforo descargado ✓'); } catch (err) { console.error(err); toast('No se pudo generar el Excel: ' + err.message, 'err'); } b.disabled = false; b.textContent = o; }
 });
+
+/* ---------- FORMULADOR · Semáforos de Operaciones (diésel y gasolina) ---------- */
+const OPS_D = ['CADDY CARGO VAN DIESEL', 'EXPERT FURGON', 'HIACE TOYOTA', 'FREIGHTLINER FL 360', 'HINO 516 HIBRIDO', 'HINO 716', 'HINO 718', 'HINO 816', 'HINO 816 HIBRIDO', 'PEUGEOT 3008 ALLURE', 'PEUGEOT PARTNER DIESEL', 'RABON FREIGHTLINER M2 25K', 'RABON FREIGHTLINER M2 35K', 'RABON HINO 1018', 'RABON HINO 1024', 'RABON HINO 1524', 'SPRINTER', 'TRANSPORTER'];
+const OPS_G = ['CADDY CARGO VAN', 'HIACE TOYOTA GASOLINA', 'RAM PROMASTER RAPID'];
+const OPS_EXCL = ['MTRIZ', 'LOGDL'];
+const fmDescKey = d => fmT(d).toUpperCase().replace(/\s+/g, ' ');
+function fmOpsDesc(d, comb) {
+  const k = fmDescKey(d); if (!k) return null;
+  if (comb === 'D') { if (/SPRINTER/.test(k)) return 'SPRINTER'; return OPS_D.indexOf(k) >= 0 ? k : null; }
+  if (/^CADDY( CARGO VAN)?( GASOLINA)?$/.test(k)) return 'CADDY CARGO VAN';
+  if (/^HIACE TOYOTA GASOLINA/.test(k)) return 'HIACE TOYOTA GASOLINA';
+  return OPS_G.indexOf(k) >= 0 ? k : null;
+}
+// Regla interna: 5 dígitos se queda igual; menos de 5 dígitos → M + ceros hasta 7 caracteres (555 → M000555)
+function fmEcoOps(v) {
+  if (v === null || v === undefined) return '';
+  let s = typeof v === 'number' ? String(Math.round(v)) : String(v).trim().toUpperCase().replace(/\s+/g, '');
+  const m = s.match(/^(M?)0*(\d{1,6})$/); if (!m) return s;
+  const d = m[2];
+  if (d.length === 5) return d;
+  if (d.length <= 6 && (m[1] || d.length < 5)) return 'M' + d.padStart(6, '0');
+  return s;
+}
+const fmOpsCell = e => /^\d{5}$/.test(e) ? +e : e;
+const FM_SRC_OPS = c => [
+  { k: 'act', ic: '🗂️', t: 'Activos (Renovación)', d: 'Unidades por descripción, sucursal y modelo · se excluyen MTRIZ y LOGDL', acc: '.xlsx,.xls,.xlsm' },
+  { k: 'opc', ic: '⛽', t: 'Cargas de Operaciones del mes', d: 'Litros e importe por unidad (Unidad, Litros, M.N.)', acc: '.xlsx,.xls,.xlsm,.csv' },
+  { k: 'osam', ic: '📡', t: 'Reporte de actividad Samsara', d: 'Kilómetros recorridos por unidad', acc: '.xlsx,.xls,.csv' },
+  { k: c === 'D' ? 'prevd' : 'prevg', ic: '🚦', t: 'Semáforo ' + (c === 'D' ? 'diésel' : 'gasolina') + ' del mes anterior', d: 'Regiones' + (c === 'D' ? ' y rendimientos ideales por descripción' : '') + ' · formato de referencia', acc: '.xlsx,.xls,.xlsm' }
+];
+function fmParseAct(sheets) {
+  for (const sn of Object.keys(sheets)) {
+    const aoa = sheets[sn]; const h = fmHdr(aoa, ['NOACTIVO', 'DESCRIPCION', 'SUCURSAL'], 6); if (!h) continue;
+    const C = h.cols; const I = { e: fmCol(C, 'NOACTIVO'), d: fmCol(C, 'DESCRIPCION'), dp: fmCol(C, 'DEPTO'), mo: fmCol(C, 'MODELO'), s: fmCol(C, 'SUCURSAL'), r: fmCol(C, 'REGION'), t: fmCol(C, 'TIPO') };
+    const U = {}; let n = 0;
+    for (let i = h.row + 1; i < aoa.length; i++) {
+      const r = aoa[i]; if (!r) continue; const e = fmEcoOps(r[I.e]); if (!e) continue; const d = fmDescKey(r[I.d]); if (!d) continue;
+      const o = { desc: d, depto: r[I.dp], modelo: r[I.mo], suc: fmT(r[I.s]).toUpperCase(), region: fmT(r[I.r]).toUpperCase(), tipo: fmT(r[I.t]).toUpperCase() };
+      if (!U[e] || (!fmOpsDesc(U[e].desc, 'D') && !fmOpsDesc(U[e].desc, 'G'))) U[e] = o; n++;
+    }
+    if (!n) continue;
+    const nd = Object.values(U).filter(u => fmOpsDesc(u.desc, 'D') && OPS_EXCL.indexOf(u.suc) < 0).length, ng = Object.values(U).filter(u => fmOpsDesc(u.desc, 'G') && OPS_EXCL.indexOf(u.suc) < 0).length;
+    return { U, n, nd, ng, info: F.n0(n) + ' activos · ' + F.n0(nd) + ' diésel · ' + F.n0(ng) + ' gasolina (sin MTRIZ ni LOGDL)' };
+  }
+  return { error: 'No encontré la hoja de activos (columnas NO ACTIVO, DESCRIPCION y SUCURSAL).' };
+}
+function fmParseOpc(sheets) {
+  for (const sn of Object.keys(sheets)) {
+    const aoa = sheets[sn]; const h = fmHdr(aoa, [/^UNIDAD$|^IDVEHICULO$|^MOVIL$/, /^LITROS$|^CANTIDADMERCANCIA$/]); if (!h) continue;
+    const C = h.cols; const I = { f: fmCol(C, 'FECHA', 'FECHATRANSACCION', /^FECHA/), cc: fmCol(C, 'CENTRODECOSTOS', 'CENTROCOSTOS'), fu: fmCol(C, 'FUENTE', /^FUENTE/, 'PORCENTAJES'), u: fmCol(C, 'UNIDAD', 'IDVEHICULO', 'MOVIL'), l: fmCol(C, 'LITROS', 'CANTIDADMERCANCIA'), m: fmCol(C, 'MN', 'IMPORTETRANSACCION', 'IMPORTE', 'TOTAL'), p: fmCol(C, 'PRECIOLTS', 'PRECIO', /^PRECIO/), es: fmCol(C, 'ESTACIONDESERVICIO', /^ESTACION/) };
+    const agg = {}, rows = [], mc = {}; let n = 0, fx = 0;
+    for (let i = h.row + 1; i < aoa.length; i++) {
+      const r = aoa[i]; if (!r) continue; const l = fmNum(r[I.l]); if (!l) continue;
+      const e = fmEcoOps(r[I.u]); let m = I.m >= 0 ? fmNum(r[I.m]) : null; const p = I.p >= 0 ? fmNum(r[I.p]) : null;
+      if (m === null && p !== null) { m = l * p; fx++; }
+      const d = I.f >= 0 ? fmDate(r[I.f]) : null; if (d) { const k = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); mc[k] = (mc[k] || 0) + 1; }
+      rows.push([d, fmT(r[I.cc]), fmT(r[I.fu]), r[I.u], e, l, m || 0, p, fmT(r[I.es])]); n++;
+      if (!e) continue; const a = agg[e] || (agg[e] = { l: 0, m: 0, n: 0 }); a.l += l; a.m += m || 0; a.n++;
+    }
+    if (!n) continue;
+    const period = Object.keys(mc).sort((a, b) => mc[b] - mc[a])[0] || null;
+    return { agg, rows, n, fx, period, months: Object.keys(mc).sort(), info: F.n0(n) + ' cargas · ' + Object.keys(agg).length + ' unidades' + (period ? ' · ' + perLabel(period) : '') };
+  }
+  return { error: 'No encontré las columnas Unidad y Litros.' };
+}
+function fmParseOsam(sheets) {
+  for (const sn of Object.keys(sheets)) {
+    const aoa = sheets[sn]; const h = fmHdr(aoa, [/^NOMBREDELVEHICULO|^VEHICULO$|^NOMBRE$/, /^DISTANCIA/]); if (!h) continue;
+    const C = h.cols; const iN = fmCol(C, /^NOMBREDELVEHICULO/, 'VEHICULO', 'NOMBRE'), iD = fmCol(C, /^DISTANCIA/);
+    const km = {}; let n = 0;
+    for (let i = h.row + 1; i < aoa.length; i++) { const r = aoa[i]; if (!r) continue; let raw = fmT(r[iN]).toUpperCase(); const pm = raw.match(/^(M?\s*\d{1,6})(?!\d)/); const e = fmEcoOps(pm ? pm[1] : raw); const d = fmNum(r[iD]); if (!e || d === null) continue; km[e] = (km[e] || 0) + d; n++; }
+    if (!n) continue;
+    return { km, n, info: F.n0(n) + ' vehículos' };
+  }
+  return { error: 'No encontré las columnas “Nombre del vehículo” y “Distancia (km)”.' };
+}
+function fmParsePrevOps(sheets) {
+  const reg = {}, ideal = {}, idealN = {}; let period = null, n = 0;
+  for (const sn of Object.keys(sheets)) {
+    const aoa = sheets[sn]; const h = fmHdr(aoa, ['SUCURSAL', 'MOVIL', 'KMSREC'], 12); if (!h) continue;
+    const C = h.cols; const I = { s: fmCol(C, 'SUCURSAL'), r: fmCol(C, 'REGION', 'ZONA'), m: fmCol(C, 'MOVIL'), d: fmCol(C, 'DESCRIPCION'), i: fmCol(C, 'RENDIDEAL', /^RENDIMIENTOIDEAL/) };
+    if (!/CARGASIN|RECORRIDOSIN/.test(fmN(sn)) && !period) period = FP.periodFromText(sn);
+    for (let i = h.row + 1; i < aoa.length; i++) {
+      const r = aoa[i]; if (!r) continue; const e = fmEcoOps(r[I.m]); if (!e || /TOTAL/.test(e)) continue;
+      const rg = fmT(r[I.r]).toUpperCase(); if (rg && !reg[e]) reg[e] = rg; n++;
+      const d = fmDescKey(r[I.d]); const id = I.i >= 0 ? fmNum(r[I.i]) : null;
+      if (d && id && id > 0) { const k = /SPRINTER/.test(d) ? 'SPRINTER' : d; idealN[k] = idealN[k] || {}; const v = Math.round(id * 100) / 100; idealN[k][v] = (idealN[k][v] || 0) + 1; }
+    }
+  }
+  if (!n) return { error: 'No encontré el semáforo (encabezados SUCURSAL, MOVIL, KMS REC).' };
+  for (const k in idealN) ideal[k] = +fmMode(idealN[k]);
+  const ni = Object.keys(ideal).length;
+  return { reg, ideal, period, n, info: F.n0(n) + ' unidades' + (period ? ' · ' + perLabel(period) : '') + ' · ' + (ni ? ni + ' ideales por descripción' : 'sin rendimientos ideales') };
+}
+Object.assign(FM_PARSE, { act: fmParseAct, opc: fmParseOpc, osam: fmParseOsam, prevd: fmParsePrevOps, prevg: fmParsePrevOps });
+FM.idealOv = {};
+function fmOpsIdeal(desc, comb, R) {
+  if (FM.idealOv[comb + '|' + desc] > 0) return { v: +FM.idealOv[comb + '|' + desc], src: 'manual' };
+  const P = comb === 'D' ? FM.data.prevd : FM.data.prevg; const O = comb === 'D' ? FM.data.prevg : FM.data.prevd;
+  if (P && !P.error && P.ideal[desc]) return { v: P.ideal[desc], src: 'prev' };
+  if (O && !O.error && O.ideal[desc]) return { v: O.ideal[desc], src: 'prev' };
+  if (comb === 'G') return { v: +setting('idealGas') || null, src: 'ajuste' };
+  return { v: null, src: 'none' };
+}
+function fmCalcOps(comb) {
+  const D = FM.data; const A = D.act.U, CG = D.opc, SM = D.osam.km;
+  const P = comb === 'D' ? D.prevd : D.prevg, O = comb === 'D' ? D.prevg : D.prevd;
+  const rows = [], issues = [], none = [], excl = { MTRIZ: 0, LOGDL: 0 };
+  const descs = {};
+  for (const e in A) {
+    const a = A[e]; const desc = fmOpsDesc(a.desc, comb); if (!desc) continue;
+    if (OPS_EXCL.indexOf(a.suc) >= 0) { excl[a.suc]++; continue; }
+    const km = SM[e] > 0 ? SM[e] : 0; const c = CG.agg[e]; const lts = c ? c.l : 0, imp = c ? c.m : 0;
+    let region = P && !P.error && P.reg[e] ? P.reg[e] : O && !O.error && O.reg[e] ? O.reg[e] : '';
+    const nota = [];
+    if (!region) { region = a.region || 'SIN REGION'; nota.push('Región tomada de Activos (no estaba en el semáforo anterior)'); }
+    if (a.desc !== desc) nota.push('Descripción original: ' + a.desc);
+    const caso = km > 0 && lts > 0 ? 'N' : lts > 0 ? 'CSR' : km > 0 ? 'RSC' : null;
+    const row = { e, suc: a.suc, region, modelo: comb === 'D' ? a.depto : a.modelo, desc, km, lts, imp, caso, nota };
+    if (!caso) { none.push(row); continue; }
+    descs[desc] = 1; rows.push(row); if (nota.length) issues.push({ e, caso, txt: nota.join(' · ') });
+  }
+  const ideals = {}; Object.keys(descs).sort().forEach(d => ideals[d] = fmOpsIdeal(d, comb));
+  rows.forEach(r => { r.ideal = ideals[r.desc].v; r.rend = r.km > 0 && r.lts > 0 ? r.km / r.lts : null; r.sem = r.rend === null || !r.ideal ? null : r.rend >= r.ideal ? 'V' : r.rend >= r.ideal - 1 ? 'A' : 'R'; });
+  const cmp = (a, b) => (a.region < b.region ? -1 : a.region > b.region ? 1 : 0) || (a.suc < b.suc ? -1 : a.suc > b.suc ? 1 : 0) || (a.e < b.e ? -1 : 1);
+  const g = { N: rows.filter(r => r.caso === 'N').sort(cmp), CSR: rows.filter(r => r.caso === 'CSR').sort(cmp), RSC: rows.filter(r => r.caso === 'RSC').sort(cmp) };
+  const assets = {}; for (const e in A) assets[e] = 1;
+  const unk = Object.keys(CG.agg).filter(e => !assets[e]).map(e => ({ e, l: CG.agg[e].l, n: CG.agg[e].n })).sort((a, b) => b.l - a.l);
+  const used = {}; rows.forEach(r => used[r.e] = 1);
+  return { tipo: comb === 'D' ? 'opsd' : 'opsg', comb, period: CG.period, prevP: P && P.period, rows, g, ideals, issues, none, excl, unk, used };
+}
+function fmAgg(rs) { const o = { n: rs.length, km: 0, lts: 0, imp: 0, kmI: 0, li: 0, V: 0, A: 0, R: 0 }; rs.forEach(r => { o.km += r.km; o.lts += r.lts; o.imp += r.imp; if (r.ideal && r.km > 0) { o.kmI += r.km; o.li += r.km / r.ideal; } if (r.sem) o[r.sem]++; }); o.rend = o.lts ? o.km / o.lts : null; o.ideal = o.li ? o.kmI / o.li : null; o.cump = o.rend && o.ideal ? o.rend / o.ideal : null; return o; }
+async function fmBuildOps(R) {
+  const ST = pxStyles(); const mes = fmMonthName(R.period); const MES = mes.split(' ')[0]; const isD = R.comb === 'D'; const combT = isD ? 'DIESEL' : 'GASOLINA';
+  const bd = { b: 'thin', t: 'thin', l: 'thin', r: 'thin', c: 'FFBFBFBF' };
+  const sx = {
+    co: ST.get({ font: { b: 1, sz: 12 }, align: { h: 'center' } }), ti: ST.get({ font: { b: 1, sz: 12 }, align: { h: 'center' } }), sub: ST.get({ font: { i: 1, sz: 9, color: PXL.MUTED }, align: { h: 'center' } }),
+    hd: ST.get({ font: { b: 1, sz: 10, color: PXL.WHITE }, fill: PXL.NAVY, align: { h: 'center', wrap: 1 }, border: { b: 'thin', t: 'thin', l: 'thin', r: 'thin', c: 'FF0B2A5B' } }),
+    t: ST.get({ font: { sz: 10 }, border: bd }), tc: ST.get({ font: { sz: 10 }, border: bd, align: { h: 'center' } }), eco: ST.get({ font: { b: 1, sz: 10, color: PXL.NAVY }, border: bd, align: { h: 'center' } }),
+    int: ST.get({ font: { sz: 10 }, border: bd, fmt: '0', align: { h: 'center' } }), num: ST.get({ font: { sz: 10 }, border: bd, fmt: '_-* #,##0.00_-;\\-* #,##0.00_-;_-* "-"??_-;_-@_-' }),
+    rend: ST.get({ font: { b: 1, sz: 10 }, border: bd, fmt: '0.00', align: { h: 'center' } }), id: ST.get({ font: { sz: 10 }, border: bd, fmt: '0.0', align: { h: 'center' } }),
+    money: ST.get({ font: { sz: 10 }, border: bd, fmt: '_-"$"* #,##0.00_-;\\-"$"* #,##0.00_-;_-"$"* "-"??_-;_-@_-' }),
+    tnum: ST.get({ font: { b: 1 }, fmt: '#,##0.00', border: { t: 'medium', tc: PXL.NAVY } }), trend: ST.get({ font: { b: 1, color: PXL.NAVY }, fmt: '0.00', border: { t: 'medium', tc: PXL.NAVY }, align: { h: 'center' } }), tmoney: ST.get({ font: { b: 1 }, fmt: '"$"#,##0.00', border: { t: 'medium', tc: PXL.NAVY } }), tlab: ST.get({ font: { b: 1, color: PXL.NAVY }, align: { h: 'right' }, border: { t: 'medium', tc: PXL.NAVY } }),
+    pct: ST.get({ font: { sz: 10 }, border: bd, fmt: '0.0%', align: { h: 'center' } }), k: ST.get({ font: { b: 1, color: PXL.NAVY }, border: bd }), v: ST.get({ border: bd, align: { wrap: 1 } }),
+    big: ST.get({ font: { b: 1, sz: 16, color: PXL.NAVY } })
+  };
+  const red = ST.dxf('FFFF0000', 'FFFFFFFF'), yel = ST.dxf('FFFFFF00', 'FF000000'), grn = ST.dxf('FF00B050', 'FFFFFFFF');
+  const HEAD = ['SUCURSAL', isD ? 'REGION' : 'ZONA', 'MOVIL', 'MODELO', 'DESCRIPCION', 'KMS REC', 'LTS CON', 'RENDIMIENTO REAL', 'REND IDEAL', '$ COMBUSTIBLE'];
+  const widths = { 0: 12, 1: 13, 2: 12, 3: 10, 4: 30, 5: 15, 6: 14, 7: 14, 8: 11, 9: 18 };
+  const tbl = (W, h0, list, total) => {
+    HEAD.forEach((t, j) => W.set(h0, j, t, sx.hd)); W.heights[h0] = 30;
+    list.forEach((x, i) => {
+      const r = h0 + 1 + i, R1 = r + 1;
+      W.set(r, 0, x.suc, sx.tc); W.set(r, 1, x.region, sx.tc); W.set(r, 2, fmOpsCell(x.e), sx.eco); W.set(r, 3, fmNum(x.modelo) !== null ? fmNum(x.modelo) : fmT(x.modelo), sx.int); W.set(r, 4, x.desc, sx.t);
+      W.set(r, 5, x.km, sx.num); W.set(r, 6, x.lts, sx.num);
+      W.set(r, 7, x.rend === null ? '' : x.rend, sx.rend, 'IF(AND(F' + R1 + '>0,G' + R1 + '>0),F' + R1 + '/G' + R1 + ',"")');
+      W.set(r, 8, x.ideal, sx.id); W.set(r, 9, x.imp, sx.money);
+    });
+    const a = h0 + 2, b = h0 + 1 + Math.max(1, list.length);
+    if (list.length) { const sq = 'H' + a + ':H' + b; const c = 'AND(ISNUMBER(H' + a + '),ISNUMBER(I' + a + ')),';
+      W.cf.push('<conditionalFormatting sqref="' + sq + '"><cfRule type="expression" dxfId="' + red + '" priority="' + (W.cf.length * 3 + 1) + '"><formula>AND(ISNUMBER(H' + a + '),ISNUMBER(I' + a + '),H' + a + '&lt;I' + a + '-1)</formula></cfRule><cfRule type="expression" dxfId="' + yel + '" priority="' + (W.cf.length * 3 + 2) + '"><formula>AND(ISNUMBER(H' + a + '),ISNUMBER(I' + a + '),H' + a + '&lt;I' + a + ')</formula></cfRule><cfRule type="expression" dxfId="' + grn + '" priority="' + (W.cf.length * 3 + 3) + '"><formula>AND(ISNUMBER(H' + a + '),ISNUMBER(I' + a + '),H' + a + '&gt;=I' + a + ')</formula></cfRule></conditionalFormatting>'); void c; }
+    if (total) {
+      const t = fmAgg(list), r = b + 1; const rg = c => c + a + ':' + c + b;
+      W.set(r, 4, 'TOTAL', sx.tlab); W.set(r, 5, t.km, sx.tnum, 'SUM(' + rg('F') + ')'); W.set(r, 6, t.lts, sx.tnum, 'SUM(' + rg('G') + ')'); W.set(r, 7, t.rend || '', sx.trend, 'IFERROR(F' + (r + 1) + '/G' + (r + 1) + ',"")'); W.set(r, 9, t.imp, sx.tmoney, 'SUM(' + rg('J') + ')');
+    }
+    W.filter = 'A' + (h0 + 1) + ':J' + (h0 + 1 + list.length); W.freeze = h0 + 1; Object.assign(W.cols, widths);
+  };
+  const sheets = [];
+  const W1 = pxSheet(MES + ' ' + combT); W1.first = true; W1.tab = PXL.NAVY;
+  W1.merge(0, 0, 0, 9, 'IMPULSORA DE TRANSPORTES MEXICANOS, S.A. DE C.V.', sx.co); W1.merge(1, 0, 1, 9, 'SEMAFORO DE RENDIMIENTOS ', sx.ti);
+  W1.merge(2, 0, 2, 9, mes + ' · ' + (isD ? 'DIÉSEL' : 'GASOLINA') + ' · Rendimiento real: verde ≥ ideal · amarillo hasta 1 km/L abajo · rojo más de 1 km/L abajo', sx.sub);
+  tbl(W1, 3, R.g.N, true); sheets.push(W1);
+  const W2 = pxSheet('MOVILES CON CARGA SIN RECORRIDO'); W2.tab = 'FFF2A900'; tbl(W2, 0, R.g.CSR, true); sheets.push(W2);
+  const W3 = pxSheet('MOVILES CON RECORRIDO SIN CARGA'); W3.tab = 'FFF2A900'; tbl(W3, 0, R.g.RSC, true); sheets.push(W3);
+  // RESUMEN
+  const W4 = pxSheet('RESUMEN'); W4.tab = PXL.GOLD; W4.cols = { 0: 30, 1: 10, 2: 15, 3: 14, 4: 11, 5: 11, 6: 13, 7: 10, 8: 10, 9: 10, 10: 18 };
+  W4.set(0, 0, 'Resumen del semáforo ' + (isD ? 'diésel' : 'gasolina') + ' · ' + mes, sx.big); W4.heights[0] = 26;
+  const RH = ['', 'UNIDADES', 'KILÓMETROS', 'LITROS', 'REND. REAL', 'IDEAL POND.', 'CUMPLIMIENTO', 'VERDE', 'AMARILLO', 'ROJO', 'IMPORTE'];
+  let rr = 2; const block = (title, key) => {
+    RH.forEach((t, j) => W4.set(rr, j, j ? t : title, sx.hd)); W4.heights[rr] = 28; rr++;
+    const by = {}; R.g.N.forEach(x => (by[x[key]] = by[x[key]] || []).push(x));
+    Object.keys(by).sort().forEach(k => { const t = fmAgg(by[k]); [k, t.n, t.km, t.lts, t.rend, t.ideal, t.cump, t.V, t.A, t.R, t.imp].forEach((v, j) => W4.set(rr, j, v === null ? '' : v, [sx.k, sx.int, sx.num, sx.num, sx.rend, sx.id, sx.pct, sx.int, sx.int, sx.int, sx.money][j])); rr++; });
+    const t = fmAgg(R.g.N); ['TOTAL', t.n, t.km, t.lts, t.rend, t.ideal, t.cump, t.V, t.A, t.R, t.imp].forEach((v, j) => W4.set(rr, j, v === null ? '' : v, [sx.tlab, sx.tnum, sx.tnum, sx.tnum, sx.trend, sx.trend, sx.trend, sx.tnum, sx.tnum, sx.tnum, sx.tmoney][j]));
+    rr += 3;
+  };
+  block('REGIÓN', 'region'); block('DESCRIPCIÓN', 'desc');
+  W4.set(rr, 0, 'Ideal ponderado = km ÷ Σ(km ÷ ideal de cada unidad) · Cumplimiento = rendimiento real ÷ ideal ponderado · solo unidades con carga y recorrido.', ST.get({ font: { i: 1, sz: 9, color: PXL.MUTED } }));
+  W4.cf.push('<conditionalFormatting sqref="G4:G' + (rr + 1) + '"><cfRule type="dataBar" priority="1"><dataBar><cfvo type="num" val="0"/><cfvo type="num" val="1.2"/><color rgb="FF63BE7B"/></dataBar></cfRule></conditionalFormatting>');
+  sheets.push(W4);
+  // CARGAS usadas
+  const W5 = pxSheet('CARGAS'); W5.tab = 'FF6B7A90'; W5.cols = { 0: 12, 1: 28, 2: 14, 3: 12, 4: 12, 5: 11, 6: 13, 7: 10, 8: 34 };
+  ['FECHA', 'CENTRO DE COSTOS', 'FUENTE', 'UNIDAD (ARCHIVO)', 'MOVIL', 'LITROS', 'IMPORTE', 'PRECIO LT', 'ESTACIÓN DE SERVICIO'].forEach((t, j) => W5.set(0, j, t, sx.hd));
+  const dsx = ST.get({ font: { sz: 10 }, fmt: 'dd/mm/yyyy', align: { h: 'center' } }), p2 = ST.get({ font: { sz: 10 }, fmt: '#,##0.00' }), m2 = ST.get({ font: { sz: 10 }, fmt: '"$"#,##0.00' }), tt = ST.get({ font: { sz: 10 } });
+  let cr = 1; FM.data.opc.rows.forEach(x => { if (!R.used[x[4]]) return; const d = x[0]; W5.set(cr, 0, d ? Math.round(d.getTime() / 864e5 - d.getTimezoneOffset() / 1440) + 25569 : '', dsx); W5.set(cr, 1, x[1], tt); W5.set(cr, 2, x[2], tt); W5.set(cr, 3, x[3] === null || x[3] === undefined ? '' : String(x[3]), tt); W5.set(cr, 4, fmOpsCell(x[4]), tt); W5.set(cr, 5, x[5], p2); W5.set(cr, 6, x[6], m2); W5.set(cr, 7, x[7] === null ? '' : x[7], p2); W5.set(cr, 8, x[8], tt); cr++; });
+  W5.freeze = 1; W5.filter = 'A1:I' + cr; sheets.push(W5);
+  // BITÁCORA
+  const W6 = pxSheet('BITACORA FORMULADOR'); W6.tab = PXL.GOLD; W6.cols = { 0: 14, 1: 22, 2: 110 };
+  W6.set(0, 0, 'Bitácora del Formulador · ' + (isD ? 'Diésel' : 'Gasolina') + ' · ' + mes, sx.big); W6.heights[0] = 26;
+  const src = isD ? 'prevd' : 'prevg';
+  const L = [
+    ['Fuente', 'Activos', FM.files.act + ' · ' + FM.data.act.info], ['Fuente', 'Cargas', FM.files.opc + ' · ' + FM.data.opc.info + (FM.data.opc.fx ? ' · ' + FM.data.opc.fx + ' importes calculados como litros × precio' : '')], ['Fuente', 'Samsara', FM.files.osam + ' · ' + FM.data.osam.info], ['Fuente', 'Semáforo anterior', FM.files[src] + ' · ' + FM.data[src].info],
+    ['Regla', 'Unidades', 'Descripciones de ' + (isD ? 'diésel' : 'gasolina') + ' en Activos: ' + (isD ? OPS_D.join(', ') + ' (todo lo que sea Sprinter se reporta como SPRINTER)' : OPS_G.join(', ')) + '. Excluidas: ' + R.excl.MTRIZ + ' de MTRIZ y ' + R.excl.LOGDL + ' de LOGDL.'],
+    ['Regla', 'Económicos', '5 dígitos se quedan igual; menos de 5 dígitos → M + ceros hasta 7 caracteres (555 → M000555).'],
+    ['Regla', 'Región', 'Del semáforo anterior; si la unidad no estaba, de Activos.'],
+    ['Regla', 'Semáforo', 'Verde: real ≥ ideal · Amarillo: hasta 1 km/L debajo del ideal · Rojo: más de 1 km/L debajo.'],
+    ['Regla', 'Hojas', 'Con carga y recorrido → ' + MES + ' ' + combT + ' · solo carga → CARGA SIN RECORRIDO · solo km → RECORRIDO SIN CARGA.']
+  ];
+  Object.keys(R.ideals).forEach(d => { const x = R.ideals[d]; L.push(['Ideal', d, x.v ? F.n2(x.v) + ' km/L · ' + ({ prev: 'del semáforo anterior', manual: 'capturado en el Formulador', ajuste: 'ideal de gasolina de Ajustes del portal' }[x.src] || '') : 'SIN IDEAL: capturarlo en el Formulador']); });
+  L.forEach((l, i) => { W6.set(2 + i, 0, l[0], sx.k); W6.set(2 + i, 1, l[1], sx.k); W6.set(2 + i, 2, l[2], sx.v); });
+  let b = 3 + L.length; ['MOVIL', 'HOJA / CASO', 'OBSERVACIÓN'].forEach((t, j) => W6.set(b, j, t, sx.hd)); b++;
+  const cl = { N: 'Semáforo', CSR: 'Carga sin recorrido', RSC: 'Recorrido sin carga' };
+  R.issues.forEach(x => { W6.set(b, 0, fmOpsCell(x.e), sx.k); W6.set(b, 1, cl[x.caso], sx.v); W6.set(b, 2, x.txt, sx.v); b++; });
+  R.none.forEach(x => { W6.set(b, 0, fmOpsCell(x.e), sx.k); W6.set(b, 1, 'No incluida', sx.v); W6.set(b, 2, x.desc + ' · ' + x.suc + ': sin cargas ni kilómetros en ' + mes.toLowerCase(), sx.v); b++; });
+  sheets.push(W6);
+  return { buf: await fmPack('Semáforo Operaciones ' + combT + ' ' + mes, sheets, ST), name: mes.replace(' ', '_') + '_OPERACIONES_' + combT + '.xlsx' };
+}
+function fmResultOps(R) {
+  const t = fmAgg(R.g.N); const isD = R.comb === 'D';
+  const k = '<div class="kpis">' + kpi('En semáforo', F.n0(R.g.N.length), F.n0(R.g.CSR.length) + ' con carga sin recorrido · ' + F.n0(R.g.RSC.length) + ' con recorrido sin carga') + kpi('Kilómetros', F.n0(t.km), 'Samsara') + kpi('Litros', F.n0(t.lts), 'cargas del mes') + kpi('Rend. real', t.rend ? F.kml(t.rend) : '—', 'ideal ponderado ' + (t.ideal ? F.kml(t.ideal) : '—')) + kpi('Cumplimiento', t.cump ? F.pct(t.cump) : '—', 'real ÷ ideal') + kpi('Semáforo', '<span style="color:#16a34a">' + t.V + '</span> · <span style="color:#d4a106">' + t.A + '</span> · <span style="color:#dc2626">' + t.R + '</span>', 'verde · amarillo · rojo') + '</div>';
+  const id = Object.keys(R.ideals).map(d => { const x = R.ideals[d]; const n = R.rows.filter(r => r.desc === d).length; return '<tr' + (x.v ? '' : ' class="fm-miss"') + '><td>' + esc(d) + '</td><td class="num">' + n + '</td><td><input type="number" step="0.1" min="0" class="fm-idin" data-fm-ideal="' + esc(R.comb + '|' + d) + '" value="' + (x.v || '') + '" placeholder="capturar"></td><td class="muted">' + ({ prev: 'semáforo anterior', manual: 'capturado aquí', ajuste: 'Ajustes del portal' }[x.src] || '⚠ falta ideal') + '</td></tr>'; }).join('');
+  const miss = Object.keys(R.ideals).filter(d => !R.ideals[d].v);
+  const cnt = {}; R.issues.forEach(x => x.txt.split(' · ').forEach(s => { const kk = s.replace(/:.*$/, '').trim(); cnt[kk] = (cnt[kk] || 0) + 1; }));
+  const iss = Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a]).map(s => '<li><b>' + cnt[s] + '</b> ' + esc(s) + '</li>').join('') + '<li><b>' + R.none.length + '</b> unidades sin cargas ni kilómetros (no se incluyen)</li><li><b>' + (R.excl.MTRIZ + R.excl.LOGDL) + '</b> excluidas por ser de MTRIZ o LOGDL</li>' + (miss.length ? '<li style="color:#dc2626"><b>' + miss.length + '</b> descripciones sin rendimiento ideal: captúralo en la tabla</li>' : '');
+  const prev = R.g.N.slice(0, 12).map(x => '<tr><td>' + esc(x.suc) + '</td><td>' + esc(x.region) + '</td><td><b>' + esc(x.e) + '</b></td><td>' + esc(x.desc) + '</td><td class="num">' + F.n1(x.km) + '</td><td class="num">' + F.n2(x.lts) + '</td><td class="num"><span class="fm-sem s' + (x.sem || '') + '">' + (x.rend ? F.n2(x.rend) : '—') + '</span></td><td class="num">' + (x.ideal ? F.n1(x.ideal) : '—') + '</td><td class="num">' + F.money(x.imp) + '</td></tr>').join('');
+  return card('Semáforo Operaciones ' + (isD ? 'diésel' : 'gasolina') + ' · ' + fmMonthName(R.period) + ' formulado', k +
+    '<div class="fm-res"><div><h4>Rendimiento ideal por descripción</h4><div class="tscroll"><table><thead><tr><th>Descripción</th><th class="num">Unid.</th><th>Ideal km/L</th><th>Origen</th></tr></thead><tbody>' + id + '</tbody></table></div><p class="muted">Puedes cambiar cualquier ideal; el semáforo se recalcula al instante.</p></div><div><h4>Revisa antes de cerrar</h4><ul class="fm-iss">' + iss + '</ul><p class="muted">El detalle unidad por unidad va en la hoja <b>BITÁCORA FORMULADOR</b>. Las cargas usadas van en la hoja <b>CARGAS</b>.</p>' + (R.unk.length ? '<p class="muted">' + R.unk.length + ' identificadores de cargas no existen en Activos (placas, RENTA, COMOD…). Ejemplos: ' + R.unk.slice(0, 8).map(u => esc(u.e)).join(', ') + '.</p>' : '') + '</div></div>' +
+    '<h4>Vista previa · primeras filas del semáforo</h4><div class="tscroll"><table><thead><tr><th>Sucursal</th><th>' + (isD ? 'Región' : 'Zona') + '</th><th>Móvil</th><th>Descripción</th><th class="num">Km</th><th class="num">Litros</th><th class="num">Real</th><th class="num">Ideal</th><th class="num">$</th></tr></thead><tbody>' + prev + '</tbody></table></div>',
+    { tools: '<button class="btn" data-fm-act="dl">⬇ Descargar semáforo ' + (isD ? 'diésel' : 'gasolina') + '</button>' });
+}
+document.addEventListener('change', e => { const t = e.target; if (!t || !t.matches || !t.matches('input[data-fm-ideal]')) return; const v = +t.value; if (v > 0) FM.idealOv[t.getAttribute('data-fm-ideal')] = v; else delete FM.idealOv[t.getAttribute('data-fm-ideal')]; if (FM.res && FM.res.comb) { FM.res = fmCalcOps(FM.res.comb); render(); } }, true);
+
+/* ===================== Generar correo de Rendimientos y Combustible ===================== */
+function rmPeriods(a) { return Array.from(new Set(AREA_DS[a].rend.flatMap(periodsOf))).sort().reverse(); }
+function openMailRend(a) {
+  const ps = rmPeriods(a); if (!ps.length) { toast('No hay rendimientos cargados de ' + AREA_NAME[a], 'warn'); return; }
+  const cur = S.f[a] && S.f[a].mes && ps.indexOf(S.f[a].mes) >= 0 ? S.f[a].mes : ps[0];
+  const mem = mailStore(a + 'r') || {};
+  const red = a === 'log' ? 'la red logística' : 'la red operativa';
+  const m = $('#modal'); DSTACK.length = 0; m.classList.remove('drill');
+  m.innerHTML = '<div class="mbox e3w mailw"><header><div><h3><span class="e3w-ic" style="background:' + (a === 'log' ? '#1c5cab' : '#0e8a5a') + ';color:#fff">✉</span> Generar correo de rendimientos · ' + AREA_NAME[a] + '</h3><p class="sub">Análisis a detalle de rendimiento y combustible para ' + red + '.</p></div><button class="x" data-act="closeModal" aria-label="Cerrar">×</button></header><div class="mbody">' +
+    '<div class="e3w-sec"><b>1 · Mes a reportar</b><div class="e3w-grid"><label>Mes<select id="mrP">' + ps.map(p => '<option value="' + p + '"' + (p === cur ? ' selected' : '') + '>' + perLabel(p) + '</option>').join('') + '</select></label><label>Detalle de unidades<select id="mrN"><option value="10">Top 10</option><option value="15" selected>Top 15</option><option value="25">Top 25</option><option value="40">Top 40</option></select></label></div><p class="note" style="margin-top:8px">Se compara contra el mes anterior y se incluye la tendencia de los últimos 6 meses.</p></div>' +
+    '<div class="e3w-sec"><b>2 · Correo</b><div class="e3w-grid"><label>Para<input type="text" id="mrTo" placeholder="correo1@paquetexpress.com.mx; correo2@…" value="' + esc(mem.to || '') + '"></label><label>CC<input type="text" id="mrCc" placeholder="opcional" value="' + esc(mem.cc || '') + '"></label></div><div class="e3w-grid" style="margin-top:10px"><label>Fecha límite para el plan de acción<input type="date" id="mrLim" value="' + addDays(new Date().toISOString().slice(0, 10), 5) + '"></label><label>Mensaje adicional (opcional)<input type="text" id="mrNota" placeholder="Ej. Revisar en la junta regional del lunes" value="' + esc(mem.nota || '') + '"></label></div>' +
+    '<div class="e3w-chips" style="margin-top:12px"><label class="e3chip"><input type="checkbox" id="mrX" checked><span>📎 Adjuntar Excel con el detalle (regiones, unidades, combustible)</span></label></div></div>' +
+    '<p class="note">Incluye: resumen ejecutivo, acciones requeridas, tendencia, cumplimiento por región' + (a === 'log' ? ', marca/motor y modalidad Full/Sencillo' : ', tipo de unidad, tecnología y sucursales') + ', unidades críticas y destacadas, gasto y precio del combustible por fuente y sitio, y casos a revisar. Se descarga un <b>.eml</b> que Outlook abre como borrador.</p></div><footer><span class="e3hint">Destinatarios y mensaje se recuerdan para la próxima vez</span><button class="btn ghost" data-act="closeModal">Cancelar</button><button class="btn e3go" id="mrGo">✉ Generar correo</button></footer></div>';
+  m.classList.add('open');
+  $('#mrGo').onclick = () => {
+    const cfg = { a, p: $('#mrP').value, top: +$('#mrN').value, to: $('#mrTo').value.trim(), cc: $('#mrCc').value.trim(), lim: $('#mrLim').value, nota: $('#mrNota').value.trim(), xlsx: $('#mrX').checked, region: 'ALL', suc: 'ALL' };
+    mailStore(a + 'r', { to: cfg.to, cc: cfg.cc, nota: cfg.nota });
+    const b = $('#mrGo'); b.disabled = true; b.textContent = 'Armando el análisis…';
+    setTimeout(async () => { try { await buildMailRend(cfg); } catch (e) { console.error(e); toast('No se pudo generar: ' + e.message, 'warn'); b.disabled = false; b.textContent = '✉ Generar correo'; } }, 40);
+  };
+}
+function rmStats(a, p) {
+  if (a === 'log') { const rows = logRendRows(p, true, 'S'); return { rows, st: logRendStats(rows), units: logUnits(rows) }; }
+  const rows = opsRendRows(p, { ignoreRegion: true }); const st = opsStats(rows); st.u = rows.length; return { rows, st, units: opsUnits(rows) };
+}
+function rmCalc(cfg) {
+  const a = cfg.a, p = cfg.p, isL = a === 'log';
+  return e3withF(a, {}, () => {
+    const has = q => AREA_DS[a].rend.some(ds => arrFor(ds, q));
+    const pp = prevPeriod(p); const hasP = has(pp);
+    const cur = rmStats(a, p), prv = hasP ? rmStats(a, pp) : null;
+    const st = cur.st, pst = prv ? prv.st : null; const rows = cur.rows;
+    const agg = isL ? aggLog : aggOps; const kReg = isL ? r => r.zona : r => r.region;
+    const mapP = (list) => { const m = new Map(); (list || []).forEach(x => m.set(x.n, x)); return m; };
+    const withPrev = (now, before) => { const mp = mapP(before); return now.map(x => Object.assign({}, x, { pc: mp.get(x.n) ? mp.get(x.n).cump : null })); };
+    const byR = withPrev(agg(rows, kReg), prv ? agg(prv.rows, kReg) : null).filter(x => x.n);
+    const groups = [];
+    if (isL) {
+      groups.push({ t: 'Cumplimiento por marca / motor', lab: 'Marca / motor', list: withPrev(aggLog(rows, r => sm(r.marca)), prv ? aggLog(prv.rows, r => sm(r.marca)) : null) });
+      groups.push({ t: 'Full contra Sencillo', lab: 'Modalidad', list: withPrev(aggLog(rows, modalidad), prv ? aggLog(prv.rows, modalidad) : null).filter(x => x.n !== 'S/D') });
+    } else {
+      groups.push({ t: 'Diésel contra gasolina', lab: 'Combustible', list: withPrev(aggOps(rows, r => r.comb === 'GASOLINA' ? 'Gasolina' : 'Diésel'), prv ? aggOps(prv.rows, r => r.comb === 'GASOLINA' ? 'Gasolina' : 'Diésel') : null) });
+      groups.push({ t: 'Cumplimiento por tipo de unidad', lab: 'Tipo de unidad', list: withPrev(aggOps(rows, r => r.desc), prv ? aggOps(prv.rows, r => r.desc) : null).filter(x => x.u >= 3) });
+      groups.push({ t: 'Por tecnología', lab: 'Tecnología', list: withPrev(aggOps(rows, tecOps), prv ? aggOps(prv.rows, tecOps) : null) });
+    }
+    let sucs = null, sucAll = []; if (!isL) { sucAll = withPrev(aggOps(rows, r => r.suc), prv ? aggOps(prv.rows, r => r.suc) : null); const s = sucAll.slice().filter(x => x.u >= 3 && x.cump); sucs = { top: s.slice(0, 10), bot: s.slice(-10).reverse(), probl: s.filter(x => x.pBajo !== null).sort((x, y) => y.pBajo - x.pBajo || y.lExc - x.lExc).slice(0, 10) }; }
+    const U = cur.units.map(u => ({ id: isL ? u.eco : u.movil, reg: isL ? u.zona : u.region, suc: isL ? '' : u.suc, tipo: isL ? u.marca + (u.mod ? ' · ' + u.mod : '') : u.desc, km: u.km, lts: u.lts, rend: u.rend, ideal: u.ideal, cump: u.cump, exc: u.exc, excImp: u.excImp }));
+    const stc = { good: 0, ok: 0, warn: 0, bad: 0 }; U.forEach(u => stc[statusOf(u.cump).k]++);
+    const crit = U.filter(u => u.cump < 0.9).sort((x, y) => y.exc - x.exc);
+    const best = U.filter(u => u.km >= (isL ? setting('minKmLog') : setting('minKmOps')) && u.cump <= 1.5).sort((x, y) => y.cump - x.cump).slice(0, Math.min(10, cfg.top));
+    const excL = sum(crit, 'exc'), excM = sum(crit, 'excImp');
+    // Tendencia 6 meses
+    const ps = rmPeriods(a).filter(q => q <= p).slice(0, 6).reverse();
+    const trend = ps.map(q => { const s = q === p ? st : q === pp && pst ? pst : rmStats(a, q).st; const c = cargasStats(a, cargasRows(a, q + '-01', monthEnd(q))); const useC = c.lts >= 0.5 * (s.lts || 0); return { p: q, rend: s.rend, ideal: s.ideal, cump: s.cump, imp: useC ? c.imp : s.imp, lts: useC ? c.lts : s.lts }; });
+    // Combustible del mes
+    const C = cargasRows(a, p + '-01', monthEnd(p)), cs = cargasStats(a, C);
+    const PC = cargasRows(a, pp + '-01', monthEnd(pp)); let pcs = PC.length ? cargasStats(a, PC) : null; if (pcs && (pcs.dias < cs.dias * 0.7 || pcs.lts < cs.lts * 0.5)) pcs = null;
+    const fu = aggC(a, C, CG[a].fuente);
+    const auto = C.filter(CG[a].auto), ext = C.filter(r => !CG[a].auto(r));
+    const pA = div(sum(auto, CG[a].amt), sum(auto, 'lts')), pE = div(sum(ext, CG[a].amt), sum(ext, 'lts'));
+    const ahorro = pA && pE && pE > pA ? sum(ext, 'lts') * (pE - pA) : 0;
+    const sitios = aggC(a, C, CG[a].sitio).filter(x => x.lts > 0).slice(0, 12);
+    const autoS = aggC(a, auto, CG[a].sitio).sort((x, y) => (x.precio || 0) - (y.precio || 0));
+    const cReg = aggC(a, C, r => regionOf(a, r.movil) || 'SIN REGIÓN').sort((x, y) => y.imp - x.imp);
+    const cpu = aggC(a, C, r => r.movil).sort((x, y) => y.imp - x.imp).slice(0, 10);
+    // Casos a revisar
+    let csr = [], rsc = [], sams = [];
+    if (!isL) { const all = opsRendRows(p, { allCasos: true, ignoreRegion: true }); csr = all.filter(r => r.caso === 'CSR').sort((x, y) => y.lts - x.lts); rsc = all.filter(r => r.caso === 'RSC').sort((x, y) => y.km - x.km); }
+    else sams = rows.filter(r => r.rendS && r.rendM && Math.abs(r.rendS / r.rendM - 1) > 0.1);
+    let an = null; try { const A = anomalies(a, p + '-01', monthEnd(p)).list.filter(x => x.sev === 3); an = { n: A.length, m: sum(A, 'monto') }; } catch (e) { }
+    return { a, p, pp, hasP, st, pst, byR, groups, sucs, sucAll, U, stc, crit, best, excL, excM, trend, C, cs, pcs, fu, pA, pE, ahorro, sitios, autoS, cReg, cpu, csr, rsc, sams, an, isL };
+  });
+}
+const rmCol = c => c === null || c === undefined || !isFinite(c) ? MC.mut : c >= 1 ? MC.grn : c >= 0.95 ? '#5a9e3a' : c >= 0.9 ? MC.amb : MC.red;
+function rmPill(c) { return c === null || c === undefined || !isFinite(c) ? '<span style="color:' + MC.mut + '">—</span>' : '<span style="background:' + rmCol(c) + ';color:#fff;border-radius:10px;padding:2px 8px;font-weight:bold;white-space:nowrap">' + F.pct(c) + '</span>'; }
+function rmPts(c, p) { if (c === null || p === null || c === undefined || p === undefined || !isFinite(c) || !isFinite(p)) return '<span style="color:' + MC.mut + '">—</span>'; const d = (c - p) * 100; return '<span style="color:' + (d >= 0 ? MC.grn : MC.red) + ';font-weight:bold;white-space:nowrap">' + (d >= 0 ? '▲ +' : '▼ ') + F.n1(d) + ' pts</span>'; }
+function rmSec(acc, title, sub, body, note) { return '<tr><td style="padding:22px 28px 0 28px"><div style="font-family:Arial,sans-serif;font-size:17px;font-weight:bold;color:' + MC.ink + ';border-left:4px solid ' + acc + ';padding-left:10px">' + title + '</div>' + (sub ? '<div style="font-family:Arial,sans-serif;font-size:12.5px;color:' + MC.mut + ';margin:4px 0 0 14px">' + sub + '</div>' : '') + '<div style="margin-top:12px">' + body + '</div>' + mNote(note) + '</td></tr>'; }
+function rmGroupTable(list, lab, acc, hasP) {
+  return mTable([{ l: lab, f: g => '<b>' + esc(g.n) + '</b>' }, { l: 'Unid.', r: 1, f: g => F.n0(g.u) }, { l: 'Km', r: 1, nw: 1, f: g => F.n0(g.km) }, { l: 'Litros', r: 1, nw: 1, f: g => F.n0(g.lts) }, { l: 'Real', r: 1, f: g => F.n2(g.rend) }, { l: 'Ideal', r: 1, f: g => F.n2(g.ideal) }, { l: 'Cumplimiento', r: 1, f: g => rmPill(g.cump) }].concat(hasP ? [{ l: 'vs mes ant.', r: 1, f: g => rmPts(g.cump, g.pc) }] : []).concat([{ l: '% bajo 90%', r: 1, f: g => g.pBajo === null ? '—' : F.pct0(g.pBajo) }, { l: 'Gasto', r: 1, nw: 1, f: g => F.money(g.imp) }]), list);
+}
+function rmHTML(cfg, X, logo) {
+  const a = cfg.a, n = AREA_NAME[a], isL = X.isL, acc = isL ? MC.blue : MC.grn; const st = X.st, pst = X.pst, mes = perLabel(X.p), mesA = perLabel(X.pp);
+  const red = isL ? 'Red Logística' : 'Red Operativa'; const T = cfg.top;
+  const dC = pst && pst.cump ? st.cump - pst.cump : null; const sTx = statusOf(st.cump).t;
+  const verdict = !st.cump ? 'Rendimiento de ' + F.kml(st.rend) + ' en ' + mes + '.' : 'Cumplimiento de ' + F.pct(st.cump) + ' contra el rendimiento ideal (' + sTx.toLowerCase() + ')' + (dC === null ? '.' : Math.abs(dC) < 0.002 ? ', igual que en ' + mesA + '.' : dC > 0 ? ': MEJORÓ ' + F.n1(dC * 100) + ' puntos contra ' + mesA + '.' : dC > -0.01 ? ': bajó ' + F.n1(-dC * 100) + ' puntos contra ' + mesA + '.' : ': BAJÓ ' + F.n1(-dC * 100) + ' puntos contra ' + mesA + '. Se requiere acción.');
+  const vcol = rmCol(st.cump);
+  const dl = (x, y, inv) => mDelta(x !== null && y ? x / y - 1 : null, inv);
+  const cs = X.cs, pcs = X.pcs;
+  const kp = [
+    ['Rendimiento real', F.kml(st.rend), pst ? dl(st.rend, pst.rend, true) + ' <span style="color:' + MC.mut + '">vs ' + F.n2(pst.rend) + '</span>' : ''],
+    ['Ideal ponderado', F.kml(st.ideal), '<span style="color:' + MC.mut + '">según la mezcla de unidades</span>'],
+    ['Cumplimiento', F.pct(st.cump), pst ? rmPts(st.cump, pst.cump) : ''],
+    ['Gasto en combustible', F.money(cs.imp || st.imp), pcs ? dl(cs.imp, pcs.imp) + ' <span style="color:' + MC.mut + '">vs ' + F.money(pcs.imp) + '</span>' : ''],
+    ['Litros cargados', F.n0(cs.lts || st.lts), pcs ? dl(cs.lts, pcs.lts) : ''],
+    ['Precio promedio', F.money2(cs.precio || st.precio) + '/L', pcs ? dl(cs.precio, pcs.precio) : ''],
+    ['Kilómetros', F.n0(st.km), pst ? dl(st.km, pst.km, true) : ''],
+    [isL ? 'Tractos evaluados' : 'Unidades evaluadas', F.n0(X.U.length), '<span style="color:' + MC.mut + '">' + F.pct0(div(X.stc.good, X.U.length)) + ' en su ideal</span>'],
+    ['Exceso sobre el ideal', F.n0(X.excL) + ' L', '<span style="color:' + MC.red + ';font-weight:bold">' + F.money(X.excM) + '</span> <span style="color:' + MC.mut + '">en unidades críticas</span>']
+  ];
+  const kpH = '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">' + [0, 3, 6].map(i => '<tr>' + kp.slice(i, i + 3).map(k => mKp(k)).join('<td width="10"></td>') + '</tr>' + (i < 6 ? '<tr><td colspan="5" height="10"></td></tr>' : '')).join('') + '</table>';
+  const rv = X.byR.filter(r => r.cump && r.u >= 5); const rb = rv[0], rw = rv[rv.length - 1];
+  const rUp = rv.filter(r => r.pc !== null).sort((x, y) => (y.cump - y.pc) - (x.cump - x.pc));
+  // Acciones
+  const acts = [];
+  if (st.cump && st.cump < 1) acts.push('<b>Cerrar la brecha contra el ideal:</b> estamos en ' + F.pct(st.cump) + '. Las unidades críticas consumieron <b>' + F.n0(X.excL) + ' litros de más (' + F.money(X.excM) + ')</b> en el mes.');
+  if (rw && rv.length > 1) acts.push('<b>' + esc(rw.n) + '</b> tiene el cumplimiento más bajo (' + F.pct(rw.cump) + '): su responsable debe presentar un plan de recuperación con fechas.');
+  if (X.crit.length) acts.push('<b>Revisar las ' + Math.min(T, X.crit.length) + ' unidades de la tabla "Unidades críticas"</b>: estilo de manejo, ralentí, presión de llantas, fugas, calibración de inyectores y que las cargas correspondan a la unidad.');
+  if (X.ahorro > 1000) acts.push('<b>Priorizar autoconsumo:</b> en ' + (isL ? 'gasolineras externas' : 'EDENRED') + ' pagamos ' + F.money2(X.pE) + '/L contra ' + F.money2(X.pA) + '/L en autoconsumo. Cargar donde conviene representa hasta <b>' + F.money(X.ahorro) + '</b> al mes.');
+  if (!isL && (X.csr.length || X.rsc.length)) acts.push('<b>Aclarar los casos especiales:</b> ' + X.csr.length + ' unidades cargaron combustible sin registrar recorrido (' + F.n0(sum(X.csr, 'lts')) + ' L) y ' + X.rsc.length + ' recorrieron sin carga registrada. Validar GPS, tarjeta y asignación.');
+  if (isL && X.sams.length) acts.push('<b>' + X.sams.length + ' tractos</b> tienen más de 10% de diferencia entre el rendimiento Samsara y el manual: revisar cargas, odómetro y telemetría.');
+  if (X.an && X.an.n) acts.push('El Centinela detectó <b>' + F.n0(X.an.n) + ' anomalías de severidad alta</b>' + (X.an.m ? ' con ' + F.money(X.an.m) + ' en riesgo' : '') + ': revisarlas en el portal (Anomalías) y justificar.');
+  if (X.best.length) acts.push('<b>Reconocer a los equipos de las unidades destacadas</b> y replicar sus prácticas en las sucursales con bajo desempeño.');
+  acts.push('Responder este correo con el <b>plan de acción y responsables a más tardar el ' + (cfg.lim ? dLabel(cfg.lim) : '—') + '</b>.');
+  let body = '';
+  body += rmSec(acc, 'Resumen ejecutivo', mes + (X.hasP ? ' · comparado contra ' + mesA : ''), '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="background:' + vcol + ';color:#ffffff;padding:14px 18px;border-radius:10px;font-family:Arial,sans-serif;font-size:16px;font-weight:bold">' + verdict + '</td></tr></table><div style="height:12px"></div>' + kpH,
+    'La flota ' + (isL ? 'de tractos' : 'operativa') + ' recorrió <b>' + F.n0(st.km) + ' km</b> con <b>' + F.kml(st.rend) + '</b> contra un ideal de ' + F.kml(st.ideal) + '. ' + F.n0(X.stc.good) + ' unidades alcanzan su ideal, ' + F.n0(X.stc.ok) + ' están en aceptable (95–100%), ' + F.n0(X.stc.warn) + ' en vigilancia (90–95%) y <b>' + F.n0(X.stc.bad) + ' en crítico (&lt;90%)</b>.' + (pcs ? ' El gasto en combustible ' + (cs.imp >= pcs.imp ? 'subió' : 'bajó') + ' ' + F.money(Math.abs(cs.imp - pcs.imp)) + ' contra ' + mesA + (cs.precio && pcs.precio ? ', con un precio promedio ' + (cs.precio >= pcs.precio ? 'mayor' : 'menor') + ' en ' + F.money2(Math.abs(cs.precio - pcs.precio)) + ' por litro' : '') + '.' : ''));
+  body += rmSec(acc, '✅ Acciones requeridas', 'Lo que necesitamos de cada región y sucursal', '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">' + acts.map((t, i) => '<tr><td valign="top" width="30" style="padding:6px 0"><div style="width:24px;height:24px;line-height:24px;border-radius:12px;background:' + acc + ';color:#fff;text-align:center;font-weight:bold;font-size:12px;font-family:Arial,sans-serif">' + (i + 1) + '</div></td><td style="padding:6px 0 6px 8px;font-size:13.5px;line-height:1.5;color:' + MC.ink + ';font-family:Arial,sans-serif">' + t + '</td></tr>').join('') + '</table>');
+  if (X.trend.length >= 2) {
+    const tr = X.trend; const best = tr.slice().sort((x, y) => (y.cump || 0) - (x.cump || 0))[0];
+    body += rmSec(acc, '📈 Tendencia de los últimos ' + tr.length + ' meses', 'Cumplimiento contra el ideal y gasto en combustible por mes',
+      '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td width="50%" valign="top" style="padding-right:8px"><div style="font-family:Arial,sans-serif;font-size:12px;font-weight:bold;color:' + MC.mut + ';margin-bottom:4px">Cumplimiento</div>' + mVbars(tr.map(x => ({ v: (x.cump || 0) * 100, l: perShort(x.p), c: rmCol(x.cump) })), acc, v => F.n1(v) + '%', 110) + '</td><td width="50%" valign="top" style="padding-left:8px"><div style="font-family:Arial,sans-serif;font-size:12px;font-weight:bold;color:' + MC.mut + ';margin-bottom:4px">Gasto en combustible</div>' + mVbars(tr.map(x => ({ v: x.imp || 0, l: perShort(x.p), c: x.p === X.p ? acc : '#9db4d6' })), acc, v => '$' + short(v), 110) + '</td></tr></table>' +
+      '<div style="height:10px"></div>' + mTable([{ l: 'Mes', f: x => '<b>' + perLabel(x.p) + '</b>' }, { l: 'Real', r: 1, f: x => F.n2(x.rend) }, { l: 'Ideal', r: 1, f: x => F.n2(x.ideal) }, { l: 'Cumplimiento', r: 1, f: x => rmPill(x.cump) }, { l: 'Litros', r: 1, f: x => F.n0(x.lts) }, { l: 'Gasto', r: 1, f: x => F.money(x.imp) }], tr),
+      'El mejor mes del periodo fue <b>' + perLabel(best.p) + '</b> (' + F.pct(best.cump) + ').' + (best.p !== X.p && best.cump && st.cump ? ' Regresar a ese nivel equivale a ahorrar cerca de <b>' + F.n0(st.lts * (1 - st.cump / best.cump)) + ' litros</b> al mes.' : ' Este mes es el mejor del periodo: ¡hay que sostenerlo!'));
+  }
+  if (rv.length) { const mx = Math.max(...rv.map(r => r.cump)); body += rmSec(acc, '🗺️ Cumplimiento por región', 'Ordenado de mejor a peor', rmGroupTable(X.byR, 'Región', acc, X.hasP),
+    (rb ? '<b>' + esc(rb.n) + '</b> lidera con ' + F.pct(rb.cump) + ' (' + F.kml(rb.rend) + ' contra ' + F.kml(rb.ideal) + ' de ideal)' : '') + (rw && rw !== rb ? '; <b>' + esc(rw.n) + '</b> es la más baja con ' + F.pct(rw.cump) + ' y un ' + F.pct0(rw.pBajo || 0) + ' de sus unidades bajo 90%.' : '.') + (rUp.length > 1 ? ' La que más mejoró contra ' + mesA + ' fue <b>' + esc(rUp[0].n) + '</b> (' + F.n1((rUp[0].cump - rUp[0].pc) * 100) + ' pts)' + ((rUp[rUp.length - 1].cump - rUp[rUp.length - 1].pc) < 0 ? ' y la que más cayó, <b>' + esc(rUp[rUp.length - 1].n) + '</b> (' + F.n1((rUp[rUp.length - 1].cump - rUp[rUp.length - 1].pc) * 100) + ' pts).' : '.') : '')); void mx; }
+  X.groups.forEach(g => { if (!g.list.length) return; const v = g.list.filter(x => x.cump && x.u >= 3); const b = v[0], w = v[v.length - 1];
+    body += rmSec(acc, g.t, '', rmGroupTable(g.list, g.lab, acc, X.hasP), v.length > 1 ? 'Mejor: <b>' + esc(b.n) + '</b> (' + F.pct(b.cump) + ', ' + F.kml(b.rend) + '). Más baja: <b>' + esc(w.n) + '</b> (' + F.pct(w.cump) + ', ' + F.kml(w.rend) + ' contra ' + F.kml(w.ideal) + ' de ideal).' : null); });
+  if (X.sucs) {
+    const sc = [{ l: 'Sucursal', f: s => '<b>' + esc(s.n) + '</b>' }, { l: 'Unid.', r: 1, f: s => F.n0(s.u) }, { l: 'Real', r: 1, f: s => F.n2(s.rend) }, { l: 'Cumplimiento', r: 1, f: s => rmPill(s.cump) }, { l: '% bajo 90%', r: 1, f: s => s.pBajo === null ? '—' : F.pct0(s.pBajo) }, { l: 'Litros de más', r: 1, f: s => F.n0(s.lExc) }];
+    body += rmSec(acc, '🏆 Sucursales con mejor cumplimiento', 'Sucursales con 3 o más unidades', mTable(sc, X.sucs.top));
+    body += rmSec(MC.red, '⚠️ Sucursales con menor cumplimiento', 'Requieren plan de acción', mTable(sc, X.sucs.bot), X.sucs.bot[0] ? '<b>' + esc(X.sucs.bot[0].n) + '</b> es la sucursal más baja (' + F.pct(X.sucs.bot[0].cump) + ').' + (X.sucs.probl[0] ? ' La que tiene más unidades bajo 90% del ideal es <b>' + esc(X.sucs.probl[0].n) + '</b> (' + F.pct0(X.sucs.probl[0].pBajo) + ').' : '') : null);
+  }
+  const st4 = [['Óptimo ≥100%', X.stc.good, MC.grn], ['Aceptable 95–100%', X.stc.ok, '#5a9e3a'], ['Vigilancia 90–95%', X.stc.warn, MC.amb], ['Crítico <90%', X.stc.bad, MC.red]]; const mx4 = Math.max(1, ...st4.map(x => x[1]));
+  body += rmSec(acc, '🚦 Semáforo de unidades', F.n0(X.U.length) + ' unidades evaluadas', mTable([{ l: 'Estado', f: x => '<b style="color:' + x[2] + '">' + x[0] + '</b>' }, { l: 'Unidades', w: '45%', f: x => mBar(x[1], mx4, x[2]) }, { l: 'Cant.', r: 1, f: x => F.n0(x[1]) }, { l: '%', r: 1, f: x => F.pct0(div(x[1], X.U.length)) }], st4));
+  const ct = X.crit.slice(0, T);
+  if (ct.length) { const mx = ct[0].exc; body += rmSec(MC.red, '🚨 Unidades críticas con más litros de más', 'Top ' + ct.length + ' de ' + F.n0(X.crit.length) + ' unidades debajo de 90% de su ideal', mTable([{ l: '#', r: 1, f: (u, i) => i + 1 }, { l: isL ? 'Económico' : 'Móvil', nw: 1, f: u => '<b>' + esc(u.id) + '</b>' }, { l: isL ? 'Región' : 'Suc.', f: u => esc(isL ? u.reg : u.suc) }, { l: isL ? 'Marca · modalidad' : 'Tipo', f: u => esc(u.tipo) }, { l: 'Km', r: 1, f: u => F.n0(u.km) }, { l: 'Real', r: 1, f: u => F.n2(u.rend) }, { l: 'Ideal', r: 1, f: u => F.n2(u.ideal) }, { l: 'Cumpl.', r: 1, f: u => rmPill(u.cump) }, { l: 'Litros de más', w: '16%', f: u => mBar(u.exc, mx, MC.red) + '<div style="font-size:11px;font-weight:bold;margin-top:2px">' + F.n0(u.exc) + ' L · ' + F.money(u.excImp) + '</div>' }], ct),
+    'Estas ' + ct.length + ' unidades suman <b>' + F.n0(sum(ct, 'exc')) + ' litros de más (' + F.money(sum(ct, 'excImp')) + ')</b>, el ' + F.pct0(div(sum(ct, 'exc'), X.excL)) + ' del exceso total.'); }
+  if (X.best.length) body += rmSec(MC.grn, '⭐ Unidades destacadas', 'Las de mejor cumplimiento del mes: ¡felicidades a sus operadores!', mTable([{ l: '#', r: 1, f: (u, i) => i + 1 }, { l: isL ? 'Económico' : 'Móvil', nw: 1, f: u => '<b>' + esc(u.id) + '</b>' }, { l: isL ? 'Región' : 'Suc.', f: u => esc(isL ? u.reg : u.suc) }, { l: isL ? 'Marca · modalidad' : 'Tipo', f: u => esc(u.tipo) }, { l: 'Km', r: 1, f: u => F.n0(u.km) }, { l: 'Real', r: 1, f: u => F.n2(u.rend) }, { l: 'Ideal', r: 1, f: u => F.n2(u.ideal) }, { l: 'Cumpl.', r: 1, f: u => rmPill(u.cump) }], X.best));
+  // Combustible
+  if (X.C.length) {
+    const fmx = Math.max(...X.fu.map(x => x.lts));
+    body += rmSec('#e8a200', '⛽ Combustible del mes', F.n0(cs.c) + ' cargas · ' + F.n0(cs.lts) + ' L · ' + F.money(cs.imp) + ' · ' + F.money2(cs.precio) + '/L promedio', mTable([{ l: 'Fuente', f: x => '<b>' + esc(x.n) + '</b>' }, { l: 'Litros', w: '30%', f: x => mBar(x.lts, fmx, '#e8a200') }, { l: 'L', r: 1, nw: 1, f: x => F.n0(x.lts) }, { l: '% L', r: 1, f: x => F.pct0(x.pct) }, { l: 'Importe', r: 1, nw: 1, f: x => F.money(x.imp) }, { l: 'Precio/L', r: 1, nw: 1, f: x => F.money2(x.precio) }, { l: 'Unid.', r: 1, f: x => F.n0(x.u) }], X.fu),
+      'El autoconsumo representa el <b>' + F.pct0(cs.pAuto) + '</b> de los litros' + (X.pA ? ' a ' + F.money2(X.pA) + '/L' : '') + (X.pE ? '; en ' + (isL ? 'gasolineras externas' : 'EDENRED') + ' el litro salió en ' + F.money2(X.pE) : '') + '.' + (X.ahorro > 1000 ? ' Si los litros externos se hubieran cargado al precio de autoconsumo, el ahorro sería de <b>' + F.money(X.ahorro) + '</b>.' : ''));
+    if (X.autoS.length) body += rmSec('#e8a200', 'Precio por sitio de autoconsumo', 'Del más barato al más caro', mTable([{ l: 'Sitio', f: x => '<b>' + esc(String(x.n).replace(/^AUTOCONSUMO /, '')) + '</b>' }, { l: 'Litros', r: 1, f: x => F.n0(x.lts) }, { l: 'Importe', r: 1, f: x => F.money(x.imp) }, { l: 'Precio/L', r: 1, f: x => '<b>' + F.money2(x.precio) + '</b>' }, { l: 'Cargas', r: 1, f: x => F.n0(x.c) }], X.autoS));
+    if (X.cReg.length > 1) { const mx = X.cReg[0].imp; body += rmSec('#e8a200', 'Gasto por región', 'Todas las fuentes', mTable([{ l: 'Región', f: x => '<b>' + esc(x.n) + '</b>' }, { l: 'Gasto', w: '30%', f: x => mBar(x.imp, mx, '#e8a200') }, { l: '$', r: 1, nw: 1, f: x => F.money(x.imp) }, { l: 'Litros', r: 1, f: x => F.n0(x.lts) }, { l: 'Precio/L', r: 1, f: x => F.money2(x.precio) }, { l: 'Unid.', r: 1, f: x => F.n0(x.u) }], X.cReg)); }
+    if (X.cpu.length) body += rmSec('#e8a200', 'Unidades con mayor gasto', 'Top 10 del mes', mTable([{ l: '#', r: 1, f: (x, i) => i + 1 }, { l: isL ? 'Económico' : 'Móvil', f: x => '<b>' + esc(x.n) + '</b>' }, { l: 'Región', f: x => esc(regionOf(a, x.n) || '') }, { l: 'Cargas', r: 1, f: x => F.n0(x.c) }, { l: 'Litros', r: 1, f: x => F.n0(x.lts) }, { l: 'Importe', r: 1, f: x => F.money(x.imp) }], X.cpu));
+  }
+  if (!isL && (X.csr.length || X.rsc.length)) {
+    const cc = [{ l: 'Móvil', f: r => '<b>' + esc(r.movil) + '</b>' }, { l: 'Suc.', f: r => esc(r.suc) }, { l: 'Región', f: r => esc(r.region) }, { l: 'Tipo', f: r => esc(r.desc) }, { l: 'Km', r: 1, f: r => F.n1(r.km) }, { l: 'Litros', r: 1, f: r => F.n1(r.lts) }, { l: '$', r: 1, f: r => F.money(r.imp) }];
+    body += rmSec(MC.amb, '🔎 Casos a revisar', X.csr.length + ' con carga sin recorrido · ' + X.rsc.length + ' con recorrido sin carga', (X.csr.length ? '<div style="font-family:Arial,sans-serif;font-size:12.5px;font-weight:bold;margin:2px 0 6px">Carga sin recorrido (' + F.n0(sum(X.csr, 'lts')) + ' L · ' + F.money(sum(X.csr, 'imp')) + ')</div>' + mTable(cc, X.csr.slice(0, T)) : '') + (X.rsc.length ? '<div style="font-family:Arial,sans-serif;font-size:12.5px;font-weight:bold;margin:14px 0 6px">Recorrido sin carga (' + F.n0(sum(X.rsc, 'km')) + ' km)</div>' + mTable(cc, X.rsc.slice(0, T)) : ''), 'Una carga sin recorrido puede ser GPS sin reportar, unidad detenida o uso indebido de la tarjeta; un recorrido sin carga suele ser carga registrada a otra unidad.');
+  }
+  const intro = '<tr><td style="padding:22px 28px 0 28px;font-family:Arial,sans-serif;font-size:14px;line-height:1.6;color:' + MC.ink + '">Buen día, equipo de la ' + red + ':<br><br>Les comparto el análisis de <b>rendimiento y combustible de ' + mes + '</b> para ' + n + '. Cada punto de cumplimiento que recuperamos se traduce directamente en litros y pesos ahorrados' + (X.excM ? ': este mes, las unidades críticas consumieron <b>' + F.money(X.excM) + '</b> por encima de su ideal' : '') + '.' + (cfg.nota ? '<br><br>' + esc(cfg.nota) : '') + '<br><br>Les pido revisar el detalle de su región y sucursales y atender las <b>acciones requeridas</b>.</td></tr>';
+  const head = '<tr><td style="background:' + MC.ink + ';padding:20px 28px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td><img src="' + logo + '" alt="Paquetexpress" height="36" style="display:block;height:36px;background:#003087;padding:4px 8px;border-radius:6px"></td><td align="right" style="font-family:Arial,sans-serif;color:#ffd36b;font-size:11px;font-weight:bold;letter-spacing:2px">CONTROL DE COMBUSTIBLE</td></tr></table><div style="font-family:Arial,sans-serif;color:#ffffff;font-size:26px;font-weight:bold;margin-top:16px">Rendimiento y Combustible · ' + n + '</div><div style="font-family:Arial,sans-serif;color:#b8c8e6;font-size:14px;margin-top:4px">' + mes + ' · ' + red + '</div></td></tr><tr><td style="background:' + acc + ';height:5px;font-size:0;line-height:0">&nbsp;</td></tr>';
+  const foot = '<tr><td style="padding:26px 28px;font-family:Arial,sans-serif;font-size:13px;line-height:1.6;color:' + MC.ink + '">Quedo atento a su plan de acción.<br><br>Saludos,<br><b>' + esc(S.name || '') + '</b><br>Control de Combustible · Logística y Operaciones<br><span style="color:' + MC.mut + ';font-size:11.5px">Fuente: ' + (isL ? 'semáforo de tractos (rendimiento Samsara oficial; ideal ponderado Full ' + F.n2(setting('idealFull')) + ' / Sencillo ' + F.n2(setting('idealSenc')) + ' km/L)' : 'semáforos de Operaciones diésel y gasolina (ideal por tipo de unidad)') + ' y cargas de combustible del Portal de Combustible. Cumplimiento = rendimiento real ÷ ideal ponderado.' + (cfg.xlsx ? ' Se adjunta el detalle en Excel.' : '') + '</span></td></tr>';
+  return '<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Rendimiento y Combustible</title></head><body style="margin:0;padding:0;background:' + MC.bg + '"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="' + MC.bg + '" style="background:' + MC.bg + '"><tr><td align="center" style="padding:18px 8px"><table role="presentation" width="780" cellpadding="0" cellspacing="0" border="0" style="width:780px;max-width:780px;background:#ffffff;border-radius:12px;overflow:hidden">' + head + intro + body + foot + '</table></td></tr></table></body></html>';
+}
+async function rmXlsx(cfg, X) {
+  const isL = X.isL; const SH = []; const r3 = v => v === null || v === undefined || !isFinite(v) ? '' : Math.round(v * 1000) / 1000;
+  const g = (list, lab) => list.map(x => ({ [lab]: x.n, Unidades: x.u, Km: r3(x.km), Litros: r3(x.lts), 'Rend. real': r3(x.rend), 'Ideal ponderado': r3(x.ideal), 'Cumplimiento %': r3(x.cump * 100), 'Cumpl. mes anterior %': x.pc === null || x.pc === undefined ? '' : r3(x.pc * 100), '% unidades bajo 90%': x.pBajo === null ? '' : r3(x.pBajo * 100), 'Litros sobre ideal': r3(x.lExc), Gasto: r3(x.imp) }));
+  SH.push(['Regiones', g(X.byR, 'Región')]);
+  X.groups.forEach(G => SH.push([G.lab.replace(/[\/\\?*\[\]:]/g, '-').slice(0, 28), g(G.list, G.lab)]));
+  if (X.sucAll.length) SH.push(['Sucursales', g(X.sucAll, 'Sucursal')]);
+  SH.push(['Unidades', X.U.slice().sort((a, b) => a.cump - b.cump).map(u => ({ [isL ? 'Económico' : 'Móvil']: u.id, Región: u.reg, Sucursal: u.suc, [isL ? 'Marca · modalidad' : 'Tipo']: u.tipo, Km: r3(u.km), Litros: r3(u.lts), 'Rend. real': r3(u.rend), Ideal: r3(u.ideal), 'Cumplimiento %': r3(u.cump * 100), Estado: statusOf(u.cump).t, 'Litros sobre ideal': r3(u.exc), 'Costo del exceso': r3(u.excImp) }))]);
+  SH.push(['Tendencia', X.trend.map(t => ({ Mes: perLabel(t.p), 'Rend. real': r3(t.rend), Ideal: r3(t.ideal), 'Cumplimiento %': r3(t.cump * 100), Litros: r3(t.lts), Gasto: r3(t.imp) }))]);
+  SH.push(['Combustible por fuente', X.fu.map(x => ({ Fuente: x.n, Cargas: x.c, Litros: r3(x.lts), '% litros': r3(x.pct * 100), Importe: r3(x.imp), 'Precio por litro': r3(x.precio), Unidades: x.u }))]);
+  SH.push(['Combustible por sitio', aggC(cfg.a, X.C, CG[cfg.a].sitio).map(x => ({ Sitio: x.n, Cargas: x.c, Litros: r3(x.lts), Importe: r3(x.imp), 'Precio por litro': r3(x.precio), Unidades: x.u }))]);
+  if (!isL) SH.push(['Casos a revisar', X.csr.map(r => ({ Caso: 'Carga sin recorrido', Móvil: r.movil, Sucursal: r.suc, Región: r.region, Tipo: r.desc, Km: r3(r.km), Litros: r3(r.lts), Importe: r3(r.imp) })).concat(X.rsc.map(r => ({ Caso: 'Recorrido sin carga', Móvil: r.movil, Sucursal: r.suc, Región: r.region, Tipo: r.desc, Km: r3(r.km), Litros: r3(r.lts), Importe: r3(r.imp) })))]);
+  return pxBuild('Rendimiento y Combustible ' + AREA_NAME[cfg.a] + ' · ' + perLabel(X.p), SH.filter(s => s[1].length), { sub: 'Detalle del correo a la ' + (isL ? 'red logística' : 'red operativa') + ' · Portal de Combustible' });
+}
+async function buildMailRend(cfg) {
+  const X = rmCalc(cfg); const a = cfg.a;
+  if (!X.st.km) { toast('No hay rendimientos para ese mes', 'warn'); const b = $('#mrGo'); if (b) { b.disabled = false; b.textContent = '✉ Generar correo'; } return; }
+  const subject = 'Rendimiento y Combustible ' + AREA_NAME[a] + ' · ' + perLabel(X.p) + ' · ' + F.kml(X.st.rend) + ' · cumplimiento ' + F.pct(X.st.cump) + ' · ' + F.money(X.cs.imp || X.st.imp);
+  const tag = (a === 'log' ? 'Logistica' : 'Operaciones') + '_' + X.p;
+  let xl = null; if (cfg.xlsx) { try { xl = { name: 'Rendimiento_Combustible_' + tag + '.xlsx', buf: await rmXlsx(cfg, X) }; } catch (e) { console.warn(e); toast('No se pudo crear el Excel adjunto; el correo va sin adjunto', 'warn'); } }
+  MAIL.kind = 'rend'; MAIL.cfg = cfg; MAIL.subject = subject; MAIL.html = rmHTML(cfg, X, 'data:image/png;base64,' + LOGO64);
+  MAIL.eml = buildEml(cfg, subject, rmHTML(cfg, X, 'cid:pxlogo'), xl); MAIL.file = 'Correo_Rendimiento_' + tag + '.eml'; MAIL.xlsx = xl;
+  const m = $('#modal'); DSTACK.length = 0; m.classList.remove('drill');
+  m.innerHTML = '<div class="mbox mailprev"><header><div><h3>✉ Correo listo · ' + AREA_NAME[a] + '</h3><p class="sub"><b>Asunto:</b> ' + esc(subject) + (cfg.to ? '<br><b>Para:</b> ' + esc(cfg.to) : '') + (xl ? '<br>📎 ' + esc(xl.name) : '') + '</p></div><button class="x" data-act="closeModal" aria-label="Cerrar">×</button></header><div class="mbody" style="padding:0"><iframe id="mailF" title="Vista previa del correo" sandbox="allow-same-origin"></iframe></div><footer><button class="btn ghost" data-act="mailBack">⚙ Cambiar mes</button><button class="btn ghost" data-act="mailHtml">⬇ HTML</button><button class="btn ghost" data-act="mailCopy">📋 Copiar para pegar</button><button class="btn e3go" data-act="mailEml">✉ Abrir en Outlook (.eml)</button></footer></div>';
+  m.classList.add('open'); $('#mailF').srcdoc = MAIL.html;
+}
 
 /* ---------- Router y eventos ---------- */
 function fitKpis() { document.querySelectorAll('#main .kv').forEach(el => { el.style.fontSize = ''; let fs = parseFloat(getComputedStyle(el).fontSize) || 24, n = 0; while (el.scrollWidth > el.clientWidth + 1 && fs > 13 && n++ < 14) { fs -= 1; el.style.fontSize = fs + 'px'; } }); }
@@ -6063,6 +6484,7 @@ function bindEvents() {
     else if (act === 'pdl') presDownload();
     else if (act === 'manual') openManual();
     else if (act === 'mailRal') openMailRal(t.getAttribute('data-area'));
+    else if (act === 'mailRend') openMailRend(t.getAttribute('data-area'));
     else if (act === 'mailBack' || act === 'mailEml' || act === 'mailHtml' || act === 'mailCopy') mailAct(act);
     else if (act === 'lgCert') ligaCert(t.getAttribute('data-area'), t.getAttribute('data-kind'));
     else if (act === 'wa') openWAWizard();
