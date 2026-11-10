@@ -1052,7 +1052,7 @@ const SHOT={"anomalias": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wB
         else if (pf !== null && ps === null) { if (pf > 1.5) pf = pf / 100; ps = Math.max(0, 1 - pf); }
         else if (ps !== null && pf === null) { if (ps > 1.5) ps = ps / 100; pf = Math.max(0, 1 - ps); }
         const z = txt(g(r, 'zona'));
-        rows.push({ eco: key, marca: marca, modelo: txt(g(r, 'modelo')), norma: txt(g(r, 'norma')), trans: txt(g(r, 'trans')).toLowerCase(), segmento: txt(g(r, 'segmento')), ruta: txt(g(r, 'ruta')), pctRuta: r2(num(g(r, 'pctRuta')), 4), zona: /^(#N\/A|0|-)?$/i.test(z) ? 'SIN ZONA' : z.toUpperCase().replace(/^LOG\s*(?=CENTRO|NORTE|SUR|OCCIDENTE|NOROESTE|PACIFICO|PXGL)/, ''), full: r2(pf, 4), senc: r2(ps, 4), km: r2(km || 0, 1), imp: r2(num(g(r, 'imp')) || 0, 2), precio: r2(num(g(r, 'precio')), 3), ltsCarg: r2(num(g(r, 'ltsCarg')), 2), lts: r2(lts || 0, 2), rend: r2(rend, 4), rendS: r2(num(g(r, 'rendS')), 3), urea: r2(num(g(r, 'urea')), 2), impUrea: r2(num(g(r, 'impUrea')), 2), obs: txt(g(r, 'obs')), tipo: tipo, wialon: sc === 1 ? 1 : 0 });
+        rows.push({ eco: key, marca: mkNorm(marca), modelo: txt(g(r, 'modelo')), norma: txt(g(r, 'norma')), trans: txt(g(r, 'trans')).toLowerCase(), segmento: txt(g(r, 'segmento')), ruta: txt(g(r, 'ruta')), pctRuta: r2(num(g(r, 'pctRuta')), 4), zona: /^(#N\/A|0|-)?$/i.test(z) ? 'SIN ZONA' : z.toUpperCase().replace(/^LOG\s*(?=CENTRO|NORTE|SUR|OCCIDENTE|NOROESTE|PACIFICO|PXGL)/, ''), full: r2(pf, 4), senc: r2(ps, 4), km: r2(km || 0, 1), imp: r2(num(g(r, 'imp')) || 0, 2), precio: r2(num(g(r, 'precio')), 3), ltsCarg: r2(num(g(r, 'ltsCarg')), 2), lts: r2(lts || 0, 2), rend: r2(rend, 4), rendS: r2(num(g(r, 'rendS')), 3), urea: r2(num(g(r, 'urea')), 2), impUrea: r2(num(g(r, 'impUrea')), 2), obs: txt(g(r, 'obs')), tipo: tipo, wialon: sc === 1 ? 1 : 0 });
       }
     }
     if (!rows.length) return null;
@@ -1290,6 +1290,7 @@ function rowsOf(ds, p) {
   const k = ds + '|' + p + '|' + S.ver;
   if (S.cache[k]) return S.cache[k];
   const a = arrFor(ds, p); const r = a ? FP.fromArr(ds, a) : [];
+  if (ds === 'log_rend') r.forEach(x => { if (x && x.marca) x.marca = mkNorm(x.marca); });
   S.cache[k] = r; return r;
 }
 function rowsRange(ds, from, to) {
@@ -1824,7 +1825,9 @@ function ensureFilters(a) {
 }
 
 /* ---------- Rendimientos Logística ---------- */
-function sm(m) { return String(m || '').trim().replace('FREIGHTLINER CASCADIA DETROIT DIESEL', 'Cascadia').replace('INTERNACIONAL', 'Intl').replace('KENWORTH', 'KW').replace('AUTOMATICO', 'aut.').replace(/ 450 HP/, ''); }
+// Todas las unidades Kenworth / KW son el mismo modelo: un solo concepto
+function mkNorm(m) { const s = String(m || '').replace(/\s+/g, ' ').trim(); return /KENWORTH|^KW\b|\bKW\b/i.test(s) ? 'KENWORTH CUMMINS X15' : s; }
+function sm(m) { return mkNorm(m).replace('FREIGHTLINER CASCADIA DETROIT DIESEL', 'Cascadia').replace('INTERNACIONAL', 'Intl').replace('KENWORTH', 'KW').replace('AUTOMATICO', 'aut.').replace(/ 450 HP/, ''); }
 function modalidad(r) { if (r.full === null && r.senc === null) return 'S/D'; if ((r.full || 0) >= 0.7) return 'FULL'; if ((r.senc || 0) >= 0.7) return 'SENCILLO'; return 'MIXTO'; }
 function logSrc() { return S.toggles.logSrc || 'S'; }
 // Ideal ponderado por modalidad: litros ideales = km·%Full / idealFull + km·%Sencillo / idealSenc
