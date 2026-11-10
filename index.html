@@ -642,6 +642,7 @@ body.e3open{overflow:hidden}body.e3open .floatbtn{display:none}
 .topbar.k5 #upbtn .bl{display:none}
 .topbar.k6 .logo .sep,.topbar.k6 .logo>span:not(.sep){display:none}
 .topbar.k6 .topnav a{padding:8px 8px}
+.topbar.k7 .topin{gap:8px}.topbar.k7 .tright{gap:4px}.topbar.k7 .ibtn{padding:0 8px}.topbar.k7 .logo{display:none}
 /* Noticiero de inicio */
 .news{position:relative;margin:0 0 22px;border-radius:26px;overflow:hidden;background:#030914;color:#fff;box-shadow:0 24px 60px rgba(3,9,20,.35)}
 .nw-stage{position:relative;height:560px;overflow:hidden}
@@ -6849,12 +6850,13 @@ function openInfografias() {
 
 /* Ajuste de barra superior: compacta por niveles hasta que nada se encime */
 function fitTopbar() {
-  const tb = document.querySelector('.topbar'), inn = tb && tb.querySelector('.topin'); if (!tb || !inn || !tb.offsetParent && getComputedStyle(tb).display === 'none') return;
-  const nav = inn.querySelector('.topnav'), tr = inn.querySelector('.tright');
-  const fits = () => { const w = inn.clientWidth, pad = parseFloat(getComputedStyle(inn).paddingLeft) + parseFloat(getComputedStyle(inn).paddingRight), gap = parseFloat(getComputedStyle(inn).columnGap) || 12; let used = 0, n = 0; [...inn.children].forEach(c => { if (getComputedStyle(c).display !== 'none') { used += c.scrollWidth; n++; } }); return used + gap * (n - 1) + pad + 8 <= w; };
-  for (let k = 1; k <= 6; k++) tb.classList.remove('k' + k);
-  for (let k = 1; k <= 6 && !fits(); k++) tb.classList.add('k' + k);
+  const tb = document.querySelector('.topbar'), inn = tb && tb.querySelector('.topin'); if (!tb || !inn || !inn.clientWidth) return;
+  const tr = inn.querySelector('.tright');
+  const fits = () => { const ir = inn.getBoundingClientRect(), pr = parseFloat(getComputedStyle(inn).paddingRight) || 0; let need = 0; const cs = getComputedStyle(inn), gap = parseFloat(cs.columnGap) || 12, kids = [...inn.children].filter(c => getComputedStyle(c).display !== 'none'); kids.forEach(c => { need += Math.max(c.scrollWidth, c.getBoundingClientRect().width); }); need += gap * (kids.length - 1) + (parseFloat(cs.paddingLeft) || 0) + pr; return need + 6 <= inn.clientWidth && inn.scrollWidth <= inn.clientWidth + 1 && (!tr || tr.getBoundingClientRect().right <= ir.right - pr + 1); };
+  for (let k = 1; k <= 7; k++) tb.classList.remove('k' + k);
+  for (let k = 1; k <= 7 && !fits(); k++) tb.classList.add('k' + k);
 }
+try { const ro = new ResizeObserver(() => { clearTimeout(window.__tbr); window.__tbr = setTimeout(fitTopbar, 30); }); const t0 = () => { const tb = document.querySelector('.topbar'); if (tb) { ro.observe(tb); const tr = tb.querySelector('.tright'); if (tr) ro.observe(tr); } else setTimeout(t0, 300); }; t0(); } catch (e) {}
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => fitTopbar());
 window.addEventListener('resize', () => { clearTimeout(window.__tbf); window.__tbf = setTimeout(fitTopbar, 60); });
 /* ---------- Router y eventos ---------- */
