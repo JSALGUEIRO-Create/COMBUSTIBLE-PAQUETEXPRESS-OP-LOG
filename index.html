@@ -209,6 +209,13 @@ table.cov td{text-align:center}table.cov td:first-child{text-align:left;white-sp
 .upcol h3{display:flex;align-items:center;gap:8px;margin-bottom:10px;color:var(--logc)}.upcol.ops h3{color:var(--opsc)}
 .fmbtn{background:linear-gradient(135deg,#F2A900,#ffc94d)!important;color:#0B2A5B!important;font-weight:800;letter-spacing:.04em;border:0!important}
 .fmbtn.on{box-shadow:0 0 0 2px #fff inset}
+.igbtn{background:linear-gradient(135deg,#ffffff,#dbe7ff)!important;color:#0B2A5B!important}
+.igw{width:min(1180px,96vw)!important;max-width:1180px!important}
+.ig-body{display:grid;grid-template-columns:300px 1fr;gap:18px;max-height:80vh}
+.ig-side{display:flex;flex-direction:column;gap:12px}.ig-btns{display:flex;flex-direction:column;gap:8px}
+.ig-prev{overflow:auto;max-height:78vh;background:#dfe5ee;border-radius:12px;padding:14px;display:flex;flex-direction:column;align-items:center;gap:14px}
+.ig-page{width:100%;max-width:620px;box-shadow:0 8px 24px rgba(11,42,91,.25);border-radius:4px;overflow:hidden;background:#fff}.ig-page svg{display:block;width:100%;height:auto}
+@media(max-width:900px){.ig-body{grid-template-columns:1fr}}
 .fm-q{font-size:20px;margin:6px 0 12px;color:var(--ink)}
 .fm-opts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:18px}
 .fm-opt{position:relative;text-align:left;border:2px solid var(--line);background:var(--surface);border-radius:16px;padding:0 0 14px;cursor:pointer;overflow:hidden;display:flex;flex-direction:column;gap:4px;color:var(--ink);font:inherit;transition:transform .15s,border-color .15s,box-shadow .15s}
@@ -841,6 +848,7 @@ html,body{overflow-x:clip}
   <nav class="topnav"><a href="#inicio">Inicio</a><a href="#logistica">Logística</a><a href="#operaciones">Operaciones</a><button class="e360btn" data-act="e360" title="Diagnóstico integral de combustible"><span class="e3w-ic">360°</span><span>Evaluación 360</span></button><button class="wabtn" data-act="wa" title="Generar mensaje para WhatsApp"><span class="wa-ic"><svg viewBox="0 0 32 32" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M16.04 3C9.4 3 4 8.36 4 14.97c0 2.11.56 4.17 1.62 5.99L4 29l8.27-1.58a12.1 12.1 0 0 0 3.77.6C22.66 28.02 28 22.66 28 16.05 28 9.42 22.66 3 16.04 3Zm0 22.86c-1.17 0-2.32-.19-3.41-.55l-.24-.08-4.9.94.96-4.72-.16-.25a9.87 9.87 0 0 1-1.52-5.23c0-5.47 4.47-9.92 9.27-9.92 5.5 0 9.81 4.45 9.81 9.99 0 5.46-4.4 9.82-9.81 9.82Zm5.4-7.36c-.3-.15-1.75-.86-2.02-.96-.27-.1-.47-.15-.67.15-.2.3-.77.96-.94 1.16-.17.2-.35.22-.64.07-.3-.15-1.25-.46-2.38-1.47-.88-.78-1.47-1.75-1.65-2.04-.17-.3-.02-.46.13-.6.13-.13.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.6-.92-2.2-.24-.57-.48-.5-.67-.5h-.57c-.2 0-.52.08-.79.37-.27.3-1.04 1.01-1.04 2.47 0 1.45 1.06 2.86 1.21 3.06.15.2 2.09 3.18 5.06 4.46.71.3 1.26.49 1.69.62.71.23 1.36.2 1.87.12.57-.08 1.75-.71 2-1.4.25-.7.25-1.29.17-1.41-.07-.12-.27-.2-.57-.35Z"/></svg></span><span>WhatsApp</span></button></nav>
   <div class="tright">
     <span id="userchip" class="userchip"></span><span id="dbdot" class="dbdot" title="Conectando…"></span>
+    <button class="ibtn fmbtn igbtn" id="igbtn" data-act="infog" style="display:none" title="Infografías en PDF">▦ INFOGRAFÍAS</button>
     <button class="ibtn fmbtn" id="fmbtn" data-act="route" data-to="formulador" style="display:none" title="Formulador de semáforos">🧪 FORMULADOR</button>
     <button class="ibtn" id="upbtn" data-act="route" data-to="cargar">⬆ Cargar archivos</button>
     <button class="ibtn" data-act="settings" title="Ajustes" aria-label="Ajustes"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg></button>
@@ -6573,6 +6581,257 @@ function trendCard(a) {
   return card('Comportamiento del rendimiento por mes · ' + lab, '<div id="' + id + '"></div><div class="tr-an"><b>Análisis</b>' + bullets(trAnalysis(a, D, seg)) + '</div>' + (seg === 'X' ? '<p class="muted" style="margin:0 0 12px">' + note + '</p>' : '') + tbl, { sub: 'Todos los meses cargados · respeta los filtros de región' + (a === 'ops' ? ', sucursal y combustible' : '') + ' de arriba', tools: sel });
 }
 
+/* ===================== INFOGRAFÍAS (solo Jsalgueiro) ===================== */
+const IG = { W: 800, H: 1200, navy: '#0B2A5B', blue: '#003087', acc: '#1c5cab', gold: '#F2A900', grn: '#15934b', amb: '#e8a200', red: '#d63a3a', ink: '#14233d', mut: '#5d6b82', line: '#dfe5ee', bg: '#eef2f8' };
+const igE = s => String(s === null || s === undefined ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+function igT(x, y, s, o) { o = o || {}; return '<text x="' + x + '" y="' + y + '" font-size="' + (o.s || 12) + '" font-weight="' + (o.w || 400) + '" fill="' + (o.c || IG.ink) + '" text-anchor="' + (o.a || 'start') + '"' + (o.ls ? ' letter-spacing="' + o.ls + '"' : '') + (o.st ? ' style="' + o.st + '"' : '') + '>' + igE(s) + '</text>'; }
+function igFit(s, n) { s = String(s || ''); return s.length > n ? s.slice(0, n - 1) + '…' : s; }
+function igPanel(x, y, w, h, title, o) { o = o || {}; let s = '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="12" fill="#fff" filter="url(#igsh)"/>'; if (title) s += igT(x + w / 2, y + 22, title, { s: 12.5, w: 800, c: IG.navy, a: 'middle', ls: 0.6 }) + '<rect x="' + (x + w / 2 - 22) + '" y="' + (y + 29) + '" width="44" height="3" rx="1.5" fill="' + (o.acc || IG.gold) + '"/>'; return s; }
+function igCol(c) { return c === null || c === undefined || !isFinite(c) ? '#9aa6b8' : c >= 1 ? IG.grn : c >= 0.95 ? '#4caf50' : c >= 0.9 ? IG.amb : IG.red; }
+function igPill(x, y, c, txt) { const w = 44; return '<rect x="' + (x - w) + '" y="' + (y - 11) + '" width="' + w + '" height="15" rx="7.5" fill="' + igCol(c) + '"/>' + igT(x - w / 2, y, txt === undefined ? (c ? F.pct0(c) : '—') : txt, { s: 9.5, w: 800, c: '#fff', a: 'middle' }); }
+function igVar(x, y, d, fmt, a) { if (d === null || d === undefined || !isFinite(d)) return igT(x, y, '—', { s: 10, c: IG.mut, a: a || 'end' }); return igT(x, y, (d >= 0 ? '▲ +' : '▼ ') + fmt(Math.abs(d)), { s: 10, w: 700, c: d >= 0 ? IG.grn : IG.red, a: a || 'end' }); }
+function igTable(x, y, w, cols, rows, o) {
+  o = o || {}; const rh = o.rh || 21; let s = '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="20" rx="5" fill="#edf2fa"/>'; let cx = x + 8;
+  const pos = cols.map(c => { const p = cx; cx += c.w; return p; });
+  const ax = i => cols[i].a === 'r' ? pos[i] + cols[i].w - 6 : pos[i];
+  cols.forEach((c, i) => { s += igT(ax(i), y + 14, c.l, { s: 8.5, w: 800, c: IG.mut, a: c.a === 'r' ? 'end' : 'start' }); });
+  rows.forEach((r, k) => { const yy = y + 20 + k * rh, ty = yy + rh / 2 + 4; if (k % 2) s += '<rect x="' + x + '" y="' + yy + '" width="' + w + '" height="' + rh + '" fill="#f7f9fc"/>';
+    cols.forEach((c, i) => { const v = c.f(r, k); if (v && typeof v === 'object') { if ('pill' in v) s += igPill(ax(i) + 4, ty, v.pill); else if ('dot' in v) s += '<circle cx="' + (ax(i) - 4) + '" cy="' + (ty - 3.5) + '" r="4" fill="' + v.dot + '"/>'; else if ('t' in v) s += igT(ax(i), ty, v.t, { s: c.s || 10, w: 700, c: v.c || IG.ink, a: c.a === 'r' ? 'end' : 'start' }); } else s += igT(ax(i), ty, v, { s: c.s || 10, w: c.b ? 700 : 400, c: c.c || IG.ink, a: c.a === 'r' ? 'end' : 'start' }); }); });
+  return s;
+}
+function igLine(x, y, w, h, labels, series, o) {
+  o = o || {}; const vals = series.flatMap(se => se.data).filter(v => v !== null && v !== undefined && isFinite(v)); if (!vals.length) return igT(x + w / 2, y + h / 2, 'Sin histórico', { s: 11, c: IG.mut, a: 'middle' });
+  let mn = Math.min(...vals), mx = Math.max(...vals); const pad = (mx - mn) * 0.25 || Math.abs(mx) * 0.05 || 0.1; mn -= pad; mx += pad;
+  const n = labels.length, L = 8, R = 8, T = 14, B = 16; const px = i => n === 1 ? x + w / 2 : x + L + i * (w - L - R) / (n - 1), py = v => y + T + (1 - (v - mn) / (mx - mn)) * (h - T - B);
+  let s = '<line x1="' + x + '" x2="' + (x + w) + '" y1="' + (y + h - B) + '" y2="' + (y + h - B) + '" stroke="' + IG.line + '"/>';
+  labels.forEach((l, i) => { s += igT(px(i), y + h - 3, l, { s: 8.5, c: IG.mut, a: 'middle' }); });
+  series.forEach(se => { let d = ''; se.data.forEach((v, i) => { if (v === null || v === undefined || !isFinite(v)) return; d += (d ? 'L' : 'M') + px(i).toFixed(1) + ' ' + py(v).toFixed(1); }); s += '<path d="' + d + '" fill="none" stroke="' + se.c + '" stroke-width="' + (se.sw || 2.2) + '"' + (se.dash ? ' stroke-dasharray="4 3"' : '') + ' stroke-linejoin="round"/>'; se.data.forEach((v, i) => { if (v !== null && v !== undefined && isFinite(v)) s += '<circle cx="' + px(i).toFixed(1) + '" cy="' + py(v).toFixed(1) + '" r="2.6" fill="' + se.c + '" stroke="#fff" stroke-width="1"/>'; }); });
+  const vs0 = series[0] ? series[0].data.map((v, i) => [v, i]).filter(q => q[0] !== null && q[0] !== undefined && isFinite(q[0])) : []; const keep = o.sparse && vs0.length ? new Set([vs0[0][1], vs0[vs0.length - 1][1], vs0.slice().sort((a, b) => b[0] - a[0])[0][1], vs0.slice().sort((a, b) => a[0] - b[0])[0][1]]) : null;
+  if (o.lab !== false) for (let i = 0; i < n; i++) { if (keep && !keep.has(i)) continue;
+    const it = series.filter(se => !se.nolab).map(se => ({ v: se.data[i], c: se.c })).filter(q => q.v !== null && q.v !== undefined && isFinite(q.v)).map(q => Object.assign(q, { y: py(q.v) })).sort((a, b) => a.y - b.y);
+    let prev = -1e9; it.forEach(q => { let ly = q.y - 6; if (ly < prev + 10) ly = Math.max(q.y + 12, prev + 10); prev = ly; s += igT(px(i) + (i === 0 ? -2 : i === n - 1 ? 2 : 0), ly, (o.fmt || F.n2)(q.v), { s: 8.5, w: 700, c: q.c, a: i === 0 ? 'start' : i === n - 1 ? 'end' : 'middle', st: 'paint-order:stroke;stroke:#fff;stroke-width:2.5px' }); });
+  }
+  return s;
+}
+function igBars(x, y, w, items, o) {
+  o = o || {}; const rh = o.rh || 22, lw = o.lw || 170, vw = o.vw || 54; const mx = Math.max(...items.map(i => i.v), 1e-9); let s = '';
+  items.forEach((it, k) => { const yy = y + k * rh; const bw = Math.max(2, (w - lw - vw - 10) * it.v / mx); s += igT(x, yy + rh / 2 + 4, igFit(it.n, o.fit || 28), { s: 9.5, w: 700, c: IG.ink }) + '<rect x="' + (x + lw) + '" y="' + (yy + 4) + '" width="' + bw.toFixed(1) + '" height="' + (rh - 8) + '" rx="4" fill="' + (it.c || IG.grn) + '"/>' + igT(x + w, yy + rh / 2 + 4, it.t, { s: 9.5, w: 700, c: IG.ink, a: 'end' }); });
+  return s;
+}
+function igRing(cx, cy, r, sw, parts, center, sub) {
+  const tot = parts.reduce((a, p) => a + (p.v || 0), 0) || 1; let a0 = -Math.PI / 2; let s = '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="#edf1f7" stroke-width="' + sw + '"/>';
+  parts.forEach(p => { if (!p.v) return; const a1 = a0 + p.v / tot * Math.PI * 2; const lg = a1 - a0 > Math.PI ? 1 : 0; const P = a => (cx + r * Math.cos(a)).toFixed(2) + ' ' + (cy + r * Math.sin(a)).toFixed(2); s += p.v / tot > 0.9999 ? '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="' + p.c + '" stroke-width="' + sw + '"/>' : '<path d="M' + P(a0) + ' A' + r + ' ' + r + ' 0 ' + lg + ' 1 ' + P(a1) + '" fill="none" stroke="' + p.c + '" stroke-width="' + sw + '"/>'; a0 = a1; });
+  if (center) s += igT(cx, cy + 6, center, { s: 18, w: 800, c: IG.navy, a: 'middle' }); if (sub) s += igT(cx, cy + 20, sub, { s: 8.5, c: IG.mut, a: 'middle' });
+  return s;
+}
+function igGauge(cx, cy, r, c) { const v = Math.max(0, Math.min(1.2, c || 0)) / 1.2; const a0 = Math.PI, a1 = Math.PI + v * Math.PI; const P = a => (cx + r * Math.cos(a)).toFixed(2) + ' ' + (cy + r * Math.sin(a)).toFixed(2); return '<path d="M' + P(Math.PI) + ' A' + r + ' ' + r + ' 0 0 1 ' + P(0) + '" fill="none" stroke="#edf1f7" stroke-width="12" stroke-linecap="round"/><path d="M' + P(a0) + ' A' + r + ' ' + r + ' 0 0 1 ' + P(a1) + '" fill="none" stroke="' + igCol(c) + '" stroke-width="12" stroke-linecap="round"/>' + '<line x1="' + P(Math.PI + Math.PI / 1.2) .split(' ')[0] + '" y1="' + P(Math.PI + Math.PI / 1.2).split(' ')[1] + '" x2="' + (cx + (r - 14) * Math.cos(Math.PI + Math.PI / 1.2)).toFixed(2) + '" y2="' + (cy + (r - 14) * Math.sin(Math.PI + Math.PI / 1.2)).toFixed(2) + '" stroke="' + IG.navy + '" stroke-width="2"/>' + igT(cx, cy - 4, c ? F.pct(c) : '—', { s: 17, w: 800, c: igCol(c), a: 'middle' }) + igT(cx, cy + 10, 'del ideal', { s: 8.5, c: IG.mut, a: 'middle' }); }
+function igHead(title, area, mes, img) {
+  return '<defs><linearGradient id="ighg" x1="0" x2="1"><stop offset="0" stop-color="#071a3d"/><stop offset=".62" stop-color="' + IG.blue + '"/><stop offset="1" stop-color="' + IG.blue + '" stop-opacity="0"/></linearGradient><clipPath id="igph"><rect x="470" y="0" width="330" height="150"/></clipPath><filter id="igsh" x="-5%" y="-5%" width="110%" height="115%"><feDropShadow dx="0" dy="1.5" stdDeviation="2.2" flood-color="#0b2a5b" flood-opacity=".13"/></filter></defs>' +
+    '<rect width="800" height="1200" fill="' + IG.bg + '"/><rect width="800" height="150" fill="#071a3d"/><image href="' + img + '" x="470" y="-20" width="330" height="190" preserveAspectRatio="xMidYMid slice" clip-path="url(#igph)"/><rect width="800" height="150" fill="url(#ighg)"/>' +
+    '<rect x="24" y="22" width="150" height="36" rx="6" fill="' + IG.blue + '"/><image href="data:image/png;base64,' + LOGO64 + '" x="30" y="26" width="138" height="28" preserveAspectRatio="xMidYMid meet"/>' +
+    igT(24, 92, 'COMBUSTIBLE', { s: 34, w: 900, c: '#fff', ls: 1 }) + igT(24, 128, area.toUpperCase(), { s: 30, w: 900, c: IG.gold, ls: 1 }) +
+    '<rect x="300" y="24" width="170" height="30" rx="15" fill="' + IG.gold + '"/>' + igT(385, 44, mes.toUpperCase(), { s: 14, w: 900, c: IG.navy, a: 'middle', ls: 1 }) +
+    igT(300, 76, title, { s: 11, w: 600, c: '#c9d6ee' }) + '<rect x="0" y="150" width="800" height="5" fill="' + IG.gold + '"/>';
+}
+function igFoot(lines, acts) {
+  return '<rect x="0" y="1128" width="800" height="72" fill="#071a3d"/><rect x="0" y="1128" width="800" height="3" fill="' + IG.gold + '"/>' +
+    '<path d="M38 1148 C38 1148 26 1162 26 1170 a12 12 0 0 0 24 0 C50 1162 38 1148 38 1148Z" fill="' + IG.gold + '"/>' +
+    igT(62, 1156, lines[0], { s: 13, w: 800, c: '#fff' }) + igT(62, 1174, lines[1], { s: 10.5, c: '#c9d6ee' }) + igT(62, 1190, acts, { s: 9.5, w: 700, c: IG.gold }) +
+    igT(776, 1162, 'JUNTOS MANTENEMOS', { s: 10, w: 800, c: '#fff', a: 'end' }) + igT(776, 1176, 'NUESTRA FLOTA EN MOVIMIENTO', { s: 10, w: 800, c: '#fff', a: 'end' }) + igT(776, 1192, 'Control de Combustible · Paquetexpress', { s: 8.5, c: '#9fb2d4', a: 'end' });
+}
+function igKpi(x, y, w, v, l, sub, col) { return igT(x + w / 2, y, v, { s: 22, w: 900, c: col || IG.navy, a: 'middle' }) + igT(x + w / 2, y + 16, l, { s: 8.5, w: 800, c: IG.mut, a: 'middle', ls: 0.3 }) + (sub ? igT(x + w / 2, y + 29, sub, { s: 8.5, w: 700, c: sub.charAt(0) === '▼' ? IG.red : sub.charAt(0) === '▲' ? IG.grn : IG.mut, a: 'middle' }) : ''); }
+function igMonths(a, p) { return Array.from(new Set(AREA_DS[a].rend.flatMap(periodsOf))).sort().filter(q => q <= p).slice(-12); }
+const igMes = p => ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'][+p.slice(5) - 1];
+const igPct = (d, base) => d === null || !base ? null : d / base;
+
+function igLog(p) {
+  return e3withF('log', {}, () => {
+    const rows = logRendRows(p, true, 'S'), st = logRendStats(rows); if (!rows.length) return null;
+    const pp = prevPeriod(p), hp = AREA_DS.log.rend.some(ds => arrFor(ds, pp)); const prow = hp ? logRendRows(pp, true, 'S') : [], pst = prow.length ? logRendStats(prow) : null;
+    const mapP = l => { const m = new Map(); l.forEach(x => m.set(x.n, x)); return m; };
+    const byM = aggLog(rows, r => sm(r.marca)).sort((a, b) => b.u - a.u).slice(0, 9), pM = mapP(prow.length ? aggLog(prow, r => sm(r.marca)) : []);
+    const byR = aggLog(rows, r => r.zona).filter(x => x.n && x.u >= 3).sort((a, b) => b.cump - a.cump).slice(0, 9), pR = mapP(prow.length ? aggLog(prow, r => r.zona) : []);
+    const mod = aggLog(rows, modalidad); const kmF = sum(rows, r => r.km * (r.full || 0)), kmS = sum(rows, r => r.km * (r.senc || 0));
+    const ms = igMonths('log', p); const tr = ms.map(q => { const r = q === p ? rows : logRendRows(q, true, 'S'); const s = r.length ? logRendStats(r) : null; const g = k => { const x = r.filter(z => modalidad(z) === k); return x.length ? aggLog(x, () => 'T')[0] : null; }; return { p: q, s, F: g('FULL'), S: g('SENCILLO') }; });
+    const C = cargasRows('log', p + '-01', monthEnd(p)), cs = cargasStats('log', C); const pcs = (() => { const PC = cargasRows('log', pp + '-01', monthEnd(pp)); const q = PC.length ? cargasStats('log', PC) : null; return q && q.dias >= cs.dias * 0.7 && q.lts >= cs.lts * 0.5 ? q : null; })();
+    const grpC = aggC('log', C, r => CG.log.auto(r) ? ('AUTOCONSUMO ' + String(CG.log.sitio(r) || '').replace(/^AUTOCONSUMO\s*/i, '')).trim() : CG.log.fuente(r).toUpperCase().replace('GASOLINERA EXTERNA CON DESCUENTO', 'EXTERNA CON DESCUENTO').replace('GASOLINERA EXTERNA', 'GASOLINERAS EXTERNAS')).sort((a, b) => b.lts - a.lts);
+    const fu = aggC('log', C, CG.log.fuente);
+    const E = ralRows('log', p + '-01', monthEnd(p)), rs = ralStats(E);
+    const units = logUnits(rows); const crit = units.filter(u => u.cump < 0.9).sort((a, b) => b.exc - a.exc); const best = units.filter(u => u.cump <= 1.5 && u.km >= setting('minKmLog')).sort((a, b) => b.cump - a.cump);
+    return { p, pp, st, pst, byM, pM, byR, pR, mod, kmF, kmS, tr, C, cs, pcs, grpC, fu, rs, units, crit, best };
+  });
+}
+function igOps(p) {
+  return e3withF('ops', {}, () => {
+    const rows = opsRendRows(p, { ignoreRegion: true }); if (!rows.length) return null; const st = opsStats(rows);
+    const pp = prevPeriod(p); const prow = AREA_DS.ops.rend.some(ds => arrFor(ds, pp)) ? opsRendRows(pp, { ignoreRegion: true }) : []; const pst = prow.length ? opsStats(prow) : null;
+    const D = rows.filter(r => r.comb !== 'GASOLINA'), G = rows.filter(r => r.comb === 'GASOLINA');
+    const sD = D.length ? opsStats(D) : null, sG = G.length ? opsStats(G) : null;
+    const sem = { V: 0, A: 0, R: 0 }; rows.forEach(r => { const id = idealOf(r); if (!id || !r.lts || !r.km) return; const re = r.km / r.lts; if (re >= id) sem.V++; else if (re >= id - 1) sem.A++; else sem.R++; });
+    const byT = aggOps(D, r => r.desc).sort((a, b) => b.u - a.u).slice(0, 10);
+    const byRD = aggOps(D, r => r.region).filter(x => x.n).sort((a, b) => b.rend - a.rend).slice(0, 8), byRG = aggOps(G, r => r.region).filter(x => x.n).sort((a, b) => b.rend - a.rend).slice(0, 8);
+    const cls = aggOps(D, r => segOf('ops', r));
+    const ms = igMonths('ops', p); const tr = ms.map(q => { const r = q === p ? rows : opsRendRows(q, { ignoreRegion: true }); const g = f => { const x = r.filter(f); return x.length ? aggOps(x, () => 'T')[0] : null; }; return { p: q, D: g(z => z.comb !== 'GASOLINA'), G: g(z => z.comb === 'GASOLINA'), V: g(z => segOf('ops', z) === 'Vans'), C: g(z => segOf('ops', z) === 'Caja seca'), T: g(() => true) }; });
+    const C = cargasRows('ops', p + '-01', monthEnd(p)), cs = cargasStats('ops', C); const PC = cargasRows('ops', pp + '-01', monthEnd(pp)); let pcs = PC.length ? cargasStats('ops', PC) : null; if (pcs && (pcs.dias < cs.dias * 0.7 || pcs.lts < cs.lts * 0.5)) pcs = null;
+    const grpC = aggC('ops', C, r => CG.ops.auto(r) ? String(CG.ops.sitio(r) || 'AUTOCONSUMO') : 'EDENRED').sort((a, b) => b.lts - a.lts);
+    const est = aggC('ops', C.filter(r => !CG.ops.auto(r) && r.est), r => r.est).sort((a, b) => b.lts - a.lts); const nEst = est.length;
+    const E = ralRows('ops', p + '-01', monthEnd(p)), rs = ralStats(E);
+    const units = opsUnits(rows); const crit = units.filter(u => u.cump < 0.9).sort((a, b) => b.exc - a.exc);
+    return { p, pp, st, pst, rows, sD, sG, sem, byT, byRD, byRG, cls, tr, C, cs, pcs, grpC, est, nEst, rs, units, crit };
+  });
+}
+function igSvgLog(X) {
+  const st = X.st, pst = X.pst, mes = perLabel(X.p), mA = perLabel(X.pp); let s = igHead('Resultado del mes · rendimiento Samsara oficial', 'Logística', mes, IMG.cascadia_caja);
+  const gasto = X.cs.imp || st.imp, lts = st.lts, precio = X.cs.precio || st.precio;
+  const dv = (v, pv, inv) => pv ? ((v / pv - 1 >= 0) === !inv ? '▲ ' : '▼ ') + (v / pv - 1 >= 0 ? '+' : '') + F.pct(v / pv - 1) : '';
+  // Resultado general
+  s += igPanel(18, 166, 764, 214, 'RESULTADO GENERAL · ' + mes.toUpperCase());
+  const k = [[F.n2(st.km / 1e6), 'MILL. DE KM', dv(st.km, pst && pst.km)], [F.n2(lts / 1e6), 'MILL. DE LITROS', dv(lts, pst && pst.lts, true)], ['$' + F.n2(gasto / 1e6), 'MILL. DE GASTO', dv(gasto, X.pcs && X.pcs.imp, true)], ['$' + F.n2(precio), 'PRECIO / LITRO', dv(precio, X.pcs && X.pcs.precio, true)], [F.n0(st.u), 'TRACTOS', '']];
+  k.forEach((q, i) => { s += igKpi(30 + i * 100, 222, 100, q[0], q[1], q[2]); });
+  s += igT(30, 280, 'COMPORTAMIENTO MENSUAL (KM/L)', { s: 9, w: 800, c: IG.mut, ls: 0.4 }) + '<rect x="210" y="273" width="9" height="3" fill="' + IG.blue + '"/>' + igT(222, 279, 'General', { s: 8.5, c: IG.mut }) + '<rect x="262" y="273" width="9" height="3" fill="' + IG.gold + '"/>' + igT(274, 279, 'Full', { s: 8.5, c: IG.mut }) + '<rect x="300" y="273" width="9" height="3" fill="' + IG.grn + '"/>' + igT(312, 279, 'Sencillo', { s: 8.5, c: IG.mut });
+  s += igLine(28, 284, 500, 92, X.tr.map(t => igMes(t.p)), [{ c: IG.blue, data: X.tr.map(t => t.s ? t.s.rend : null), sw: 2.6 }, { c: IG.gold, data: X.tr.map(t => t.F ? t.F.rend : null), nolab: true, sw: 1.6 }, { c: IG.grn, data: X.tr.map(t => t.S ? t.S.rend : null), nolab: true, sw: 1.6 }]);
+  s += '<line x1="540" y1="200" x2="540" y2="368" stroke="' + IG.line + '"/>';
+  s += igT(600, 212, 'SAMSARA', { s: 9, w: 800, c: IG.mut, a: 'middle' }) + igT(600, 240, F.n2(st.rend), { s: 28, w: 900, c: IG.blue, a: 'middle' }) + igT(600, 254, 'km/L', { s: 9, c: IG.mut, a: 'middle' });
+  s += igT(715, 212, 'IDEAL PONDERADO', { s: 9, w: 800, c: IG.mut, a: 'middle' }) + igT(715, 240, F.n2(st.ideal), { s: 28, w: 900, c: '#7a62d8', a: 'middle' }) + igT(715, 254, 'km/L', { s: 9, c: IG.mut, a: 'middle' });
+  s += igGauge(658, 318, 46, st.cump) + (pst && pst.cump ? igT(658, 360, (st.cump >= pst.cump ? '▲ +' : '▼ ') + F.n1((st.cump - pst.cump) * 100) + ' pts vs ' + igMes(X.pp), { s: 9.5, w: 800, c: st.cump >= pst.cump ? IG.grn : IG.red, a: 'middle' }) : '');
+  // Tablas
+  s += igPanel(18, 392, 382, 244, 'RENDIMIENTO POR MARCA / MOTOR');
+  s += igTable(28, 430, 362, [{ l: 'MARCA / MOTOR', w: 150, f: x => igFit(x.n, 26), s: 9.5, b: 1 }, { l: 'UNID.', w: 34, a: 'r', f: x => F.n0(x.u) }, { l: 'REAL', w: 40, a: 'r', f: x => F.n2(x.rend), b: 1 }, { l: 'IDEAL', w: 40, a: 'r', f: x => F.n2(x.ideal) }, { l: 'CUMPL.', w: 50, a: 'r', f: x => ({ pill: x.cump }) }, { l: 'VAR.', w: 40, a: 'r', f: x => { const pv = X.pM.get(x.n); return pv && pv.rend ? (x.rend >= pv.rend ? '+' : '') + F.n2(x.rend - pv.rend) : '—'; }, c: IG.mut }], X.byM, { rh: 20 });
+  s += igPanel(404, 392, 378, 244, 'RENDIMIENTO POR REGIÓN');
+  s += igTable(414, 430, 358, [{ l: 'REGIÓN', w: 104, f: x => igFit(x.n, 16), b: 1 }, { l: 'UNID.', w: 34, a: 'r', f: x => F.n0(x.u) }, { l: 'KM', w: 62, a: 'r', f: x => F.n0(x.km) }, { l: 'REAL', w: 38, a: 'r', f: x => F.n2(x.rend), b: 1 }, { l: 'CUMPL.', w: 56, a: 'r', f: x => ({ pill: x.cump }) }, { l: 'VAR.', w: 46, a: 'r', f: x => { const pv = X.pR.get(x.n); return pv && pv.cump ? (x.cump >= pv.cump ? '+' : '') + F.n1((x.cump - pv.cump) * 100) + 'pt' : '—'; }, c: IG.mut }], X.byR, { rh: 20 });
+  // Ralentí · modalidad · exceso
+  const ral = X.rs, pRal = div(ral.lts, lts);
+  s += igPanel(18, 648, 248, 176, 'CONSUMO POR RALENTÍ');
+  s += '<circle cx="62" cy="720" r="26" fill="#e8f6ee"/><path d="M52 728 q10 -26 22 -20 q-4 14 -22 20z" fill="' + IG.grn + '"/>';
+  s += igT(100, 714, F.n0(ral.lts || 0), { s: 24, w: 900, c: IG.grn }) + igT(100, 730, 'LITROS EN RALENTÍ', { s: 8.5, w: 800, c: IG.mut });
+  s += igT(142, 776, pRal ? F.pct(pRal) : '—', { s: 26, w: 900, c: IG.grn, a: 'middle' }) + igT(142, 791, 'DEL DIÉSEL CONSUMIDO', { s: 8.5, w: 800, c: IG.mut, a: 'middle' });
+  s += igT(142, 812, F.n0(ral.ev || 0) + ' eventos · ' + F.n0(ral.h || 0) + ' h · ' + F.money((ral.lts || 0) * (precio || 0)), { s: 9, w: 700, c: IG.ink, a: 'middle' });
+  const tKm = X.kmF + X.kmS; const fF = X.mod.find(m => m.n === 'FULL'), fS = X.mod.find(m => m.n === 'SENCILLO');
+  s += igPanel(276, 648, 248, 176, 'PARTICIPACIÓN POR MODALIDAD');
+  [[fF, X.kmF, 'FULL', IG.blue, 340], [fS, X.kmS, 'SENCILLO', IG.gold, 460]].forEach(([m, km, l, c, cx]) => { s += igT(cx, 712, tKm ? F.pct(km / tKm) : '—', { s: 26, w: 900, c: IG.navy, a: 'middle' }) + '<rect x="' + (cx - 46) + '" y="722" width="92" height="20" rx="10" fill="' + c + '"/>' + igT(cx, 736, l, { s: 10, w: 900, c: l === 'FULL' ? '#fff' : IG.navy, a: 'middle' }) + igT(cx, 762, m ? F.n2(m.rend) + ' km/L' : '—', { s: 12, w: 800, c: IG.ink, a: 'middle' }) + igT(cx, 777, m ? 'ideal ' + F.n2(m.ideal) : '', { s: 9, c: IG.mut, a: 'middle' }) + (m ? igPill(cx + 22, 800, m.cump) : ''); });
+  s += '<line x1="400" y1="690" x2="400" y2="812" stroke="' + IG.line + '"/>' + igT(400, 820, '% de km recorridos', { s: 8, c: IG.mut, a: 'middle' });
+  const exL = sum(X.crit, 'exc'), exM = sum(X.crit, 'excImp');
+  s += igPanel(534, 648, 248, 176, 'OPORTUNIDAD DEL MES', { acc: IG.red });
+  s += igT(658, 704, F.n0(st.lExc || 0) + ' L', { s: 24, w: 900, c: IG.red, a: 'middle' }) + igT(658, 719, 'POR ENCIMA DEL IDEAL', { s: 8.5, w: 800, c: IG.mut, a: 'middle' });
+  s += igT(658, 742, '≈ ' + F.money((st.lExc || 0) * (precio || 0)), { s: 14, w: 800, c: IG.ink, a: 'middle' });
+  s += igT(546, 766, 'Tractos críticos (< 90%): ' + F.n0(X.crit.length), { s: 9.5, w: 700, c: IG.ink });
+  X.crit.slice(0, 3).forEach((u, i) => { s += igT(546, 784 + i * 13, (i + 1) + '. ' + u.eco + ' · ' + igFit(u.marca, 16), { s: 9, c: IG.ink }) + igT(770, 784 + i * 13, F.n0(u.exc) + ' L', { s: 9, w: 700, c: IG.red, a: 'end' }); });
+  // Cargas
+  s += igPanel(18, 836, 502, 196, 'CARGAS DE COMBUSTIBLE · ' + mes.toUpperCase());
+  const gl = X.grpC.slice(0, 7); const tl = X.cs.lts || 1;
+  s += igBars(30, 872, 478, gl.map(g => ({ n: g.n, v: g.lts, t: F.pct(g.lts / tl), c: /^AUTOCONSUMO/.test(g.n) ? IG.grn : /DESCUENTO/.test(g.n) ? '#2a78d6' : IG.gold })), { lw: 190, rh: 21, fit: 30 });
+  s += igT(30, 1024, F.n0(X.cs.c) + ' cargas · ' + F.n0(X.cs.lts) + ' L · ' + F.money(X.cs.imp) + ' · ' + F.n0(X.cs.u) + ' tractos', { s: 9, w: 700, c: IG.mut });
+  s += igPanel(530, 836, 252, 196, 'MÉTODO DE CARGA');
+  const fa = X.fu.find(f => /Autoconsumo/i.test(f.n)), fe = X.fu.find(f => f.n === 'Gasolinera externa'), fd = X.fu.find(f => /descuento/i.test(f.n));
+  s += igRing(600, 940, 46, 16, [{ v: fa ? fa.lts : 0, c: IG.grn }, { v: fe ? fe.lts : 0, c: IG.gold }, { v: fd ? fd.lts : 0, c: '#2a78d6' }], F.pct0(X.cs.pAuto), 'autoconsumo');
+  [[fa, 'Autoconsumo', IG.grn], [fe, 'Externa', IG.gold], [fd, 'Ext. descuento', '#2a78d6']].forEach(([f, l, c], i) => { const y = 896 + i * 36; s += '<rect x="660" y="' + (y - 9) + '" width="9" height="9" rx="2" fill="' + c + '"/>' + igT(674, y, l, { s: 9.5, w: 800, c: IG.ink }) + igT(674, y + 13, f ? F.pct(f.lts / tl) + ' · ' + F.money2(f.precio) + '/L' : '—', { s: 9, c: IG.mut }); });
+  // Lo más destacado
+  s += igPanel(18, 1044, 764, 74, '');
+  const bR = X.byR[0], wR = X.byR[X.byR.length - 1], bU = X.best[0];
+  s += igT(30, 1064, 'LO MÁS DESTACADO', { s: 10, w: 900, c: IG.navy, ls: 0.6 });
+  const hl = [bR ? '🏆 ' + bR.n + ' lidera con ' + F.pct(bR.cump) + ' (' + F.n2(bR.rend) + ' km/L)' : '', wR && wR !== bR ? '⚠ ' + wR.n + ' es la más baja: ' + F.pct(wR.cump) : '', bU ? '⭐ Mejor tracto: ' + bU.eco + ' (' + igFit(bU.marca, 18) + ') al ' + F.pct(bU.cump) : '', pst && pst.cump ? (st.cump >= pst.cump ? '📈 Mejoramos ' : '📉 Bajamos ') + F.n1(Math.abs(st.cump - pst.cump) * 100) + ' pts de cumplimiento vs ' + mA : ''].filter(Boolean).map(t => t.replace(/^[^ ]+ /, ''));
+  hl.slice(0, 4).forEach((t, i) => { const x = 30 + (i % 2) * 376, y = 1084 + Math.floor(i / 2) * 18; s += '<circle cx="' + (x + 4) + '" cy="' + (y - 4) + '" r="3.5" fill="' + [IG.grn, IG.red, IG.gold, IG.blue][i] + '"/>' + igT(x + 14, y, igFit(t, 64), { s: 10, w: 600, c: IG.ink }); });
+  s += igFoot(['Cuidemos cada litro', 'El combustible que cuidamos hoy mantiene nuestra operación en movimiento mañana.'], 'Revisar tractos críticos · Atender regiones bajo 95% · Priorizar autoconsumo · Cero ralentí innecesario');
+  return s;
+}
+
+function igSvgOps(X) {
+  const st = X.st, pst = X.pst, mes = perLabel(X.p), mA = perLabel(X.pp); let s = igHead('Resultado del mes · unidades de recolección y entrega', 'Operaciones', mes, IMG.hinos_anden);
+  const gasto = X.cs.imp || st.imp, precio = X.cs.precio || div(st.imp, st.lts);
+  const dv = (v, pv, inv) => pv ? ((v / pv - 1 >= 0) === !inv ? '▲ ' : '▼ ') + (v / pv - 1 >= 0 ? '+' : '') + F.pct(v / pv - 1) : '';
+  s += igPanel(18, 166, 764, 214, 'RESULTADO GENERAL · ' + mes.toUpperCase());
+  const k = [[F.n0(X.rows.length), 'UNIDADES', ''], [F.n2(st.km / 1e6), 'MILL. DE KM', dv(st.km, pst && pst.km)], [F.n0(X.cs.lts || st.lts), 'LITROS CARGADOS', dv(X.cs.lts, X.pcs && X.pcs.lts, true)], ['$' + F.n2(gasto / 1e6), 'MILL. DE GASTO', dv(gasto, X.pcs && X.pcs.imp, true)], ['$' + F.n2(precio || 0), 'PRECIO / LITRO', dv(precio, X.pcs && X.pcs.precio, true)]];
+  k.forEach((q, i) => { s += igKpi(30 + i * 100, 222, 100, q[0], q[1], q[2]); });
+  s += igT(30, 280, 'RENDIMIENTO GENERAL POR MES (KM/L) · CUMPLIMIENTO ' + F.pct(st.cump), { s: 9, w: 800, c: IG.mut, ls: 0.4 });
+  s += igLine(28, 284, 500, 92, X.tr.map(t => igMes(t.p)), [{ c: IG.blue, data: X.tr.map(t => t.T ? t.T.rend : null), sw: 2.6 }, { c: '#9aa6b8', data: X.tr.map(t => t.T ? t.T.ideal : null), dash: 1, nolab: true, sw: 1.4 }]);
+  s += '<line x1="540" y1="200" x2="540" y2="368" stroke="' + IG.line + '"/>';
+  [[X.sD, 'DIÉSEL', IG.blue, 600], [X.sG, 'GASOLINA', IG.grn, 715]].forEach(([x, l, c, cx]) => { s += igT(cx, 212, l, { s: 9, w: 800, c: IG.mut, a: 'middle' }) + igT(cx, 242, x ? F.n2(x.rend) : '—', { s: 30, w: 900, c: c, a: 'middle' }) + igT(cx, 256, 'km/L · ideal ' + (x ? F.n2(x.ideal) : '—'), { s: 9, c: IG.mut, a: 'middle' }) + (x ? igPill(cx + 22, 276, x.cump) : ''); });
+  const tS = X.sem.V + X.sem.A + X.sem.R || 1;
+  s += igT(658, 306, 'SEMÁFORO DE UNIDADES', { s: 9, w: 800, c: IG.mut, a: 'middle' });
+  let bx = 556; [[X.sem.V, IG.grn], [X.sem.A, IG.amb], [X.sem.R, IG.red]].forEach(([v, c]) => { const w = 204 * v / tS; s += '<rect x="' + bx.toFixed(1) + '" y="314" width="' + Math.max(0, w - 2).toFixed(1) + '" height="14" rx="3" fill="' + c + '"/>'; bx += w; });
+  [[X.sem.V, 'verde', IG.grn], [X.sem.A, 'amarillo', IG.amb], [X.sem.R, 'rojo', IG.red]].forEach(([v, l, c], i) => { s += igT(590 + i * 68, 346, F.n0(v), { s: 14, w: 900, c, a: 'middle' }) + igT(590 + i * 68, 358, l, { s: 8.5, c: IG.mut, a: 'middle' }); });
+  // Tablas
+  s += igPanel(18, 392, 300, 252, 'DIÉSEL POR TIPO DE UNIDAD');
+  s += igTable(26, 430, 284, [{ l: 'TIPO', w: 128, f: x => igFit(x.n, 22), s: 9.5, b: 1 }, { l: 'UNID.', w: 34, a: 'r', f: x => F.n0(x.u) }, { l: 'KM/L', w: 40, a: 'r', f: x => F.n2(x.rend), b: 1 }, { l: 'CUMPL.', w: 70, a: 'r', f: x => ({ pill: x.cump }) }], X.byT, { rh: 19.5 });
+  s += igPanel(324, 392, 226, 252, 'DIÉSEL POR REGIÓN');
+  s += igTable(332, 430, 210, [{ l: 'REGIÓN', w: 84, f: x => igFit(x.n, 13), b: 1 }, { l: 'UNID.', w: 34, a: 'r', f: x => F.n0(x.u) }, { l: 'KM/L', w: 36, a: 'r', f: x => F.n2(x.rend), b: 1 }, { l: '', w: 50, a: 'r', f: x => ({ pill: x.cump }) }], X.byRD, { rh: 22 });
+  s += igPanel(556, 392, 226, 252, 'GASOLINA POR REGIÓN');
+  s += igTable(564, 430, 210, [{ l: 'REGIÓN', w: 84, f: x => igFit(x.n, 13), b: 1 }, { l: 'UNID.', w: 34, a: 'r', f: x => F.n0(x.u) }, { l: 'KM/L', w: 36, a: 'r', f: x => F.n2(x.rend), b: 1 }, { l: '', w: 50, a: 'r', f: x => ({ pill: x.cump }) }], X.byRG, { rh: 22 });
+  // Mini tendencias
+  const lab = X.tr.map(t => igMes(t.p)).map(m => m.slice(0, 1) + m.slice(1).toLowerCase());
+  [['DIÉSEL KM/L', 'D', IG.blue], ['GASOLINA KM/L', 'G', IG.grn], ['VANS KM/L', 'V', '#2a78d6'], ['CAJA SECA KM/L', 'C', '#d97706']].forEach(([t, key, c], i) => { const x = 18 + i * 193; s += igPanel(x, 656, 185, 132, t, { acc: c }); s += igLine(x + 6, 690, 173, 94, lab.map(m => m.slice(0, 1)), [{ c, data: X.tr.map(q => q[key] ? q[key].rend : null), sw: 2 }], { sparse: true }); });
+  // Ralentí · composición · método
+  const ral = X.rs, pRal = div(ral.lts, X.cs.lts || st.lts);
+  s += igPanel(18, 800, 248, 168, 'CONSUMO POR RALENTÍ');
+  s += '<circle cx="62" cy="866" r="24" fill="#e8f6ee"/><path d="M52 874 q10 -26 22 -20 q-4 14 -22 20z" fill="' + IG.grn + '"/>';
+  s += igT(98, 862, F.n0(ral.lts || 0), { s: 22, w: 900, c: IG.grn }) + igT(98, 877, 'LITROS EN RALENTÍ', { s: 8.5, w: 800, c: IG.mut });
+  s += igT(142, 922, pRal ? F.pct(pRal) : '—', { s: 24, w: 900, c: IG.grn, a: 'middle' }) + igT(142, 936, 'DE LOS LITROS CARGADOS', { s: 8.5, w: 800, c: IG.mut, a: 'middle' }) + igT(142, 956, F.n0(ral.ev || 0) + ' eventos · ' + F.n0(ral.h || 0) + ' h', { s: 9, w: 700, c: IG.ink, a: 'middle' });
+  const v = X.cls.find(x => x.n === 'Vans'), cj = X.cls.find(x => x.n === 'Caja seca');
+  s += igPanel(276, 800, 248, 168, 'COMPOSICIÓN FLOTA DIÉSEL');
+  s += igRing(400, 890, 40, 18, [{ v: v ? v.u : 0, c: '#2a78d6' }, { v: cj ? cj.u : 0, c: IG.navy }], F.n0((v ? v.u : 0) + (cj ? cj.u : 0)), 'unidades');
+  [[v, 'VANS', '#2a78d6', 300, 'start'], [cj, 'CAJA SECA', IG.navy, 500, 'end']].forEach(([x, l, c, xx, an]) => { s += igT(xx, 852, l, { s: 10, w: 900, c, a: an }) + igT(xx, 870, x ? F.n0(x.u) : '—', { s: 16, w: 900, c: IG.ink, a: an }) + igT(xx, 884, x ? F.pct((x.u) / ((v ? v.u : 0) + (cj ? cj.u : 0))) : '', { s: 9, c: IG.mut, a: an }) + igT(xx, 944, x ? F.n2(x.rend) + ' km/L' : '', { s: 11, w: 800, c, a: an }) + igT(xx, 957, x ? F.pct0(x.cump) + ' del ideal' : '', { s: 8.5, c: IG.mut, a: an }); });
+  s += igPanel(534, 800, 248, 168, 'MÉTODO DE CARGA');
+  const pa = X.cs.pAuto || 0;
+  s += igT(658, 860, F.pct(1 - pa), { s: 28, w: 900, c: IG.gold, a: 'middle' }) + igT(658, 874, X.nEst ? 'EDENRED · ' + F.n0(X.nEst) + ' ESTACIONES' : 'EDENRED', { s: 8.5, w: 800, c: IG.mut, a: 'middle' });
+  s += igT(658, 918, F.pct(pa), { s: 28, w: 900, c: IG.grn, a: 'middle' }) + igT(658, 932, 'AUTOCONSUMO', { s: 8.5, w: 800, c: IG.mut, a: 'middle' });
+  s += igT(658, 955, !tog('opsMtriz', true) ? 'Sin LOGDL ni Mtriz' : 'Sin cargas de LOGDL', { s: 8.5, c: IG.mut, a: 'middle' });
+  // Cargas · estaciones
+  s += igPanel(18, 980, 420, 138, 'CARGAS DE COMBUSTIBLE · ' + mes.toUpperCase());
+  const tl = X.cs.lts || 1;
+  s += igBars(28, 1012, 400, X.grpC.slice(0, 5).map(g => ({ n: g.n, v: g.lts, t: F.pct(g.lts / tl), c: g.n === 'EDENRED' ? IG.gold : IG.grn })), { lw: 140, rh: 19, fit: 22 });
+  s += igPanel(446, 980, 336, 138, 'ESTACIONES CON MÁS CONSUMO');
+  const mx = X.est[0] ? X.est[0].lts : 1;
+  X.est.slice(0, 5).forEach((e, i) => { const y = 1022 + i * 19; s += igT(456, y, (i + 1) + '. ' + igFit(e.n, 28), { s: 9, w: 700, c: IG.ink }) + '<rect x="640" y="' + (y - 8) + '" width="' + (70 * e.lts / mx).toFixed(1) + '" height="9" rx="2" fill="' + IG.gold + '"/>' + igT(772, y, F.n0(e.lts) + ' L · $' + F.n2(e.precio), { s: 8.5, w: 700, c: IG.ink, a: 'end' }); });
+  if (!X.est.length) s += igT(614, 1050, 'Sin estaciones registradas en el archivo de cargas', { s: 9.5, c: IG.mut, a: 'middle' });
+  s += igFoot(['Cuidemos cada litro', 'Cada recorrido eficiente mantiene nuestra operación en movimiento.'], 'Reducir unidades en rojo · Atender reincidencias de ralentí · Cargar en autoconsumo cuando se pueda');
+  return s;
+}
+function igSVG(a, p) { const X = a === 'log' ? igLog(p) : igOps(p); if (!X) return null; return '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 800 1200" width="800" height="1200" font-family="Arial, Helvetica, sans-serif">' + (a === 'log' ? igSvgLog(X) : igSvgOps(X)) + '</svg>'; }
+// ---------- SVG → JPEG → PDF ----------
+function igRaster(svg, scale) {
+  return new Promise((res, rej) => { const img = new Image(); const url = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' })); img.onload = () => { try { const c = document.createElement('canvas'); c.width = 800 * scale; c.height = 1200 * scale; const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url); res(c); } catch (e) { rej(e); } }; img.onerror = () => rej(new Error('No se pudo dibujar la infografía')); img.src = url; });
+}
+function igPDF(jpegs) {
+  const enc = new TextEncoder(); const parts = []; const offs = []; let len = 0;
+  const push = x => { const b = typeof x === 'string' ? enc.encode(x) : x; parts.push(b); len += b.length; };
+  const obj = (n, body) => { offs[n] = len; push(n + ' 0 obj\n'); body.forEach(push); push('\nendobj\n'); };
+  push('%PDF-1.4\n%\xE2\xE3\xCF\xD3\n');
+  const nP = jpegs.length; const kids = []; let n = 3;
+  const pageObjs = jpegs.map(() => { const o = { page: n, cont: n + 1, img: n + 2 }; n += 3; kids.push(o.page + ' 0 R'); return o; });
+  obj(1, ['<< /Type /Catalog /Pages 2 0 R >>']);
+  obj(2, ['<< /Type /Pages /Kids [' + kids.join(' ') + '] /Count ' + nP + ' >>']);
+  jpegs.forEach((j, i) => { const o = pageObjs[i]; const cs = 'q 800 0 0 1200 0 0 cm /Im0 Do Q';
+    obj(o.page, ['<< /Type /Page /Parent 2 0 R /MediaBox [0 0 800 1200] /Resources << /XObject << /Im0 ' + o.img + ' 0 R >> >> /Contents ' + o.cont + ' 0 R >>']);
+    obj(o.cont, ['<< /Length ' + cs.length + ' >>\nstream\n' + cs + '\nendstream']);
+    obj(o.img, ['<< /Type /XObject /Subtype /Image /Width ' + j.w + ' /Height ' + j.h + ' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ' + j.b.length + ' >>\nstream\n', j.b, '\nendstream']); });
+  const xref = len; let x = 'xref\n0 ' + n + '\n0000000000 65535 f \n'; for (let i = 1; i < n; i++) x += String(offs[i]).padStart(10, '0') + ' 00000 n \n';
+  push(x + 'trailer\n<< /Size ' + n + ' /Root 1 0 R >>\nstartxref\n' + xref + '\n%%EOF');
+  return new Blob(parts, { type: 'application/pdf' });
+}
+async function igJpeg(svg) { const c = await igRaster(svg, 2.5); const b = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.9)); return { w: c.width, h: c.height, b: new Uint8Array(await b.arrayBuffer()) }; }
+function igDownload(blob, name) { const u = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = u; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000); }
+// ---------- ventana ----------
+const IGS = { a: 'log', p: null, svgs: null };
+function openInfografias() {
+  if (!fmAllowed()) return;
+  const ps = Array.from(new Set(['log_rend', 'ops_rend_d', 'ops_rend_g'].flatMap(periodsOf))).sort().reverse(); if (!ps.length) { toast('Aún no hay rendimientos cargados', 'warn'); return; }
+  IGS.p = IGS.p && ps.indexOf(IGS.p) >= 0 ? IGS.p : ps[0];
+  const m = $('#modal'); DSTACK.length = 0; m.classList.remove('drill');
+  m.innerHTML = '<div class="mbox e3w igw"><header><div><h3><span class="e3w-ic" style="background:linear-gradient(135deg,#F2A900,#ffcf5c);color:#0B2A5B">▦</span> Infografías de combustible</h3><p class="sub">Elige el área y el mes; se arma una infografía ejecutiva lista para compartir en PDF.</p></div><button class="x" data-act="closeModal" aria-label="Cerrar">×</button></header><div class="mbody ig-body"><div class="ig-side">' +
+    '<div class="e3w-sec"><b>1 · Área</b><div class="e3w-chips">' + [['log', 'Logística'], ['ops', 'Operaciones'], ['both', 'Ambas (2 páginas)']].map(([v, l]) => '<label class="e3chip"><input type="radio" name="iga" value="' + v + '"' + (IGS.a === v ? ' checked' : '') + '><span>' + l + '</span></label>').join('') + '</div></div>' +
+    '<div class="e3w-sec"><b>2 · Mes</b><div class="e3w-grid"><label>Mes<select id="igp">' + ps.map(p => '<option value="' + p + '"' + (p === IGS.p ? ' selected' : '') + '>' + perLabel(p) + '</option>').join('') + '</select></label></div><p class="note" style="margin-top:8px">Por omisión, el mes más reciente con rendimientos.</p></div>' +
+    '<div class="ig-btns"><button class="btn e3go" id="igpdf">⬇ Descargar PDF</button><button class="btn ghost" id="igpng">🖼 Descargar imagen (PNG)</button></div><p class="note">Incluye resultado general, tendencia de 12 meses, regiones, ' + 'tipos de unidad o marca/motor, ralentí, cargas y método de carga, oportunidades y lo más destacado.</p></div>' +
+    '<div class="ig-prev" id="igprev"><p class="note">Armando la infografía…</p></div></div></div>';
+  m.classList.add('open');
+  const build = () => { IGS.a = (m.querySelector('input[name=iga]:checked') || {}).value || 'log'; IGS.p = $('#igp', m).value; $('#igprev', m).innerHTML = '<p class="note" style="padding:20px">Armando la infografía…</p>';
+    setTimeout(() => { try { const as = IGS.a === 'both' ? ['log', 'ops'] : [IGS.a]; IGS.svgs = as.map(a => ({ a, svg: igSVG(a, IGS.p) })).filter(x => x.svg); $('#igprev', m).innerHTML = IGS.svgs.length ? IGS.svgs.map(x => '<div class="ig-page">' + x.svg + '</div>').join('') : '<p class="note" style="padding:20px">No hay rendimientos de ' + (IGS.a === 'both' ? 'esa área' : AREA_NAME[IGS.a]) + ' en ' + perLabel(IGS.p) + '.</p>'; } catch (e) { console.error(e); $('#igprev', m).innerHTML = '<p class="note">No se pudo armar: ' + esc(e.message) + '</p>'; } }, 30); };
+  $$('input[name=iga]', m).forEach(i => i.addEventListener('change', build)); $('#igp', m).addEventListener('change', build);
+  const nm = ext => 'Infografia_Combustible_' + (IGS.a === 'both' ? 'Logistica_y_Operaciones' : IGS.a === 'log' ? 'Logistica' : 'Operaciones') + '_' + perLabel(IGS.p).replace(/\s+/g, '_') + '.' + ext;
+  $('#igpdf', m).onclick = async ev => { const b = ev.currentTarget; if (!IGS.svgs || !IGS.svgs.length) return; b.disabled = true; const t = b.textContent; b.textContent = 'Generando PDF…'; try { const js = []; for (const x of IGS.svgs) js.push(await igJpeg(x.svg)); igDownload(igPDF(js), nm('pdf')); toast('Infografía descargada ✓'); } catch (e) { console.error(e); toast('No se pudo generar el PDF: ' + e.message, 'warn'); } b.disabled = false; b.textContent = t; };
+  $('#igpng', m).onclick = async () => { if (!IGS.svgs || !IGS.svgs.length) return; try { for (const x of IGS.svgs) { const c = await igRaster(x.svg, 2); const bl = await new Promise(r => c.toBlob(r, 'image/png')); igDownload(bl, nm('png').replace('.png', (IGS.svgs.length > 1 ? '_' + x.a : '') + '.png')); } } catch (e) { toast('No se pudo generar la imagen: ' + e.message, 'warn'); } };
+  build();
+}
+
 /* ---------- Router y eventos ---------- */
 function fitKpis() { document.querySelectorAll('#main .kv').forEach(el => { el.style.fontSize = ''; let fs = parseFloat(getComputedStyle(el).fontSize) || 24, n = 0; while (el.scrollWidth > el.clientWidth + 1 && fs > 13 && n++ < 14) { fs -= 1; el.style.fontSize = fs + 'px'; } }); }
 window.addEventListener('resize', () => { clearTimeout(window.__fk); window.__fk = setTimeout(fitKpis, 150); });
@@ -6591,6 +6850,7 @@ function render() {
   } catch (e) { console.error(e); html = empty('Ocurrió un error al calcular esta vista: ' + esc(e.message)); }
   main.innerHTML = html; flush(); requestAnimationFrame(fitKpis);
   if (r === 'cargar') loadHist();
+  { const ib = $('#igbtn'); if (ib) ib.style.display = fmAllowed() ? '' : 'none'; }
   { const fb = $('#fmbtn'); if (fb) { fb.style.display = fmAllowed() ? '' : 'none'; fb.classList.toggle('on', r === 'formulador'); } }
   $('#upbtn').style.display = (S.canWrite || !S.db) && canUpAny() ? '' : 'none';
   const sb = $('[data-act="settings"]'); if (sb) sb.style.display = isAdmin() ? '' : 'none';
@@ -6621,6 +6881,7 @@ function bindEvents() {
     else if (act === 'manual') openManual();
     else if (act === 'mailRal') openMailRal(t.getAttribute('data-area'));
     else if (act === 'mailRend') openMailRend(t.getAttribute('data-area'));
+    else if (act === 'infog') openInfografias();
     else if (act === 'trSeg') { S.toggles['trSeg_' + t.getAttribute('data-area')] = t.getAttribute('data-v'); const y = window.scrollY; render(); window.scrollTo(0, y); }
     else if (act === 'mailBack' || act === 'mailEml' || act === 'mailHtml' || act === 'mailCopy') mailAct(act);
     else if (act === 'lgCert') ligaCert(t.getAttribute('data-area'), t.getAttribute('data-kind'));
