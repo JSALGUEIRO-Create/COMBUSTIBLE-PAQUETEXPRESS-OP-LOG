@@ -643,7 +643,9 @@ body.e3open{overflow:hidden}body.e3open .floatbtn{display:none}
 .topbar.k6 .logo .sep,.topbar.k6 .logo>span:not(.sep){display:none}
 .topbar.k6 .topnav a{padding:8px 8px}
 .topbar.k7 .topin{gap:8px}.topbar.k7 .tright{gap:4px}.topbar.k7 .ibtn{padding:0 8px}.topbar.k7 .logo{display:none}
-.usrbox{margin-top:16px;padding:14px;border:1px dashed var(--line);border-radius:12px}.usrbox h4{margin:0 0 4px}.usrgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;margin:8px 0 10px}
+.mbox.setw{display:flex;flex-direction:column;max-height:calc(100vh - 40px)}.mbox.setw .mbody{overflow-y:auto;flex:1;min-height:0}.mbox.setw footer{border-top:1px solid var(--line)}
+.usrbox input,.usrbox select{font-family:inherit;font-size:13.5px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:7px 10px;min-height:36px;width:100%}.usrbox .btn{justify-self:start}
+.usrbox{display:grid;gap:4px;margin-top:4px;padding:14px;border:1px dashed var(--line);border-radius:12px}.usrbox h4{margin:0 0 4px}.usrgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;margin:8px 0 10px}
 /* Noticiero de inicio */
 .news{position:relative;margin:0 0 22px;border-radius:26px;overflow:hidden;background:#030914;color:#fff;box-shadow:0 24px 60px rgba(3,9,20,.35)}
 .nw-stage{position:relative;height:560px;overflow:hidden}
@@ -5756,7 +5758,7 @@ async function loadHist() {
 /* ---------- Ajustes ---------- */
 function openSettings() {
   const m = $('#modal'); const s = S.settings;
-  m.innerHTML = '<div class="mbox"><header><h3>Ajustes del portal</h3><button class="x" data-act="closeModal" aria-label="Cerrar">×</button></header><div class="mbody">' +
+  m.innerHTML = '<div class="mbox setw"><header><h3>Ajustes del portal</h3><button class="x" data-act="closeModal" aria-label="Cerrar">×</button></header><div class="mbody">' +
     '<label>Ideal Logística en Full (km/L)<input type="number" step="0.01" data-s="idealFull" value="' + setting('idealFull') + '"></label>' +
     '<label>Ideal Logística en Sencillo (km/L)<input type="number" step="0.01" data-s="idealSenc" value="' + setting('idealSenc') + '"></label>' +
     '<label>Rendimiento ideal gasolina (km/L) · el archivo no lo trae<input type="number" step="0.1" data-s="idealGas" value="' + setting('idealGas') + '"></label>' +
