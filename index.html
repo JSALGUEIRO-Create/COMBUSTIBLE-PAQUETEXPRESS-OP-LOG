@@ -634,8 +634,8 @@ body.e3open{overflow:hidden}body.e3open .floatbtn{display:none}
 .topbar .ibtn .bi{font-size:14px;line-height:1}
 .topbar .fmbtn{gap:6px;padding:0 12px}
 .topbar.k1 #userchip{max-width:150px}
-.topbar.k2 .igbtn .bl,.topbar.k2 #fmbtn .bl{display:none}
-.topbar.k2 .igbtn,.topbar.k2 #fmbtn{padding:0 10px}
+.topbar.k2 .igbtn .bl,.topbar.k2 #fmbtn .bl,.topbar.k2 #prbtn .bl{display:none}
+.topbar.k2 .igbtn,.topbar.k2 #fmbtn,.topbar.k2 #prbtn{padding:0 10px}
 .topbar.k3 #userchip{display:none}
 .topbar.k4 .wabtn span:last-child,.topbar.k4 .e360btn span:last-child{display:none}
 .topbar.k4 .wabtn,.topbar.k4 .e360btn{padding:5px;margin-left:4px}
@@ -646,6 +646,20 @@ body.e3open{overflow:hidden}body.e3open .floatbtn{display:none}
 .mbox.setw{display:flex;flex-direction:column;max-height:calc(100vh - 40px)}.mbox.setw .mbody{overflow-y:auto;flex:1;min-height:0}.mbox.setw footer{border-top:1px solid var(--line)}
 .usrbox input,.usrbox select{font-family:inherit;font-size:13.5px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:7px 10px;min-height:36px;width:100%}.usrbox .btn{justify-self:start}
 .usrbox{display:grid;gap:4px;margin-top:4px;padding:14px;border:1px dashed var(--line);border-radius:12px}.usrbox h4{margin:0 0 4px}.usrgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;margin:8px 0 10px}
+.prbtn{background:linear-gradient(135deg,#16a34a,#4ade80)!important;color:#fff!important}.prbtn .bi{font-weight:900}
+.pr-body{grid-template-columns:320px 1fr}.pr-body .ig-side{overflow:auto;max-height:78vh;padding-right:4px}
+.pr-out{overflow:auto;max-height:78vh;min-width:0}
+.pr-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:10px}
+.pr-k{background:var(--surface2,#f4f7fc);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}.pr-k span{font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}.pr-k b{font-size:20px;color:var(--ink)}.pr-k i{font-style:normal;font-size:12px;color:var(--ink2)}
+.pr-k:first-child{background:linear-gradient(135deg,#0B2A5B,#003087);border:0}.pr-k:first-child span,.pr-k:first-child i{color:#c9d6ee}.pr-k:first-child b{color:#F2A900;font-size:22px}
+.pr-prices{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px;color:var(--ink2);margin:4px 0 12px}.pr-prices .up{color:#b45309}
+.pr-h{margin:10px 0 6px;font-size:14px}.pr-t td,.pr-t th{padding:6px 8px}.pr-t tr.tot td{font-weight:800;border-top:2px solid var(--ink);background:var(--surface2,#f4f7fc)}
+.pr-uh{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;flex-wrap:wrap}.pr-uh input{font-family:inherit;border:1px solid var(--line);border-radius:9px;padding:6px 10px;min-width:220px;background:var(--surface);color:var(--ink)}
+.pr-us{max-height:420px}.pr-us td{white-space:nowrap}.pr-us td:nth-child(4){max-width:190px;overflow:hidden;text-overflow:ellipsis}.pr-n{margin-top:10px}
+.pr-body textarea{width:100%;font-family:ui-monospace,Consolas,monospace;font-size:12px;border:1px solid var(--line);border-radius:9px;padding:8px;background:var(--surface);color:var(--ink);resize:vertical}
+.pr-chk{display:flex;gap:8px;align-items:flex-start;font-size:13px;margin-top:6px}
+.pr-body input[type=number]{width:100%}
+@media(max-width:900px){.pr-body{grid-template-columns:1fr}}
 /* Noticiero de inicio */
 .news{position:relative;margin:0 0 22px;border-radius:26px;overflow:hidden;background:#030914;color:#fff;box-shadow:0 24px 60px rgba(3,9,20,.35)}
 .nw-stage{position:relative;height:560px;overflow:hidden}
@@ -867,7 +881,7 @@ html,body{overflow-x:clip}
   <div class="tright">
     <span id="userchip" class="userchip"></span><span id="dbdot" class="dbdot" title="Conectando…"></span>
     <button class="ibtn fmbtn igbtn" id="igbtn" data-act="infog" style="display:none" title="Infografías en PDF"><span class="bi">▦</span><span class="bl">INFOGRAFÍAS</span></button>
-    <button class="ibtn fmbtn" id="fmbtn" data-act="route" data-to="formulador" style="display:none" title="Formulador de semáforos"><span class="bi">🧪</span><span class="bl">FORMULADOR</span></button>
+    <button class="ibtn fmbtn prbtn" id="prbtn" data-act="presup" style="display:none" title="Presupuesto anual de combustible"><span class="bi">$</span><span class="bl">PRESUPUESTO</span></button><button class="ibtn fmbtn" id="fmbtn" data-act="route" data-to="formulador" style="display:none" title="Formulador de semáforos"><span class="bi">🧪</span><span class="bl">FORMULADOR</span></button>
     <button class="ibtn" id="upbtn" data-act="route" data-to="cargar" title="Cargar archivos"><span class="bi">⬆</span><span class="bl">Cargar archivos</span></button>
     <button class="ibtn" data-act="settings" title="Ajustes" aria-label="Ajustes"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg></button>
     <button class="ibtn" data-act="logout" title="Cerrar sesión" aria-label="Cerrar sesión">Salir</button>
@@ -6906,6 +6920,190 @@ function openInfografias() {
   build();
 }
 
+/* ===================== PRESUPUESTO ANUAL DE COMBUSTIBLE (solo Jsalgueiro) ===================== */
+const PRS = { y: null, from: null, to: null, infl: 5, areas: { log: true, ops: true }, nuevas: true, bajas: true, precio: {}, precioAuto: {}, hol: null, holEdited: false, res: null, q: '' };
+const PR_MES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+const PR_GR = { logD: { a: 'log', comb: 'DIESEL', t: 'Logística · diésel' }, opsD: { a: 'ops', comb: 'DIESEL', t: 'Operaciones · diésel' }, opsG: { a: 'ops', comb: 'GASOLINA', t: 'Operaciones · gasolina' } };
+function prISO(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function prNthMon(y, m, n) { const d = new Date(y, m, 1); const off = (8 - d.getDay()) % 7; return prISO(new Date(y, m, 1 + off + 7 * (n - 1))); }
+/* Días de descanso obligatorio (Ley Federal del Trabajo, art. 74) */
+function prLFT(y) {
+  const L = [[y + '-01-01', 'Año Nuevo'], [prNthMon(y, 1, 1), 'Día de la Constitución (1er lunes de febrero)'], [prNthMon(y, 2, 3), 'Natalicio de Benito Juárez (3er lunes de marzo)'], [y + '-05-01', 'Día del Trabajo'], [y + '-09-16', 'Día de la Independencia'], [prNthMon(y, 10, 3), 'Revolución Mexicana (3er lunes de noviembre)'], [y + '-12-25', 'Navidad']];
+  if ((y - 2024) % 6 === 0) L.push([y + '-10-01', 'Transmisión del Poder Ejecutivo Federal']);
+  return L.sort((a, b) => a[0] < b[0] ? -1 : 1);
+}
+function prHolText(years) { return years.map(y => '# ' + y + '\n' + prLFT(y).map(x => x[0] + '  ' + x[1]).join('\n')).join('\n'); }
+function prHolSet() { const s = new Map(); String(PRS.hol || '').split(/\n/).forEach(l => { const m = l.match(/(\d{4})-(\d{2})-(\d{2})\s*(.*)$/); if (m) s.set(m[1] + '-' + m[2] + '-' + m[3], (m[4] || '').trim() || 'Día inhábil'); }); return s; }
+/* días hábiles = lunes a sábado, menos días inhábiles que no caen en domingo */
+function prHab(from, to, H) { let n = 0; const d = new Date(+from.slice(0, 4), +from.slice(5, 7) - 1, +from.slice(8, 10)), e = new Date(+to.slice(0, 4), +to.slice(5, 7) - 1, +to.slice(8, 10)); for (; d <= e; d.setDate(d.getDate() + 1)) { if (d.getDay() === 0) continue; if (H.has(prISO(d))) continue; n++; } return n; }
+function prMonthInfo(y, m, H) { const last = new Date(y, m + 1, 0).getDate(); let dom = 0, inh = []; for (let d = 1; d <= last; d++) { const dt = new Date(y, m, d); const k = prISO(dt); if (dt.getDay() === 0) dom++; else if (H.has(k)) inh.push(k); } return { nat: last, dom, inh, hab: last - dom - inh.length }; }
+function prMonths() { return Array.from(new Set(['log_cargas', 'ops_cargas'].flatMap(periodsOf))).sort(); }
+function prDefaults() {
+  const ps = prMonths(); if (!ps.length) return false;
+  const full = ps.filter(p => { let mx = 0; for (const ds of ['log_cargas', 'ops_cargas']) for (const r of rowsOf(ds, p)) { const d = +String(r.fecha).slice(8, 10); if (d > mx) mx = d; } return mx >= 25; });
+  const to = (full.length ? full : ps)[(full.length ? full : ps).length - 1];
+  PRS.to = PRS.to && ps.indexOf(PRS.to) >= 0 ? PRS.to : to;
+  PRS.from = PRS.from && ps.indexOf(PRS.from) >= 0 ? PRS.from : (ps.find(p => p.slice(0, 4) === PRS.to.slice(0, 4)) || ps[0]);
+  PRS.y = PRS.y || (+PRS.to.slice(0, 4) + 1);
+  return true;
+}
+function prGroup(a, mv) { if (a === 'log') return 'logD'; return combOf(mv) === 'GASOLINA' ? 'opsG' : 'opsD'; }
+function prCalc() {
+  const H = prHolSet(); const from = PRS.from + '-01', to = monthEnd(PRS.to); const lastFrom = PRS.to + '-01';
+  const L = lookups(); const ex = setting('excluirLog');
+  const units = []; const grp = { logD: { l: 0, $: 0, lU: 0, $U: 0 }, opsD: { l: 0, $: 0, lU: 0, $U: 0 }, opsG: { l: 0, $: 0, lU: 0, $U: 0 } };
+  let sinComb = 0, bajas = 0;
+  for (const a of ['log', 'ops']) {
+    if (!PRS.areas[a]) continue;
+    let rows = rowsRange(CG[a].ds, from, to); if (a === 'ops' && ex) rows = rows.filter(r => !L.logSet.has(r.movil));
+    const by = groupBy(rows, r => r.movil);
+    for (const [mv, g] of by) {
+      if (!mv) continue;
+      const gk = prGroup(a, mv); const lts = sum(g, 'lts'), imp = sum(g, CG[a].amt);
+      const f0 = g.reduce((m, r) => r.fecha < m ? r.fecha : m, '9999'), f1 = g.reduce((m, r) => r.fecha > m ? r.fecha : m, '0000');
+      grp[gk].l += lts; grp[gk].$ += imp; g.forEach(r => { if (r.fecha >= lastFrom) { grp[gk].lU += r.lts || 0; grp[gk].$U += CG[a].amt(r); } });
+      if (PRS.bajas && f1 < lastFrom) { bajas++; continue; }
+      const dias = prHab(PRS.nuevas && f0 > from ? f0 : from, to, H);
+      if (a === 'ops' && !combOf(mv)) sinComb++;
+      const u = lookups(); const info = a === 'log' ? (u.logU[mv] || {}) : (u.opsU[mv] || {});
+      units.push({ a, mv, gk, comb: PR_GR[gk].comb, reg: regionOf(a, mv), suc: a === 'ops' ? (info.suc || '') : '', desc: a === 'log' ? (info.marca || '') : (info.desc || ''), f0, f1, lts, imp, dias, lpd: div(lts, dias) });
+    }
+  }
+  for (const k in grp) { PRS.precioAuto[k] = div(grp[k].$U, grp[k].lU) || div(grp[k].$, grp[k].l) || 0; if (!(PRS.precio[k] > 0)) PRS.precio[k] = +PRS.precioAuto[k].toFixed(2); }
+  const fac = 1 + (PRS.infl || 0) / 100; const pB = {}; for (const k in grp) pB[k] = (PRS.precio[k] || 0) * fac;
+  const meses = PR_MES.map((n, m) => prMonthInfo(PRS.y, m, H));
+  units.forEach(u => { u.m = meses.map(mi => u.lpd * mi.hab); u.lA = sum(u.m.map(v => ({ v })), 'v'); u.p = pB[u.gk]; u.$A = u.lA * u.p; });
+  units.sort((x, y) => y.$A - x.$A);
+  const tot = { log: { l: 0, $: 0, n: 0 }, ops: { l: 0, $: 0, n: 0 } }; units.forEach(u => { tot[u.a].l += u.lA; tot[u.a].$ += u.$A; tot[u.a].n++; });
+  const mt = meses.map((mi, i) => { const o = { hab: mi.hab }; ['log', 'ops'].forEach(a => { const us = units.filter(u => u.a === a); o[a + 'L'] = us.reduce((s, u) => s + u.m[i], 0); o[a + '$'] = us.reduce((s, u) => s + u.m[i] * u.p, 0); }); return o; });
+  const habBase = prHab(from, to, H);
+  return PRS.res = { units, grp, pB, meses, mt, tot, sinComb, bajas, habBase, H, from, to, habY: meses.reduce((s, m) => s + m.hab, 0) };
+}
+function prHTML(R) {
+  const $f = v => F.money(v), lf = v => F.n0(v);
+  const gT = R.tot.log.$ + R.tot.ops.$, lT = R.tot.log.l + R.tot.ops.l;
+  const k = (l, v, s) => '<div class="pr-k"><span>' + l + '</span><b>' + v + '</b>' + (s ? '<i>' + s + '</i>' : '') + '</div>';
+  let h = '<div class="pr-kpis">' + k('Presupuesto ' + PRS.y, $f(gT), lf(lT) + ' litros') + (PRS.areas.log ? k('Logística', $f(R.tot.log.$), R.tot.log.n + ' tractos · ' + lf(R.tot.log.l) + ' L') : '') + (PRS.areas.ops ? k('Operaciones', $f(R.tot.ops.$), R.tot.ops.n + ' unidades · ' + lf(R.tot.ops.l) + ' L') : '') + k('Días hábiles ' + PRS.y, R.habY, 'Base: ' + R.habBase + ' días (' + perShort(PRS.from) + '–' + perShort(PRS.to) + ')') + '</div>';
+  h += '<div class="pr-prices">' + Object.keys(PR_GR).filter(g => PRS.areas[PR_GR[g].a]).map(g => '<span>' + PR_GR[g].t + ': <b>' + F.money2(PRS.precio[g] || 0) + '</b> → <b class="up">' + F.money2(R.pB[g]) + '</b></span>').join('') + '</div>';
+  h += '<h4 class="pr-h">Presupuesto por mes</h4><div class="tscroll"><table class="pr-t"><thead><tr><th>Mes</th><th class="num">Días hábiles</th>' + (PRS.areas.log ? '<th class="num">Litros Log</th><th class="num">Importe Log</th>' : '') + (PRS.areas.ops ? '<th class="num">Litros Ops</th><th class="num">Importe Ops</th>' : '') + '<th class="num">Total</th></tr></thead><tbody>' +
+    R.mt.map((o, i) => '<tr><td>' + PR_MES[i] + '</td><td class="num" title="' + esc(R.meses[i].nat + ' días − ' + R.meses[i].dom + ' domingos − ' + R.meses[i].inh.length + ' inhábiles') + '">' + o.hab + (R.meses[i].inh.length ? ' <small class="muted">(' + R.meses[i].inh.length + ' inh.)</small>' : '') + '</td>' + (PRS.areas.log ? '<td class="num">' + lf(o.logL) + '</td><td class="num">' + $f(o['log$']) + '</td>' : '') + (PRS.areas.ops ? '<td class="num">' + lf(o.opsL) + '</td><td class="num">' + $f(o['ops$']) + '</td>' : '') + '<td class="num"><b>' + $f(o['log$'] + o['ops$']) + '</b></td></tr>').join('') +
+    '<tr class="tot"><td>Total ' + PRS.y + '</td><td class="num">' + R.habY + '</td>' + (PRS.areas.log ? '<td class="num">' + lf(R.tot.log.l) + '</td><td class="num">' + $f(R.tot.log.$) + '</td>' : '') + (PRS.areas.ops ? '<td class="num">' + lf(R.tot.ops.l) + '</td><td class="num">' + $f(R.tot.ops.$) + '</td>' : '') + '<td class="num"><b>' + $f(gT) + '</b></td></tr></tbody></table></div>';
+  const q = (PRS.q || '').trim().toUpperCase(); const us = R.units.filter(u => !q || (u.mv + ' ' + u.reg + ' ' + u.desc + ' ' + u.suc).toUpperCase().indexOf(q) >= 0);
+  h += '<div class="pr-uh"><h4 class="pr-h">Presupuesto por unidad <small class="muted">(' + us.length + ')</small></h4><input type="search" id="prq" placeholder="Buscar económico, región…" value="' + esc(PRS.q || '') + '"></div><div class="tscroll pr-us"><table class="pr-t"><thead><tr><th>Económico</th><th>Área</th><th>Región</th><th>Tipo / marca</th><th>Comb.</th><th class="num">L base</th><th class="num">Días háb. base</th><th class="num">L / día hábil</th><th class="num">Litros ' + PRS.y + '</th><th class="num">Importe ' + PRS.y + '</th><th class="num">Mensual prom.</th></tr></thead><tbody>' +
+    us.slice(0, 150).map(u => '<tr><td><b>' + esc(u.mv) + '</b></td><td>' + (u.a === 'log' ? 'Log' : 'Ops') + '</td><td>' + esc(u.reg) + '</td><td>' + esc(u.desc || '—') + '</td><td>' + (u.comb === 'GASOLINA' ? 'Gasolina' : 'Diésel') + '</td><td class="num">' + lf(u.lts) + '</td><td class="num">' + u.dias + '</td><td class="num">' + F.n2(u.lpd) + '</td><td class="num">' + lf(u.lA) + '</td><td class="num"><b>' + $f(u.$A) + '</b></td><td class="num">' + $f(u.$A / 12) + '</td></tr>').join('') + '</tbody></table>' + (us.length > 150 ? '<p class="note">Se muestran 150; el Excel trae las ' + us.length + ' unidades con su detalle mensual.</p>' : '') + '</div>';
+  const notes = [];
+  if (R.bajas) notes.push(R.bajas + ' unidad(es) sin cargas en ' + perLabel(PRS.to) + ' se tomaron como bajas y no se presupuestan.');
+  if (R.sinComb) notes.push(R.sinComb + ' unidad(es) de Operaciones no aparecen en los semáforos y se presupuestaron como diésel.');
+  if (notes.length) h += '<p class="note pr-n">ⓘ ' + notes.map(esc).join(' ') + '</p>';
+  return h;
+}
+async function prXlsx(R) {
+  const ST = pxStyles(); const bd = { b: 'thin', t: 'thin', l: 'thin', r: 'thin', c: PXL.LINE };
+  const sx = {
+    title: ST.get({ font: { b: 1, sz: 16, color: PXL.NAVY } }), sub: ST.get({ font: { i: 1, sz: 9, color: PXL.MUTED } }),
+    hd: ST.get({ font: { b: 1, sz: 10, color: PXL.WHITE }, fill: PXL.NAVY, align: { h: 'center', wrap: 1 }, border: { b: 'thin', t: 'thin', l: 'thin', r: 'thin', c: 'FF0B2A5B' } }),
+    hdG: ST.get({ font: { b: 1, sz: 10, color: PXL.NAVY2 }, fill: PXL.GOLD, align: { h: 'center', wrap: 1 }, border: { b: 'thin', t: 'thin', l: 'thin', r: 'thin', c: 'FF0B2A5B' } }),
+    lab: ST.get({ font: { b: 1, color: PXL.NAVY }, border: bd }), txt: ST.get({ border: bd }), txtB: ST.get({ font: { b: 1 }, border: bd }),
+    inp: ST.get({ font: { b: 1, color: 'FF1D4ED8' }, fill: 'FFFFF7D6', fmt: '"$"#,##0.00', border: bd }), inpP: ST.get({ font: { b: 1, color: 'FF1D4ED8' }, fill: 'FFFFF7D6', fmt: '0.00%', border: bd }),
+    money: ST.get({ fmt: '"$"#,##0.00', border: bd }), money0: ST.get({ fmt: '"$"#,##0', border: bd }), int: ST.get({ fmt: '#,##0', border: bd }), n2: ST.get({ fmt: '#,##0.00', border: bd }), date: ST.get({ fmt: 'dd/mm/yyyy', border: bd, align: { h: 'center' } }),
+    totL: ST.get({ font: { b: 1, color: PXL.WHITE }, fill: PXL.NAVY2, border: bd }), tot0: ST.get({ font: { b: 1, color: PXL.WHITE }, fill: PXL.NAVY2, fmt: '#,##0', border: bd }), tot$: ST.get({ font: { b: 1, color: PXL.WHITE }, fill: PXL.NAVY2, fmt: '"$"#,##0', border: bd }),
+    note: ST.get({ font: { i: 1, sz: 9, color: PXL.MUTED }, align: { wrap: 1, v: 'top' } })
+  };
+  const xd = s => { const d = Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10)); return d / 86400000 + 25569; };
+  /* ---- CALENDARIO ---- */
+  const C = pxSheet('CALENDARIO ' + PRS.y); C.tab = PXL.GOLD;
+  C.set(0, 0, 'Días hábiles ' + PRS.y, sx.title); C.set(1, 0, 'Lunes a sábado; se quitan los domingos y los días inhábiles oficiales que caen entre semana.', sx.sub);
+  ['Mes', 'Días naturales', 'Domingos', 'Días inhábiles (L-S)', 'Días hábiles'].forEach((t, c) => C.set(3, c, t, sx.hd)); C.heights[3] = 30;
+  R.meses.forEach((mi, i) => { const r = 4 + i; C.set(r, 0, PR_MES[i], sx.txtB); C.set(r, 1, mi.nat, sx.int); C.set(r, 2, mi.dom, sx.int); C.set(r, 3, mi.inh.length, sx.int); C.set(r, 4, mi.hab, sx.int, 'B' + (r + 1) + '-C' + (r + 1) + '-D' + (r + 1)); });
+  C.set(16, 0, 'Total', sx.totL); [1, 2, 3, 4].forEach(c => C.set(16, c, R.meses.reduce((s, m) => s + [0, m.nat, m.dom, m.inh.length, m.hab][c], 0), sx.tot0, 'SUM(' + PXL.col(c) + '5:' + PXL.col(c) + '16)'));
+  C.set(18, 0, 'Días inhábiles considerados', sx.lab); C.set(19, 0, 'Fecha', sx.hd); C.set(19, 1, 'Día', sx.hd); C.merge(19, 2, 19, 4, 'Motivo', sx.hd);
+  const DN = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+  Array.from(R.H.entries()).filter(([d]) => d.slice(0, 4) === String(PRS.y)).sort().forEach(([d, t], i) => { const r = 20 + i; const dw = new Date(+d.slice(0, 4), +d.slice(5, 7) - 1, +d.slice(8, 10)).getDay(); C.set(r, 0, xd(d), sx.date); C.set(r, 1, DN[dw] + (dw === 0 ? ' (ya era descanso)' : ''), sx.txt); C.merge(r, 2, r, 4, t, sx.txt); });
+  C.cols = { 0: 16, 1: 22, 2: 12, 3: 18, 4: 14 };
+  const CAL = "'CALENDARIO " + PRS.y + "'";
+  /* ---- RESUMEN (parámetros editables) ---- */
+  const S0 = pxSheet('RESUMEN'); S0.tab = PXL.NAVY;
+  S0.set(0, 0, 'Presupuesto de combustible ' + PRS.y, sx.title); S0.set(1, 0, 'Base: litros por día hábil de cada unidad entre ' + perLabel(PRS.from) + ' y ' + perLabel(PRS.to) + ' (' + R.habBase + ' días hábiles) × días hábiles de cada mes de ' + PRS.y + ' × precio con inflación.', sx.sub);
+  S0.set(3, 0, 'Parámetros (celdas amarillas editables)', sx.lab); S0.set(4, 0, 'Inflación al precio del litro', sx.txt); S0.set(4, 1, (PRS.infl || 0) / 100, sx.inpP);
+  S0.set(5, 0, 'Concepto', sx.hd); S0.set(5, 1, 'Precio base / L', sx.hd); S0.set(5, 2, 'Precio ' + PRS.y + ' / L', sx.hd);
+  const PR = {}; Object.keys(PR_GR).forEach((g, i) => { const r = 6 + i; PR[g] = "RESUMEN!$C$" + (r + 1); S0.set(r, 0, PR_GR[g].t, sx.txt); S0.set(r, 1, PRS.precio[g] || 0, sx.inp); S0.set(r, 2, R.pB[g], sx.money, 'B' + (r + 1) + '*(1+$B$5)'); });
+  const areas = ['log', 'ops'].filter(a => PRS.areas[a]); const SH = { log: 'LOGISTICA', ops: 'OPERACIONES' };
+  const hr = 11; S0.set(hr - 1, 0, 'Presupuesto por mes', sx.lab);
+  const hdr = ['Mes', 'Días hábiles']; areas.forEach(a => hdr.push('Litros ' + (a === 'log' ? 'Logística' : 'Operaciones'), 'Importe ' + (a === 'log' ? 'Logística' : 'Operaciones'))); hdr.push('Importe total');
+  hdr.forEach((t, c) => S0.set(hr, c, t, c === hdr.length - 1 ? sx.hdG : sx.hd)); S0.heights[hr] = 30;
+  const nU = { log: R.units.filter(u => u.a === 'log').length, ops: R.units.filter(u => u.a === 'ops').length };
+  const UC0 = 9; // primera columna de litros por mes en hojas de unidades
+  R.mt.forEach((o, i) => {
+    const r = hr + 1 + i; S0.set(r, 0, PR_MES[i], sx.txtB); S0.set(r, 1, o.hab, sx.int, CAL + '!E' + (5 + i));
+    let c = 2; const $cells = [];
+    areas.forEach(a => { const n = nU[a]; const lc = PXL.col(UC0 + i), ic = PXL.col(UC0 + 13 + i); S0.set(r, c, o[a + 'L'], sx.int, n ? 'SUM(' + SH[a] + '!' + lc + '5:' + lc + (4 + n) + ')' : null); S0.set(r, c + 1, o[a + '$'], sx.money0, n ? 'SUM(' + SH[a] + '!' + ic + '5:' + ic + (4 + n) + ')' : null); $cells.push(PXL.col(c + 1) + (r + 1)); c += 2; });
+    S0.set(r, c, areas.reduce((s, a) => s + o[a + '$'], 0), sx.money0, $cells.join('+'));
+  });
+  const tr = hr + 13; S0.set(tr, 0, 'Total ' + PRS.y, sx.totL);
+  for (let c = 1; c < hdr.length; c++) { const L = PXL.col(c); const v = c === 1 ? R.habY : (() => { const a = areas[Math.floor((c - 2) / 2)]; if (!a) return R.tot.log.$ + R.tot.ops.$; return (c - 2) % 2 ? R.tot[a].$ : R.tot[a].l; })(); S0.set(tr, c, v, c === 1 || (c < hdr.length - 1 && (c - 2) % 2 === 0) ? sx.tot0 : sx.tot$, 'SUM(' + L + (hr + 2) + ':' + L + (hr + 13) + ')'); }
+  const nr = tr + 2; const ns = ['Cada unidad: litros base ÷ días hábiles en que operó (desde su primera carga si es nueva) = litros por día hábil.', 'Litros del mes = litros por día hábil × días hábiles del mes (hoja CALENDARIO). Importe = litros × precio ' + PRS.y + '.', 'Puedes cambiar la inflación, los precios base o los días hábiles y todo el libro se recalcula.'];
+  if (R.bajas) ns.push(R.bajas + ' unidad(es) sin cargas en ' + perLabel(PRS.to) + ' se consideraron bajas y no se incluyen.'); if (R.sinComb) ns.push(R.sinComb + ' unidad(es) de Operaciones sin clasificación de combustible se presupuestaron como diésel.');
+  ns.forEach((t, i) => S0.merge(nr + i, 0, nr + i, hdr.length - 1, '• ' + t, sx.note));
+  S0.cols = { 0: 30, 1: 16, 2: 16, 3: 18, 4: 16, 5: 18, 6: 18 };
+  /* ---- Hojas por área ---- */
+  const sheets = [S0, C];
+  areas.forEach(a => {
+    const W = pxSheet(SH[a]); W.tab = a === 'log' ? PXL.NAVY2 : PXL.BLUE; const us = R.units.filter(u => u.a === a);
+    W.set(0, 0, 'Presupuesto ' + PRS.y + ' por unidad · ' + (a === 'log' ? 'Logística' : 'Operaciones'), sx.title); W.set(1, 0, us.length + ' unidades · base ' + perLabel(PRS.from) + ' a ' + perLabel(PRS.to), sx.sub);
+    W.merge(2, UC0, 2, UC0 + 12, 'LITROS ' + PRS.y, sx.hdG); W.merge(2, UC0 + 13, 2, UC0 + 25, 'IMPORTE ' + PRS.y, sx.hdG);
+    const H0 = ['Económico', 'Región', a === 'log' ? 'Marca / motor' : 'Tipo de unidad', a === 'log' ? 'Combustible' : 'Combustible', 'Primera carga', 'Litros base', 'Importe base', 'Días hábiles base', 'L / día hábil'];
+    const HD = H0.concat(PR_MES.map(m => m.slice(0, 3)), ['Total litros'], PR_MES.map(m => m.slice(0, 3)), ['Total importe']);
+    HD.forEach((t, c) => W.set(3, c, t, sx.hd)); W.heights[3] = 30; W.freeze = 4;
+    us.forEach((u, i) => {
+      const r = 4 + i, R1 = r + 1; W.set(r, 0, u.mv, sx.txtB); W.set(r, 1, u.reg, sx.txt); W.set(r, 2, u.desc || '', sx.txt); W.set(r, 3, u.comb === 'GASOLINA' ? 'GASOLINA' : 'DIESEL', sx.txt); W.set(r, 4, xd(u.f0), sx.date);
+      W.set(r, 5, u.lts, sx.n2); W.set(r, 6, u.imp, sx.money); W.set(r, 7, u.dias, sx.int); W.set(r, 8, u.lpd, sx.n2, 'IF(H' + R1 + '>0,F' + R1 + '/H' + R1 + ',0)');
+      const pRef = a === 'log' ? PR.logD : 'IF(D' + R1 + '="GASOLINA",' + PR.opsG + ',' + PR.opsD + ')';
+      for (let m = 0; m < 12; m++) { W.set(r, UC0 + m, u.m[m], sx.int, '$I' + R1 + '*' + CAL + '!$E$' + (5 + m)); W.set(r, UC0 + 13 + m, u.m[m] * u.p, sx.money0, PXL.col(UC0 + m) + R1 + '*' + pRef); }
+      W.set(r, UC0 + 12, u.lA, sx.int, 'SUM(' + PXL.col(UC0) + R1 + ':' + PXL.col(UC0 + 11) + R1 + ')'); W.set(r, UC0 + 25, u.$A, sx.money0, 'SUM(' + PXL.col(UC0 + 13) + R1 + ':' + PXL.col(UC0 + 24) + R1 + ')');
+    });
+    const tr2 = 4 + us.length; W.set(tr2, 0, 'Total', sx.totL); for (let c = 1; c < 5; c++) W.set(tr2, c, '', sx.totL);
+    [5, 6, 7].concat(Array.from({ length: 26 }, (_, i) => UC0 + i)).forEach(c => { if (c === 7) { W.set(tr2, c, '', sx.totL); return; } const L = PXL.col(c); const money = c === 6 || c >= UC0 + 13; let v = 0; us.forEach(u => { v += c === 5 ? u.lts : c === 6 ? u.imp : c < UC0 + 12 ? u.m[c - UC0] : c === UC0 + 12 ? u.lA : c < UC0 + 25 ? u.m[c - UC0 - 13] * u.p : u.$A; }); W.set(tr2, c, v, money ? sx.tot$ : sx.tot0, us.length ? 'SUM(' + L + '5:' + L + tr2 + ')' : null); });
+    W.set(tr2, 8, '', sx.totL);
+    W.filter = 'A4:' + PXL.col(UC0 + 25) + (4 + us.length);
+    W.cols = { 0: 12, 1: 16, 2: 24, 3: 11, 4: 12, 5: 12, 6: 14, 7: 10, 8: 10 }; for (let c = UC0; c <= UC0 + 25; c++) W.cols[c] = c >= UC0 + 13 ? 12 : 9; W.cols[UC0 + 12] = 12; W.cols[UC0 + 25] = 14;
+    sheets.push(W);
+  });
+  return { buf: await fmPack('Presupuesto de combustible ' + PRS.y, sheets, ST), name: 'Presupuesto_Combustible_' + PRS.y + '.xlsx' };
+}
+function openPresupuesto() {
+  if (!fmAllowed()) return;
+  if (!prDefaults()) { toast('Primero carga cargas de combustible para tener la base del presupuesto', 'warn'); return; }
+  const ps = prMonths(); const years = () => Array.from(new Set([+PRS.from.slice(0, 4), +PRS.to.slice(0, 4), PRS.y])).sort();
+  if (!PRS.hol || !PRS.holEdited) PRS.hol = prHolText(years());
+  const m = $('#modal'); DSTACK.length = 0; m.classList.remove('drill');
+  const yOpts = [0, 1, 2].map(i => +PRS.to.slice(0, 4) + i);
+  m.innerHTML = '<div class="mbox e3w igw prw"><header><div><h3><span class="e3w-ic" style="background:linear-gradient(135deg,#16a34a,#4ade80);color:#fff">$</span> Presupuesto anual de combustible</h3><p class="sub">Litros por día hábil de cada unidad × días hábiles de cada mes del año que entra × precio del litro con inflación.</p></div><button class="x" data-act="closeModal" aria-label="Cerrar">×</button></header><div class="mbody ig-body pr-body"><div class="ig-side">' +
+    '<div class="e3w-sec"><b>1 · Año y base</b><div class="e3w-grid"><label>Año a presupuestar<select id="pry">' + yOpts.map(y => '<option' + (y === PRS.y ? ' selected' : '') + '>' + y + '</option>').join('') + '</select></label><label>Base desde<select id="prf">' + ps.map(p => '<option value="' + p + '"' + (p === PRS.from ? ' selected' : '') + '>' + perLabel(p) + '</option>').join('') + '</select></label><label>Base hasta<select id="prt">' + ps.map(p => '<option value="' + p + '"' + (p === PRS.to ? ' selected' : '') + '>' + perLabel(p) + '</option>').join('') + '</select></label></div></div>' +
+    '<div class="e3w-sec"><b>2 · Áreas</b><div class="e3w-chips"><label class="e3chip"><input type="checkbox" id="pral"' + (PRS.areas.log ? ' checked' : '') + '><span>Logística</span></label><label class="e3chip"><input type="checkbox" id="prao"' + (PRS.areas.ops ? ' checked' : '') + '><span>Operaciones</span></label></div></div>' +
+    '<div class="e3w-sec"><b>3 · Precio del litro</b><div class="e3w-grid"><label>Inflación (%)<input type="number" step="0.1" id="pri" value="' + PRS.infl + '"></label>' + Object.keys(PR_GR).map(g => '<label>' + PR_GR[g].t + ' (base)<input type="number" step="0.01" data-prp="' + g + '" value="' + (PRS.precio[g] || '') + '" placeholder="auto"></label>').join('') + '</div><p class="note">El precio base sale del último mes de la base (importe ÷ litros); puedes cambiarlo. <a href="#" id="prauto">Volver a los automáticos</a></p></div>' +
+    '<div class="e3w-sec"><b>4 · Unidades</b><label class="chk pr-chk"><input type="checkbox" id="prn"' + (PRS.nuevas ? ' checked' : '') + '> Unidades nuevas: contar sus días desde su primera carga</label><label class="chk pr-chk"><input type="checkbox" id="prb"' + (PRS.bajas ? ' checked' : '') + '> No presupuestar unidades sin cargas en el último mes de la base (bajas)</label></div>' +
+    '<div class="e3w-sec"><b>5 · Días inhábiles</b><p class="note">Ya vienen los oficiales (Ley Federal del Trabajo). Agrega o quita renglones con el formato AAAA-MM-DD y un motivo. Los domingos se quitan solos.</p><textarea id="prh" rows="9" spellcheck="false">' + esc(PRS.hol) + '</textarea><p class="note"><a href="#" id="prhr">Restablecer los oficiales</a></p></div>' +
+    '<div class="ig-btns"><button class="btn e3go" id="prx">⬇ Descargar Excel</button></div><p class="note">El Excel trae fórmulas: puedes ajustar ahí la inflación, los precios o los días hábiles y todo se recalcula.</p></div>' +
+    '<div class="pr-out" id="prout"><p class="note">Calculando…</p></div></div></div>';
+  m.classList.add('open');
+  let tm = null;
+  const run = () => { clearTimeout(tm); tm = setTimeout(() => { try { const R = prCalc(); $('#prout', m).innerHTML = prHTML(R); $$('[data-prp]', m).forEach(i => { const g = i.getAttribute('data-prp'); if (document.activeElement !== i) i.value = PRS.precio[g] ? (+PRS.precio[g]).toFixed(2) : ''; i.title = 'Automático: ' + F.money2(PRS.precioAuto[g] || 0); }); } catch (e) { console.error(e); $('#prout', m).innerHTML = '<p class="note">No se pudo calcular: ' + esc(e.message) + '</p>'; } }, 120); };
+  const regenHol = () => { if (!PRS.holEdited) { PRS.hol = prHolText(years()); $('#prh', m).value = PRS.hol; } else { const have = prHolSet(); const add = years().filter(y => !Array.from(have.keys()).some(d => d.slice(0, 4) === String(y))); if (add.length) { PRS.hol = PRS.hol.replace(/\s*$/, '') + '\n' + prHolText(add); $('#prh', m).value = PRS.hol; } } };
+  $('#prout', m).addEventListener('input', e => { if (e.target.id !== 'prq' || !PRS.res) return; PRS.q = e.target.value; const p = e.target.selectionStart; $('#prout', m).innerHTML = prHTML(PRS.res); const q2 = $('#prq', m); q2.focus(); q2.setSelectionRange(p, p); });
+  $('#pry', m).onchange = e => { PRS.y = +e.target.value; regenHol(); run(); };
+  $('#prf', m).onchange = e => { PRS.from = e.target.value; if (PRS.from > PRS.to) { PRS.to = PRS.from; $('#prt', m).value = PRS.to; } PRS.precio = {}; regenHol(); run(); };
+  $('#prt', m).onchange = e => { PRS.to = e.target.value; if (PRS.to < PRS.from) { PRS.from = PRS.to; $('#prf', m).value = PRS.from; } PRS.precio = {}; regenHol(); run(); };
+  $('#pral', m).onchange = e => { PRS.areas.log = e.target.checked; run(); }; $('#prao', m).onchange = e => { PRS.areas.ops = e.target.checked; run(); };
+  $('#pri', m).oninput = e => { PRS.infl = parseFloat(e.target.value) || 0; run(); };
+  $$('[data-prp]', m).forEach(i => i.oninput = () => { const v = parseFloat(i.value); PRS.precio[i.getAttribute('data-prp')] = v > 0 ? v : 0; run(); });
+  $('#prauto', m).onclick = e => { e.preventDefault(); PRS.precio = {}; run(); };
+  $('#prn', m).onchange = e => { PRS.nuevas = e.target.checked; run(); }; $('#prb', m).onchange = e => { PRS.bajas = e.target.checked; run(); };
+  $('#prh', m).oninput = e => { PRS.hol = e.target.value; PRS.holEdited = true; run(); };
+  $('#prhr', m).onclick = e => { e.preventDefault(); PRS.holEdited = false; PRS.hol = prHolText(years()); $('#prh', m).value = PRS.hol; run(); };
+  $('#prx', m).onclick = async ev => { const b = ev.currentTarget; if (!PRS.res) return; if (!PRS.areas.log && !PRS.areas.ops) { toast('Elige al menos un área', 'warn'); return; } b.disabled = true; const t = b.textContent; b.textContent = 'Generando…'; try { const x = await prXlsx(PRS.res); const url = URL.createObjectURL(new Blob([x.buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })); const a = document.createElement('a'); a.href = url; a.download = x.name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 4000); toast('Presupuesto descargado ✓'); } catch (err) { console.error(err); toast('No se pudo generar el Excel: ' + err.message, 'warn'); } b.disabled = false; b.textContent = t; };
+  run();
+}
+
 /* Ajuste de barra superior: compacta por niveles hasta que nada se encime */
 function fitTopbar() {
   const tb = document.querySelector('.topbar'), inn = tb && tb.querySelector('.topin'); if (!tb || !inn || !inn.clientWidth) return;
@@ -6936,6 +7134,7 @@ function render() {
   main.innerHTML = html; flush(); requestAnimationFrame(fitKpis);
   if (r === 'cargar') loadHist();
   { const ib = $('#igbtn'); if (ib) ib.style.display = igAllowed() ? '' : 'none'; }
+  { const pb = $('#prbtn'); if (pb) pb.style.display = fmAllowed() ? '' : 'none'; }
   later(fitTopbar);
   { const fb = $('#fmbtn'); if (fb) { fb.style.display = fmAllowed() ? '' : 'none'; fb.classList.toggle('on', r === 'formulador'); } }
   $('#upbtn').style.display = (S.canWrite || !S.db) && canUpAny() ? '' : 'none';
@@ -6968,6 +7167,7 @@ function bindEvents() {
     else if (act === 'mailRal') openMailRal(t.getAttribute('data-area'));
     else if (act === 'mailRend') openMailRend(t.getAttribute('data-area'));
     else if (act === 'infog') openInfografias();
+    else if (act === 'presup') openPresupuesto();
     else if (act === 'trSeg') { S.toggles['trSeg_' + t.getAttribute('data-area')] = t.getAttribute('data-v'); const y = window.scrollY; render(); window.scrollTo(0, y); }
     else if (act === 'mailBack' || act === 'mailEml' || act === 'mailHtml' || act === 'mailCopy') mailAct(act);
     else if (act === 'lgCert') ligaCert(t.getAttribute('data-area'), t.getAttribute('data-kind'));
