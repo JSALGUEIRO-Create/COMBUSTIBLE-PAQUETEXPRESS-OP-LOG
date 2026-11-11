@@ -5436,6 +5436,17 @@ async function ghAddUser(u, pass, role, name) {
   if (name) { S.settings.userNames = Object.assign({}, S.settings.userNames || {}); S.settings.userNames[u.toLowerCase()] = name; }
   ghDirty(); return existed;
 }
+async function addUserForm(keep) {
+  const u = ($('#nu_u').value || '').trim(), n = ($('#nu_n').value || '').trim(), pw = $('#nu_p').value || '', r = $('#nu_r').value || 'consulta';
+  if (!/^[A-Za-z0-9._-]{3,}$/.test(u)) { toast('Escribe un usuario válido (letras y números, mínimo 3)', 'warn'); return false; }
+  if (pw.length < 6) { toast('Escribe la contraseña del usuario (mínimo 6 caracteres)', 'warn'); return false; }
+  try {
+    const ex = await ghAddUser(u, pw, r, n);
+    const msg = (ex ? '✅ Usuario actualizado: ' : '✅ Usuario agregado: ') + u + ' (' + ROLE_LABEL[r] + '). Ahora da «Publicar cambios» y sube el data.enc.json a GitHub.';
+    if (keep) { const box = $('#nu_ok'); if (box) { box.innerHTML = esc(msg); box.style.display = ''; } $('#nu_u').value = $('#nu_n').value = $('#nu_p').value = ''; }
+    toast(msg, 'ok'); return true;
+  } catch (err) { toast('No se pudo agregar: ' + err.message, 'warn'); return false; }
+}
 async function ghPublish() {
   if ((GHS.badParts || []).length) { toast('Antes de publicar corrige los archivos que no se cargaron (ver aviso en pantalla); si publicas así se perderían datos de esos meses.', 'warn'); ghBadNotice(); return; }
   const core = {};
@@ -5766,7 +5777,7 @@ function openSettings() {
     '<label>Km mínimos para evaluar una unidad (Operaciones)<input type="number" step="50" data-s="minKmOps" value="' + setting('minKmOps') + '"></label>' +
     '<label>Km mínimos para evaluar un chofer<input type="number" step="50" data-s="minKmChof" value="' + setting('minKmChof') + '"></label>' +
     '<label class="chk"><input type="checkbox" data-s="excluirLog"' + (setting('excluirLog') ? ' checked' : '') + '> Separar las flotas: en Operaciones excluir unidades y choferes de Logística, y en el ralentí de Logística excluir unidades de Operaciones (los reportes de Samsara de cada área incluyen unidades de la otra; sin esto se cuentan dos veces).</label>' +
-    (window.GH && isAdmin() ? '<div class="usrbox"><h4>👤 Agregar usuario</h4><p class="note">El acceso queda activo cuando das <b>Publicar cambios</b> y subes el nuevo <b>data.enc.json</b> a GitHub. Si el usuario ya existe, se le cambia la contraseña y el rol.</p><div class="usrgrid"><label>Usuario<input id="nu_u" autocomplete="off" placeholder="ej. Eleon"></label><label>Nombre para mostrar<input id="nu_n" autocomplete="off" placeholder="ej. Eduardo León"></label><label>Contraseña<input id="nu_p" type="text" autocomplete="off"></label><label>Rol<select id="nu_r">' + Object.keys(ROLE_LABEL).map(r => '<option value="' + r + '"' + (r === 'consulta' ? ' selected' : '') + '>' + esc(ROLE_LABEL[r]) + '</option>').join('') + '</select></label></div><button class="btn ghost" data-act="addUser">➕ Agregar usuario</button></div>' : '') +
+    (window.GH && isAdmin() ? '<div class="usrbox"><h4>👤 Agregar usuario</h4><p class="note">El acceso queda activo cuando das <b>Publicar cambios</b> y subes el nuevo <b>data.enc.json</b> a GitHub. Si el usuario ya existe, se le cambia la contraseña y el rol.</p><div class="usrgrid"><label>Usuario<input id="nu_u" autocomplete="off" placeholder="ej. Eleon"></label><label>Nombre para mostrar<input id="nu_n" autocomplete="off" placeholder="ej. Eduardo León"></label><label>Contraseña<input id="nu_p" type="text" autocomplete="off"></label><label>Rol<select id="nu_r">' + Object.keys(ROLE_LABEL).map(r => '<option value="' + r + '"' + (r === 'consulta' ? ' selected' : '') + '>' + esc(ROLE_LABEL[r]) + '</option>').join('') + '</select></label></div><button class="btn ghost" data-act="addUser">➕ Agregar usuario</button><p id="nu_ok" class="note" style="display:none;color:#0e7a4f;font-weight:700"></p></div>' : '') +
     '</div><footer>' + ((S.canWrite || !S.db) && isAdmin() ? '<button class="btn" data-act="saveSettings">Guardar' + (S.db ? ' para todos' : '') + '</button>' : '<span class="muted">Solo consulta</span>') + '</footer></div>';
   m.classList.add('open');
   void s;
@@ -6989,14 +7000,10 @@ function bindEvents() {
     else if (act === 'closeModal') closeDrill();
     else if (act === 'dback') { DSTACK.pop(); showDrill(); }
     else if (act === 'dxls') { t.disabled = true; try { await drillExcel(); } finally { t.disabled = false; } }
-    else if (act === 'addUser') {
-      const u = ($('#nu_u').value || '').trim(), n = ($('#nu_n').value || '').trim(), pw = $('#nu_p').value || '', r = $('#nu_r').value || 'consulta';
-      if (!/^[A-Za-z0-9._-]{3,}$/.test(u)) { toast('Escribe un usuario válido (letras y números, mínimo 3)', 'warn'); return; }
-      if (pw.length < 6) { toast('La contraseña debe tener al menos 6 caracteres', 'warn'); return; }
-      t.disabled = true; try { const ex = await ghAddUser(u, pw, r, n); toast((ex ? 'Usuario actualizado: ' : 'Usuario agregado: ') + u + ' (' + ROLE_LABEL[r] + '). Da Publicar cambios y sube data.enc.json para activarlo.'); $('#nu_u').value = $('#nu_n').value = $('#nu_p').value = ''; } catch (err) { toast('No se pudo agregar: ' + err.message, 'warn'); } t.disabled = false;
-    }
+    else if (act === 'addUser') { t.disabled = true; await addUserForm(true); t.disabled = false; }
     else if (act === 'saveSettings') {
       if (!isAdmin()) return;
+      if ($('#nu_u') && $('#nu_u').value.trim()) { if (!(await addUserForm(false))) return; }
       $$('#modal [data-s]').forEach(i => { const k = i.getAttribute('data-s'); S.settings[k] = i.type === 'checkbox' ? i.checked : parseFloat(i.value); });
       try { await saveSettings(); toast('Ajustes guardados', 'ok'); } catch (err) { toast('No se pudieron guardar: ' + (err.code || err.message), 'warn'); }
       $('#modal').classList.remove('open'); render();
