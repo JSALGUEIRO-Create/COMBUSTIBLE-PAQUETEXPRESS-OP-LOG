@@ -643,6 +643,7 @@ body.e3open{overflow:hidden}body.e3open .floatbtn{display:none}
 .topbar.k6 .logo .sep,.topbar.k6 .logo>span:not(.sep){display:none}
 .topbar.k6 .topnav a{padding:8px 8px}
 .topbar.k7 .topin{gap:8px}.topbar.k7 .tright{gap:4px}.topbar.k7 .ibtn{padding:0 8px}.topbar.k7 .logo{display:none}
+.usrbox{margin-top:16px;padding:14px;border:1px dashed var(--line);border-radius:12px}.usrbox h4{margin:0 0 4px}.usrgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;margin:8px 0 10px}
 /* Noticiero de inicio */
 .news{position:relative;margin:0 0 22px;border-radius:26px;overflow:hidden;background:#030914;color:#fff;box-shadow:0 24px 60px rgba(3,9,20,.35)}
 .nw-stage{position:relative;height:560px;overflow:hidden}
@@ -1307,7 +1308,7 @@ const S = {
 const ROLE_DS = { admin: null, log_cargas: ['log_cargas'], ops_cargas: ['ops_cargas'], consulta: [] };
 const ROLE_LABEL = { admin: 'Administrador', log_cargas: 'Carga · Cargas Logística', ops_cargas: 'Carga · Cargas Operaciones', consulta: 'Consulta' };
 const USER_NAMES = { jsalgueiro: 'José Luis Salgueiro', jruelas: 'Jesús Ruelas', yvazquez: 'Yolanda Vazquez', aoblea: 'Ana Karen Oblea', jherrera: 'Jair Herrera', eaguirre: 'Edgardo Aguirre', azazueta: 'Alejandro Zazueta', jsandoval: 'Joaquin Sandoval', mborbolla: 'Joel Borbolla', dvelarde: 'Daniel Velarde', fbarra: 'Fabian Barra', gacosta: 'Gilberto Acosta', logistica: 'Equipo de Logística', operaciones: 'Equipo de Operaciones', compras: 'Equipo de Compras' };
-function displayName(u) { return USER_NAMES[String(u || '').trim().toLowerCase()] || u || ''; }
+function displayName(u) { const k = String(u || '').trim().toLowerCase(); return USER_NAMES[k] || ((S.settings || {}).userNames || {})[k] || u || ''; }
 function setRole(u, role) { S.user_name = u; S.role = ROLE_DS[role] !== undefined ? role : 'consulta'; S.name = displayName(u) || S.name; }
 function isAdmin() { return (S.role || 'consulta') === 'admin'; }
 function canUp(ds) { const r = ROLE_DS[S.role || 'consulta']; return r === null || (r || []).indexOf(ds) >= 0; }
@@ -5421,6 +5422,18 @@ function saveBlob(filename, blob) {
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename; document.body.appendChild(a); a.click();
   setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
 }
+async function ghAddUser(u, pass, role, name) {
+  if (!GHS.key || !GHS.users) throw new Error('Inicia sesión con el portal publicado para agregar usuarios');
+  const id = await sha256(u.toLowerCase()); const salt = crypto.getRandomValues(new Uint8Array(16)); const iv = crypto.getRandomValues(new Uint8Array(12));
+  const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveKey']);
+  const kek = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: GH_ITER, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+  const dek = new Uint8Array(await crypto.subtle.exportKey('raw', GHS.key));
+  const wrap = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, kek, new TextEncoder().encode(JSON.stringify({ dek: b64.enc(dek), u, role })));
+  const ent = { id, salt: b64.enc(salt), iv: b64.enc(iv), wrap: b64.enc(new Uint8Array(wrap)) };
+  const i = GHS.users.findIndex(x => x.id === id); const existed = i >= 0; if (existed) GHS.users[i] = Object.assign({}, GHS.users[i], ent); else GHS.users.push(ent);
+  if (name) { S.settings.userNames = Object.assign({}, S.settings.userNames || {}); S.settings.userNames[u.toLowerCase()] = name; }
+  ghDirty(); return existed;
+}
 async function ghPublish() {
   if ((GHS.badParts || []).length) { toast('Antes de publicar corrige los archivos que no se cargaron (ver aviso en pantalla); si publicas así se perderían datos de esos meses.', 'warn'); ghBadNotice(); return; }
   const core = {};
@@ -5751,6 +5764,7 @@ function openSettings() {
     '<label>Km mínimos para evaluar una unidad (Operaciones)<input type="number" step="50" data-s="minKmOps" value="' + setting('minKmOps') + '"></label>' +
     '<label>Km mínimos para evaluar un chofer<input type="number" step="50" data-s="minKmChof" value="' + setting('minKmChof') + '"></label>' +
     '<label class="chk"><input type="checkbox" data-s="excluirLog"' + (setting('excluirLog') ? ' checked' : '') + '> Separar las flotas: en Operaciones excluir unidades y choferes de Logística, y en el ralentí de Logística excluir unidades de Operaciones (los reportes de Samsara de cada área incluyen unidades de la otra; sin esto se cuentan dos veces).</label>' +
+    (window.GH && isAdmin() ? '<div class="usrbox"><h4>👤 Agregar usuario</h4><p class="note">El acceso queda activo cuando das <b>Publicar cambios</b> y subes el nuevo <b>data.enc.json</b> a GitHub. Si el usuario ya existe, se le cambia la contraseña y el rol.</p><div class="usrgrid"><label>Usuario<input id="nu_u" autocomplete="off" placeholder="ej. Eleon"></label><label>Nombre para mostrar<input id="nu_n" autocomplete="off" placeholder="ej. Eduardo León"></label><label>Contraseña<input id="nu_p" type="text" autocomplete="off"></label><label>Rol<select id="nu_r">' + Object.keys(ROLE_LABEL).map(r => '<option value="' + r + '"' + (r === 'consulta' ? ' selected' : '') + '>' + esc(ROLE_LABEL[r]) + '</option>').join('') + '</select></label></div><button class="btn ghost" data-act="addUser">➕ Agregar usuario</button></div>' : '') +
     '</div><footer>' + ((S.canWrite || !S.db) && isAdmin() ? '<button class="btn" data-act="saveSettings">Guardar' + (S.db ? ' para todos' : '') + '</button>' : '<span class="muted">Solo consulta</span>') + '</footer></div>';
   m.classList.add('open');
   void s;
@@ -5766,7 +5780,7 @@ const FM_SRC = [
   { k: 'samsara', ic: '📡', t: 'Reporte de Samsara', d: 'Kilometraje y, si trae combustible o eficiencia, el Rendimiento Samsara', acc: '.xlsx,.xls,.csv' },
   { k: 'flota', ic: '🚛', t: 'Flota', d: 'Zona de circulación (Región) · datos de unidades nuevas', acc: '.xlsx,.xls,.xlsm' }
 ];
-function igAllowed() { return ['jsalgueiro', 'jruelas'].indexOf(String(S.user_name || '').trim().toLowerCase()) >= 0; }
+function igAllowed() { return ['jsalgueiro', 'jruelas', 'eleon'].indexOf(String(S.user_name || '').trim().toLowerCase()) >= 0; }
 function fmAllowed() { return String(S.user_name || '').trim().toLowerCase() === 'jsalgueiro'; }
 const fmN = s => String(s === null || s === undefined ? '' : s).normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/[^A-Z0-9%$]/g, '');
 const fmT = v => v === null || v === undefined ? '' : String(v).replace(/\s+/g, ' ').trim();
@@ -6973,6 +6987,12 @@ function bindEvents() {
     else if (act === 'closeModal') closeDrill();
     else if (act === 'dback') { DSTACK.pop(); showDrill(); }
     else if (act === 'dxls') { t.disabled = true; try { await drillExcel(); } finally { t.disabled = false; } }
+    else if (act === 'addUser') {
+      const u = ($('#nu_u').value || '').trim(), n = ($('#nu_n').value || '').trim(), pw = $('#nu_p').value || '', r = $('#nu_r').value || 'consulta';
+      if (!/^[A-Za-z0-9._-]{3,}$/.test(u)) { toast('Escribe un usuario válido (letras y números, mínimo 3)', 'warn'); return; }
+      if (pw.length < 6) { toast('La contraseña debe tener al menos 6 caracteres', 'warn'); return; }
+      t.disabled = true; try { const ex = await ghAddUser(u, pw, r, n); toast((ex ? 'Usuario actualizado: ' : 'Usuario agregado: ') + u + ' (' + ROLE_LABEL[r] + '). Da Publicar cambios y sube data.enc.json para activarlo.'); $('#nu_u').value = $('#nu_n').value = $('#nu_p').value = ''; } catch (err) { toast('No se pudo agregar: ' + err.message, 'warn'); } t.disabled = false;
+    }
     else if (act === 'saveSettings') {
       if (!isAdmin()) return;
       $$('#modal [data-s]').forEach(i => { const k = i.getAttribute('data-s'); S.settings[k] = i.type === 'checkbox' ? i.checked : parseFloat(i.value); });
