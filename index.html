@@ -3240,7 +3240,21 @@ function pq2Cross(P, a, rows, src, per) {
   let want = null; const re = /\b(ENERO|FEBRERO|MARZO|ABRIL|MAYO|JUNIO|JULIO|AGOSTO|SEPTIEMBRE|SETIEMBRE|OCTUBRE|NOVIEMBRE|DICIEMBRE)\b(?:\s+(?:DE(?:L)?\s+)?(20\d\d))?/g; let mt;
   while ((mt = re.exec(P.n || ''))) { const y = mt[2] || (P.n.match(/\b(20\d\d)\b/) || [])[1] || ms[ms.length - 1].slice(0, 4); const k = y + '-' + String(MN[mt[1]]).padStart(2, '0'); if (!want || k > want) want = k; }
   const miss = want && want > ms[ms.length - 1] ? '<div class="muted" style="margin-top:4px">⚠ Pediste hasta ' + esc(perLabel(want)) + ', pero ' + esc(AREA_NAME[a]) + ' solo tiene datos hasta ' + esc(perLabel(ms[ms.length - 1])) + '. Carga ese mes y vuelve a preguntar.</div>' : '';
-  return { G, ms, html: html + miss, xl };
+  // Detalle por económico (todas las unidades, con sus datos y el valor de cada mes)
+  let det = null;
+  const fu = P.dim !== 'unit' && src !== 'chof' && src !== 'anom' ? pq2Key('unit', src, a) : null;
+  if (fu) {
+    const L = lookups(); const U = a === 'log' ? L.logU : L.opsU;
+    det = Array.from(groupBy(rows, fu)).filter(([k]) => k).map(([k, g]) => {
+      const last = g.slice().sort((x, y) => String(fm(x) || '') < String(fm(y) || '') ? -1 : 1).pop() || {}; const u = U[k] || {};
+      const o = { 'Económico': k };
+      if (a === 'log') { o['Región'] = regionOf('log', k); o['Marca sub motor'] = sm(last.marca || u.marca || '') || 'Sin clasificar'; o['Modelo'] = last.modelo || u.modelo || ''; }
+      else { o['Sucursal'] = sucOf(k); o['Región'] = regionOf('ops', k); o['Marca'] = marcaOps(last.desc || u.desc || ''); o['Tipo de unidad'] = last.desc || u.desc || ''; o['Combustible'] = (last.comb || u.comb || '') === 'GASOLINA' ? 'Gasolina' : 'Diésel'; }
+      const bm = groupBy(g, fm); let t = 0; ms.forEach((mm, i) => { const x = bm.get(mm); const v = x && x.length ? pq2Val(P.m, a, x) : null; o[ml[i]] = v === null || !isFinite(v) ? null : +(+v).toFixed(P.m === 'rend' || P.m === 'precio' ? 3 : 2); });
+      const tv = pq2Val(P.m, a, g); o[sumable ? 'Total' : 'Periodo'] = tv === null || !isFinite(tv) ? null : +(+tv).toFixed(3); o['Meses con datos'] = ms.filter(mm => bm.get(mm)).length; return o;
+    }).sort((x, y) => (y[sumable ? 'Total' : 'Periodo'] || 0) - (x[sumable ? 'Total' : 'Periodo'] || 0));
+  }
+  return { G, ms, html: html.replace('El Excel trae esta misma tabla.', 'El Excel trae esta tabla' + (det ? ' y la pestaña <b>Detalle</b> con los ' + F.n0(det.length) + ' económicos' : '') + '.').replace('; el Excel trae todos.', '; el Excel trae todos' + (det ? ' y la pestaña <b>Detalle</b> con los ' + F.n0(det.length) + ' económicos' : '') + '.') + miss, xl, det };
 }
 function pq2Groups(m, a, rows, dim, src, per) {
   const fn = pq2Key(dim, src, a); if (!fn) return null;
@@ -3322,7 +3336,7 @@ function pq2Run(P) {
     if (P.cross && P.dim) {
       const X = pq2Cross(P, c.a, rows, src, per); if (!X) { blocks.push('<b>' + c.lab + '</b>: ese dato no se puede separar por ' + PQ_DL[P.dim] + '.'); continue; }
       blocks.push('<b>' + c.lab + '</b> · ' + PQ_ML[P.m] + ' por ' + PQ_DL[P.dim] + ' y mes (' + X.G.length + ' × ' + X.ms.length + ' meses)' + X.html);
-      (P.xsheets = P.xsheets || []).push([c.lab.slice(0, 28), X.xl]); xl.push(...X.xl.map(r => Object.assign({ Area: c.lab }, r)));
+      (P.xsheets = P.xsheets || []).push([c.lab.slice(0, 28), X.xl]); if (X.det && X.det.length) P.xsheets.push([('Detalle ' + (combos.length > 1 ? c.lab : '')).trim().slice(0, 31), X.det]); xl.push(...X.xl.map(r => Object.assign({ Area: c.lab }, r)));
       continue;
     }
     const dim = P.dim || ((P.N || P.hi !== null) && !P.when ? pq2DefDim(src) : null);
