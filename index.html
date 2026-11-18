@@ -662,6 +662,7 @@ body.e3open{overflow:hidden}body.e3open .floatbtn{display:none}
 .pr-body input[type=number]{width:100%}
 @media(max-width:900px){.pr-body{grid-template-columns:1fr}}
 .ivasw{display:inline-flex;align-items:center;gap:0;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:var(--surface);font-size:12.5px}.ivasw span{padding:0 10px;color:var(--muted);font-weight:700}.ivasw button{border:0;background:none;padding:6px 12px;font:inherit;font-weight:700;color:var(--ink2);cursor:pointer}.ivasw button.on{background:var(--brand,#003087);color:#fff}
+.pqxt{overflow-x:auto;margin:6px 0 4px;max-width:100%}.pqxt table{border-collapse:collapse;font-size:11.5px;white-space:nowrap}.pqxt th,.pqxt td{padding:3px 6px;text-align:right;border-bottom:1px solid var(--line)}.pqxt th{font-size:10.5px;color:var(--muted);font-weight:800;position:sticky;top:0;background:var(--surface)}.pqxt td.pn,.pqxt th:first-child{text-align:left;position:sticky;left:0;background:var(--surface)}.pqxt tr.tot td{font-weight:800;border-top:2px solid var(--ink)}
 /* Noticiero de inicio */
 .news{position:relative;margin:0 0 22px;border-radius:26px;overflow:hidden;background:#030914;color:#fff;box-shadow:0 24px 60px rgba(3,9,20,.35)}
 .nw-stage{position:relative;height:560px;overflow:hidden}
@@ -3112,6 +3113,7 @@ function pq2Parse(q) {
   if (P.cmp && pq2Months(n).length < 2) { for (const a of ['log', 'ops']) for (const ty of ['region', 'sucursal', 'marca', 'tipo', 'sitio', 'movil', 'chofer']) { const L = P.ent[a][ty]; if (L && L.length >= 2) { P.cmp = false; P.dim = ty === 'movil' ? 'unit' : ty; P.dimExpl = true; P.areas = P.areas || [a]; P.N = L.length; } } }
   if (P.when) { const wm = (n.match(/(MEJOR|PEOR) (MES|DIA|HORA)|(MES|DIA) (CON|DE) (MAS|MENOS|MAYOR|MENOR)|(A|EN) QUE HORA|EN QUE (MES|DIA|FECHA|SEMANA)|QUE (MES|DIA)|CUAL (FUE |ES )?(EL )?(MES|DIA)|CUANDO/) || [''])[0]; P.dim = /HORA/.test(wm) ? 'hora' : /DIA|FECHA/.test(wm) ? 'dia' : 'mes'; }
   if (P.trend && !P.dim) P.dim = /DIA/.test(n) ? 'dia' : 'mes';
+  { const XM = /\b(MES A MES|MES CON MES|MES POR MES|POR MES|POR MESES|MENSUAL(ES|MENTE)?|CADA MES|DE CADA MES|DESGLOSADO POR MES)\b/; if (XM.test(n)) { const n2 = n.replace(XM, ' ').replace(/\bMESES\b/g, ' '); const d2 = pq2Dim(n2, P.ent); if (d2 && !/^(mes|dia|hora)$/.test(d2.d)) { P.dim = d2.d; P.cross = 'mes'; P.dimExpl = true; P.when = false; P.trend = false; P.cmp = false; P.count = false; } } }
   const tm = n.match(/(DEBAJO DE(L)?|MENOS DE(L)?|MENOR(?:ES)? (?:A|AL|DE|QUE)|ABAJO DE(L)?|BAJO (?:EL |DEL )?|ARRIBA DE(L)?|MAS DE(L)?|MAYOR(?:ES)? (?:A|AL|DE|QUE)|SOBRE EL |ENCIMA DE(L)?|POR ENCIMA DE(L)?|POR DEBAJO DE(L)?)\s*(\d+(?:[.,]\d+)?)\s*(%|POR CIENTO)?/);
   if (tm) { const v = +tm[tm.length - 2].replace(',', '.'); P.thr = { op: /DEBAJO|MENOS|MENOR|ABAJO|BAJO/.test(tm[1]) ? '<' : '>', v, pct: !!tm[tm.length - 1] }; }
   const st = n.match(/\b(CRITIC|VIGILANCIA|ACEPTABLE|OPTIMO|EN IDEAL|CUMPLEN|NO CUMPLEN)/); if (st) P.status = st[1];
@@ -3167,7 +3169,7 @@ function pq2Period(P, src, a) {
   if (/ESTE MES|MES ACTUAL|MES EN CURSO|ESTE PERIODO/.test(n)) return mk([last]);
   m = n.match(/\b(20\d\d)\b/); if (m || /ESTE ANO|EN EL ANO|LO QUE VA DEL ANO|ANUAL|ACUMULADO|EN TODO EL ANO/.test(n)) { const y = m ? m[1] : td.slice(0, 4); return mk(av.filter(x => x.startsWith(y))); }
   if (P.cmp && !P.ent.any) { const pv = av[av.length - 2]; return pv ? { cmp: [mk([pv]), mk([last])] } : mk([last]); }
-  if (P.when || P.trend) return P.dim === 'dia' || P.dim === 'hora' ? mk([last]) : mk(av.slice(-12));
+  if (P.when || P.trend || P.cross) return P.dim === 'dia' || P.dim === 'hora' ? mk([last]) : mk(av.slice(-12));
   return mk([last], src === 'rend' || src === 'chof' ? null : 'Mes más reciente con datos' + (md ? ' (al ' + dLabel(md) + ')' : '') + '.');
 }
 function pq2Rows(src, a, per, P, fuel) {
@@ -3218,6 +3220,28 @@ function pq2Key(dim, src, a) {
 }
 function pq2DefDim(src) { return { rend: 'region', cargas: 'sitio', ral: 'unit', chof: 'chofer', anom: 'anomt' }[src]; }
 function pq2Lab(dim, k) { return dim === 'mes' ? perLabel(k) : dim === 'dia' ? dLabel(k) : String(k); }
+/* Cruce: una dimensión (marca, región, sucursal…) por mes */
+function pq2Cross(P, a, rows, src, per) {
+  const fk = pq2Key(P.dim, src, a), fm = pq2Key('mes', src, a); if (!fk || !fm) return null;
+  const ms = Array.from(new Set(rows.map(fm).filter(Boolean))).sort(); if (!ms.length) return null;
+  const G = Array.from(groupBy(rows, fk)).filter(([k]) => k !== null && k !== undefined && k !== '').map(([k, g]) => { const bm = groupBy(g, fm); return { k, lab: pq2Lab(P.dim, k), tot: pq2Val(P.m, a, g), m: ms.map(mm => { const x = bm.get(mm); return x && x.length ? pq2Val(P.m, a, x) : null; }) }; }).filter(x => x.tot !== null && isFinite(x.tot));
+  if (!G.length) return null;
+  G.sort((x, y) => y.tot - x.tot);
+  const tot = { lab: 'Total', tot: pq2Val(P.m, a, rows), m: ms.map(mm => { const x = rows.filter(r => fm(r) === mm); return x.length ? pq2Val(P.m, a, x) : null; }) };
+  const ml = ms.map(mm => pq2Lab('mes', mm)); const sumable = /^(km|lts|gasto|exc|cargasN|cargasL|cargasI|ralL|ralE|ralH|ralM|anom|anomM)$/.test(P.m);
+  const fmt = v => v === null || v === undefined ? '—' : pq2Fmt(P.m, v);
+  const head = '<tr><th>' + esc(PQ_DL[P.dim].charAt(0).toUpperCase() + PQ_DL[P.dim].slice(1)) + '</th>' + ms.map(mm => '<th>' + esc(perShort(mm)) + '</th>').join('') + '<th>' + (sumable ? 'Total' : 'Periodo') + '</th></tr>';
+  const row = (x, cls) => '<tr' + (cls ? ' class="' + cls + '"' : '') + '><td class="pn">' + esc(x.lab) + '</td>' + x.m.map(v => '<td>' + fmt(v) + '</td>').join('') + '<td><b>' + fmt(x.tot) + '</b></td></tr>';
+  const K = 15;
+  const html = '<div class="pqxt"><table><thead>' + head + '</thead><tbody>' + G.slice(0, K).map(x => row(x)).join('') + (G.length > 1 ? row(tot, 'tot') : '') + '</tbody></table></div>' + (G.length > K ? '<span class="muted">Se muestran ' + K + ' de ' + G.length + '; el Excel trae todos.</span>' : '<span class="muted">El Excel trae esta misma tabla.</span>');
+  const nm = PQ_DL[P.dim].charAt(0).toUpperCase() + PQ_DL[P.dim].slice(1);
+  const xl = G.concat(G.length > 1 ? [tot] : []).map(x => { const o = {}; o[nm] = x.lab; ms.forEach((mm, i) => { o[ml[i]] = x.m[i] === null ? null : +(+x.m[i]).toFixed(P.m === 'rend' || P.m === 'precio' ? 3 : 2); }); o[sumable ? 'Total' : 'Periodo'] = +(+x.tot).toFixed(3); return o; });
+  const MN = { ENERO: 1, FEBRERO: 2, MARZO: 3, ABRIL: 4, MAYO: 5, JUNIO: 6, JULIO: 7, AGOSTO: 8, SEPTIEMBRE: 9, SETIEMBRE: 9, OCTUBRE: 10, NOVIEMBRE: 11, DICIEMBRE: 12 };
+  let want = null; const re = /\b(ENERO|FEBRERO|MARZO|ABRIL|MAYO|JUNIO|JULIO|AGOSTO|SEPTIEMBRE|SETIEMBRE|OCTUBRE|NOVIEMBRE|DICIEMBRE)\b(?:\s+(?:DE(?:L)?\s+)?(20\d\d))?/g; let mt;
+  while ((mt = re.exec(P.n || ''))) { const y = mt[2] || (P.n.match(/\b(20\d\d)\b/) || [])[1] || ms[ms.length - 1].slice(0, 4); const k = y + '-' + String(MN[mt[1]]).padStart(2, '0'); if (!want || k > want) want = k; }
+  const miss = want && want > ms[ms.length - 1] ? '<div class="muted" style="margin-top:4px">⚠ Pediste hasta ' + esc(perLabel(want)) + ', pero ' + esc(AREA_NAME[a]) + ' solo tiene datos hasta ' + esc(perLabel(ms[ms.length - 1])) + '. Carga ese mes y vuelve a preguntar.</div>' : '';
+  return { G, ms, html: html + miss, xl };
+}
 function pq2Groups(m, a, rows, dim, src, per) {
   const fn = pq2Key(dim, src, a); if (!fn) return null;
   let G = Array.from(groupBy(rows, fn)).filter(([k]) => k !== null && k !== undefined && k !== '').map(([k, g]) => ({ k, lab: pq2Lab(dim, k), v: pq2Val(m, a, g), n: g.length, g }));
@@ -3261,6 +3285,7 @@ function pq2Int(P, src, per, extra) {
 function pq2Dir(P) { const hiG = !!PQ_HI[P.m]; if (P.hi === 'better') return hiG ? 1 : 0; if (P.hi === 'worse') return hiG ? 0 : 1; if (P.hi === 0 || P.hi === 1) return P.hi; return hiG ? 1 : 1; }
 function pq2Run(P) {
   const src = pq2Src(P.m); const combos = pq2Combos(P, src); if (!combos.length) return null;
+  P.xsheets = null;
   const blocks = []; const xl = []; let perShown = null; let note = null;
   for (const c of combos) {
     const per = pq2Period(P, src, c.a);
@@ -3292,6 +3317,12 @@ function pq2Run(P) {
       const hit = G.filter(cond).sort((x, y) => vv(x) - vv(y));
       blocks.push('<b>' + c.lab + '</b>: <b>' + F.n0(hit.length) + '</b> de ' + F.n0(G.length) + ' ' + cdn + ' (' + F.pct(div(hit.length, G.length)) + ') están ' + ctext + '.' + (hit.length ? pq2Bars(hit.slice(0, P.N || 10).map((x, i) => ({ lab: x.lab, v: vv(x), rk: i + 1 })), mm) + (hit.length > (P.N || 10) ? '<span class="muted">…y ' + (hit.length - (P.N || 10)) + ' más (descárgalos en Excel).</span>' : '') : ''));
       hit.forEach(x => xl.push({ Area: c.lab, Nombre: x.lab, Valor: vv(x) }));
+      continue;
+    }
+    if (P.cross && P.dim) {
+      const X = pq2Cross(P, c.a, rows, src, per); if (!X) { blocks.push('<b>' + c.lab + '</b>: ese dato no se puede separar por ' + PQ_DL[P.dim] + '.'); continue; }
+      blocks.push('<b>' + c.lab + '</b> · ' + PQ_ML[P.m] + ' por ' + PQ_DL[P.dim] + ' y mes (' + X.G.length + ' × ' + X.ms.length + ' meses)' + X.html);
+      (P.xsheets = P.xsheets || []).push([c.lab.slice(0, 28), X.xl]); xl.push(...X.xl.map(r => Object.assign({ Area: c.lab }, r)));
       continue;
     }
     const dim = P.dim || ((P.N || P.hi !== null) && !P.when ? pq2DefDim(src) : null);
@@ -3335,13 +3366,13 @@ function pq2Run(P) {
   }
   const dimLab = P.when ? ({ dia: 'día', hora: 'hora', mes: 'mes' }[P.dim] || 'mes') + (P.hi === 'better' ? ' mejor' : P.hi === 'worse' ? ' peor' : P.m === 'precio' ? (pq2Dir(P) ? ' más caro' : ' más barato') : (pq2Dir(P) ? ' con más' : ' con menos')) : P.count ? 'conteo' : P.dim ? 'por ' + PQ_DL[P.dim] : P.cmp ? 'comparación' : null;
   const html = pq2Int(P, src, perShown, dimLab) + blocks.join('<div class="pqsep"></div>') + (note ? '<div class="muted" style="margin-top:6px">' + esc(note) + '</div>' : '') + (P.m === 'precio' && !P.fuente ? '<div class="muted" style="margin-top:6px">Precio promedio ponderado de todas las cargas (autoconsumo y gasolineras). Pide “solo autoconsumo” o “solo gasolineras” si lo quieres separado.</div>' : '');
-  const acts = []; if (xl.length) acts.push(['⬇ Excel de esta respuesta', () => downloadXLSX('Paquetin ' + PQ_ML[P.m] + '.xlsx', [['Respuesta', xl]])]);
+  const acts = []; if (xl.length) acts.push(['⬇ Excel de esta respuesta', P.cross && P.xsheets ? () => downloadXLSX('Paquetin ' + PQ_ML[P.m] + ' por ' + PQ_DL[P.dim] + ' y mes.xlsx', P.xsheets) : () => downloadXLSX('Paquetin ' + PQ_ML[P.m] + '.xlsx', [['Respuesta', xl]])]);
   const sec = { rend: 'rendimientos', cargas: 'cargas', ral: 'ralenti', chof: 'choferes', anom: 'anomalias' }[src]; const a0 = combos[0].a; acts.push(['Ir a la sección', () => { location.hash = SLUG[a0] + '-' + sec; }]);
   return { html, acts, chips: pq2Chips(P, src) };
 }
 function pq2Chips(P, src) {
   const c = [];
-  if (!P.dim || P.dim !== 'mes') c.push('¿Y mes a mes?');
+  if (!P.cross && (!P.dim || P.dim !== 'mes')) c.push(P.dim && !/^(dia|hora)$/.test(P.dim) ? '¿Y por ' + PQ_DL[P.dim] + ' mes a mes?' : '¿Y mes a mes?');
   if (P.dim !== 'region') c.push('¿Y por región?');
   if (src === 'cargas' && P.dim !== 'sitio') c.push('¿Y por sitio?');
   if (src === 'ral' && P.dim !== 'unit') c.push('¿Qué unidades tienen más?');
