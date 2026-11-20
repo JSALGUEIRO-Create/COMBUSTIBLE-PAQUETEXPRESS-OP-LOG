@@ -2144,6 +2144,7 @@ function viewOpsRend() {
     card('Rendimiento por sucursal', table(gcols('Sucursal'), byS, { sort: 'cump', limit: 12, search: true, onRow: x => DO('Sucursal ' + x.n, r => r.suc === x.n) })) +
     card('Detalle por región', table(gcols('Región'), byR, { sort: 'cump', onRow: x => DO('Región ' + x.n, r => r.region === x.n) })) +
     '<div class="grid2">' + card('Rendimiento por marca', '<div id="' + ids.m + '"></div>') + card('Por tipo de unidad', table(gcols('Tipo de unidad'), byD, { sort: 'u', limit: 15, onRow: x => DO(x.n, r => r.desc === x.n) })) + '</div>' +
+      (() => { const byC = aggOps(all, r => conceptoOps(r.desc)); const have = new Set(byC.map(x => x.n)); const list = byC.concat(CONC_OPS.filter(k => !have.has(k)).map(k => ({ n: k, u: 0, km: 0, lts: 0, imp: 0, rend: null, ideal: null, cump: null }))).sort((x, y) => concOrder(x.n) - concOrder(y.n)); const T = { n: 'TOTAL', u: sum(byC, 'u'), km: sum(byC, 'km'), lts: sum(byC, 'lts'), imp: sum(byC, 'imp') }; T.rend = div(T.km, T.lts); return card('Por concepto · ' + perLabel(p), table([{ k: 'n', l: 'Concepto' }, { k: 'u', l: 'Unid.', num: 1, f: F.n0 }, { k: 'km', l: 'Km recorridos', num: 1, f: F.n0 }, { k: 'lts', l: 'Litros', num: 1, f: F.n0 }, { k: 'rend', l: 'km/L', num: 1, f: v => v ? F.n2(v) : '—' }, { k: 'imp', l: 'Gasto', num: 1, f: F.money }], list.concat([T]), { limit: 40, onRow: x => x.n === 'TOTAL' ? null : DO(x.n, r => conceptoOps(r.desc) === x.n) }), { sub: 'Agrupación de tipos de unidad para semáforo y presupuesto · varios renglones juntan 2 o más tipos (HINO 716-816, HINO HIBRIDO, SPRINTER, HIACE) · incluye unidades con recorrido sin carga · Pídeselo a Paquetín: «km por concepto mes a mes».' }); })() +
     (() => { const g = byTam.find(x => /Ligero/.test(x.n)) || {}, m = byTam.find(x => /Mediano/.test(x.n)) || {}, p = byTam.find(x => /Pesado/.test(x.n)) || {}; const tile = (k, t, x) => '<div class="ptile ' + k + ' click"' + dr(() => DO(t, r => tamOps(r) === x.n)) + ' title="Clic para ver las unidades"><img src="' + IMG[k] + '" alt=""><div class="ptxt"><b>' + t + '</b><span>' + F.n0(x.u || 0) + ' unidades</span><em>' + (x.u ? 'real ' + F.n2(x.rend) + ' vs ideal ' + F.n2(x.ideal) + ' km/L' : '') + '</em>' + (x.cump ? badge(x.cump, F.pct0(x.cump)) : '') + '</div></div>'; return '<div class="ptiles three">' + tile('sprinter', 'Ligeras (vans)', g) + tile('hino', 'Medianas (camión)', m) + tile('hinos_anden', 'Pesadas (rabón)', p) + '</div>'; })() +
     '<div class="grid2">' + card('Modalidad · litros por tecnología', '<div id="' + ids.tec + '"></div>') + card('Cumplimiento por tamaño y tecnología', '<div id="' + ids.tam + '"></div>') + '</div>' +
     '<div class="grid2">' + card('Distribución de cumplimiento', '<div id="' + ids.hist + '"></div>') + card('Gasto por región', '<div id="' + ids.gr + '"></div>') + '</div>' +
@@ -2733,10 +2734,37 @@ function ficha(a, veh) {
 
 /* ---------- Motor de consultas (lo usan Paquetín local y las herramientas de Claude) ---------- */
 function latestRend(a) { return latest(AREA_DS[a].rend); }
-function areaRows(a, mes) { return a === 'log' ? logRendRows(mes, true) : opsRendRows(mes, { ignoreRegion: true }); }
+function areaRows(a, mes, all) { return a === 'log' ? logRendRows(mes, true) : opsRendRows(mes, all ? { ignoreRegion: true, allCasos: true } : { ignoreRegion: true }); }
+/* Conceptos de Operaciones (agrupación por tipo de unidad que usa Presupuestos / semáforo) */
+const CONC_OPS = ['MOTOCICLETA', 'CADDY GASOLINA', 'CADDY DIESEL', 'SPRINTER', 'PEUGEOT DIESEL', 'EXPERT', 'TRANSIT', 'TRANSPORTER', 'RAM PROMASTER RAPID', 'HIACE TOYOTA', 'HINO HIBRIDO', 'HINO 716-816', 'HINO 718', 'FREIGHTLINER 360', 'RABON H-1018', 'RABON H-1024', 'RABON H-1524', 'RABON F-25 K', 'RABON F-35 K', 'ISUZU ELF500K', 'MONTACARGAS'];
+function conceptoOps(desc) {
+  const d = String(desc || '').toUpperCase();
+  if (!d.trim()) return 'SIN CLASIFICAR';
+  if (/MOTOCICLETA|\bMOTO\b|YAMAHA|ITALIKA|YBR|FZ25/.test(d)) return 'MOTOCICLETA';
+  if (/MONTACARGA/.test(d)) return 'MONTACARGAS';
+  if (/CADDY/.test(d)) return /DIESEL/.test(d) ? 'CADDY DIESEL' : 'CADDY GASOLINA';
+  if (/SPRINTER/.test(d)) return 'SPRINTER';
+  if (/EXPERT/.test(d)) return 'EXPERT';
+  if (/PEUGEOT|PARTNER/.test(d)) return 'PEUGEOT DIESEL';
+  if (/TRANSIT/.test(d)) return 'TRANSIT';
+  if (/TRANSPORTER/.test(d)) return 'TRANSPORTER';
+  if (/PROMASTER/.test(d)) return 'RAM PROMASTER RAPID';
+  if (/HIACE/.test(d)) return 'HIACE TOYOTA';
+  if (/RABON/.test(d) || /\b(H-?)?1018\b|\b(H-?)?1024\b|\b(H-?)?1524\b|M2 ?(25|35)/.test(d)) {
+    if (/1018/.test(d)) return 'RABON H-1018'; if (/1024/.test(d)) return 'RABON H-1024'; if (/1524/.test(d)) return 'RABON H-1524';
+    if (/25 ?K|\b25\b/.test(d)) return 'RABON F-25 K'; if (/35 ?K|\b35\b/.test(d)) return 'RABON F-35 K';
+  }
+  if (/HINO/.test(d) && /HIBRID/.test(d)) return 'HINO HIBRIDO';
+  if (/HINO/.test(d) && /718/.test(d)) return 'HINO 718';
+  if (/HINO/.test(d) && /(716|816)/.test(d)) return 'HINO 716-816';
+  if (/360/.test(d) && /FREIGHTLINER|\bFL\b/.test(d)) return 'FREIGHTLINER 360';
+  if (/ISUZU|\bELF/.test(d)) return 'ISUZU ELF500K';
+  return 'OTROS · ' + d.trim();
+}
+function concOrder(k) { const i = CONC_OPS.indexOf(k); return i < 0 ? 900 + (String(k).indexOf('SIN') === 0 ? 1 : 0) : i; }
 const QBY = {
   log: { clase: r => modalidad(r), region: r => r.zona, marca: r => sm(r.marca), modalidad: r => modalidad(r), segmento: r => r.segmento, movil: r => r.eco, total: () => 'TOTAL' },
-  ops: { clase: r => segOf('ops', r), region: r => r.region, sucursal: r => r.suc, marca: r => marcaOps(r.desc), tipo: r => r.desc, tecnologia: r => tecOps(r), tamano: r => tamOps(r), combustible: r => r.comb, movil: r => r.movil, total: () => 'TOTAL' }
+  ops: { clase: r => segOf('ops', r), region: r => r.region, sucursal: r => r.suc, marca: r => marcaOps(r.desc), tipo: r => r.desc, concepto: r => conceptoOps(r.desc), tecnologia: r => tecOps(r), tamano: r => tamOps(r), combustible: r => r.comb, movil: r => r.movil, total: () => 'TOTAL' }
 };
 function qMatch(a, r, f) {
   if (!f) return true;
@@ -2995,7 +3023,7 @@ const PQ_ML = {
   anom: 'Anomalías', anomM: 'Dinero en riesgo por anomalías'
 };
 const PQ_HI = { rend: 1, cump: 1, km: 1, auto: 1, chofRend: 1, chofKm: 1, unid: 1, chofN: 1, cargasN: 0 };
-const PQ_DL = { mes: 'mes', dia: 'día', hora: 'hora', region: 'región', sucursal: 'sucursal', marca: 'marca', tipo: 'tipo de unidad', modalidad: 'modalidad', clase: 'clase (vans / caja seca)', segmento: 'segmento', comb: 'combustible', prov: 'proveedor / estación', sitio: 'sitio de carga', fuente: 'fuente', ubic: 'ubicación', chofer: 'chofer', unit: 'unidad', anomt: 'tipo de anomalía' };
+const PQ_DL = { mes: 'mes', dia: 'día', hora: 'hora', region: 'región', sucursal: 'sucursal', marca: 'marca', tipo: 'tipo de unidad', concepto: 'concepto', modalidad: 'modalidad', clase: 'clase (vans / caja seca)', segmento: 'segmento', comb: 'combustible', prov: 'proveedor / estación', sitio: 'sitio de carga', fuente: 'fuente', ubic: 'ubicación', chofer: 'chofer', unit: 'unidad', anomt: 'tipo de anomalía' };
 function pq2Src(m) { return { rend: 'rend', cump: 'rend', km: 'rend', lts: 'rend', gasto: 'rend', exc: 'rend', unid: 'rend', precio: 'cargas', cargasN: 'cargas', cargasL: 'cargas', cargasI: 'cargas', auto: 'cargas', ralL: 'ral', ralE: 'ral', ralH: 'ral', ralV: 'ral', ralM: 'ral', chofPr: 'chof', chofRend: 'chof', chofKm: 'chof', chofHr: 'chof', chofN: 'chof', anom: 'anom', anomM: 'anom' }[m]; }
 function pq2Fmt(m, v) {
   if (v === null || v === undefined || !isFinite(v)) return '—';
@@ -3079,7 +3107,7 @@ function pq2Metric(n) {
 }
 function pq2Dim(n, E) {
   const has = ty => (E.log[ty] && E.log[ty].length) || (E.ops[ty] && E.ops[ty].length);
-  const R = [['mes', 'MES|MESES|MENSUAL'], ['dia', 'DIA|DIAS|DIARIO|FECHA'], ['hora', 'HORA|HORAS|HORARIO'], ['anomt', 'TIPO DE ANOMALIA|TIPOS DE ANOMALIA'], ['sucursal', 'SUCURSAL|SUCURSALES|PLAZA|PLAZAS'], ['region', 'REGION|REGIONES'], ['tipo', 'MODELO|MODELOS|TIPO DE UNIDAD|TIPOS DE UNIDAD|TIPO DE CAMIONETA|TIPO DE VEHICULO'], ['marca', 'MARCA|MARCAS|MOTOR|MOTORES'], ['modalidad', 'MODALIDAD|MODALIDADES'], ['clase', 'CLASE|CLASES|VANS VS CAJA SECA|CAJA SECA VS VANS|VANS Y CAJA SECA|TAMANO|TAMANOS|FULL VS SENCILLO|SENCILLO VS FULL'], ['segmento', 'SEGMENTO|SEGMENTOS'], ['comb', 'COMBUSTIBLE|TIPO DE COMBUSTIBLE'], ['prov', 'PROVEEDOR|PROVEEDORES|ESTACION DE SERVICIO|ESTACIONES DE SERVICIO|ESTACION|ESTACIONES'], ['sitio', 'SITIO|SITIOS|GASOLINERA|GASOLINERAS|PATIO|PUNTO DE CARGA'], ['fuente', 'FUENTE|FUENTES'], ['ubic', 'UBICACION|UBICACIONES|LUGAR|LUGARES|DIRECCION|DONDE'], ['chofer', 'CHOFER|CHOFERES|CONDUCTOR|CONDUCTORES|OPERADOR|OPERADORES'], ['unit', 'UNIDAD|UNIDADES|MOVIL|MOVILES|TRACTO|TRACTOS|CAMIONETA|CAMIONETAS|VEHICULO|VEHICULOS|ECONOMICO|ECONOMICOS|CAMION|CAMIONES']];
+  const R = [['mes', 'MES|MESES|MENSUAL'], ['dia', 'DIA|DIAS|DIARIO|FECHA'], ['hora', 'HORA|HORAS|HORARIO'], ['anomt', 'TIPO DE ANOMALIA|TIPOS DE ANOMALIA'], ['sucursal', 'SUCURSAL|SUCURSALES|PLAZA|PLAZAS'], ['region', 'REGION|REGIONES'], ['concepto', 'CONCEPTO|CONCEPTOS|AGRUPADO|AGRUPADOS|AGRUPACION'], ['tipo', 'MODELO|MODELOS|TIPO DE UNIDAD|TIPOS DE UNIDAD|TIPO DE CAMIONETA|TIPO DE VEHICULO'], ['marca', 'MARCA|MARCAS|MOTOR|MOTORES'], ['modalidad', 'MODALIDAD|MODALIDADES'], ['clase', 'CLASE|CLASES|VANS VS CAJA SECA|CAJA SECA VS VANS|VANS Y CAJA SECA|TAMANO|TAMANOS|FULL VS SENCILLO|SENCILLO VS FULL'], ['segmento', 'SEGMENTO|SEGMENTOS'], ['comb', 'COMBUSTIBLE|TIPO DE COMBUSTIBLE'], ['prov', 'PROVEEDOR|PROVEEDORES|ESTACION DE SERVICIO|ESTACIONES DE SERVICIO|ESTACION|ESTACIONES'], ['sitio', 'SITIO|SITIOS|GASOLINERA|GASOLINERAS|PATIO|PUNTO DE CARGA'], ['fuente', 'FUENTE|FUENTES'], ['ubic', 'UBICACION|UBICACIONES|LUGAR|LUGARES|DIRECCION|DONDE'], ['chofer', 'CHOFER|CHOFERES|CONDUCTOR|CONDUCTORES|OPERADOR|OPERADORES'], ['unit', 'UNIDAD|UNIDADES|MOVIL|MOVILES|TRACTO|TRACTOS|CAMIONETA|CAMIONETAS|VEHICULO|VEHICULOS|ECONOMICO|ECONOMICOS|CAMION|CAMIONES']];
   let fb = null;
   for (const [d, st] of R) {
     if (!new RegExp('\\b(' + st + ')\\b').test(n)) continue;
@@ -3113,6 +3141,7 @@ function pq2Parse(q) {
   if (P.cmp && pq2Months(n).length < 2) { for (const a of ['log', 'ops']) for (const ty of ['region', 'sucursal', 'marca', 'tipo', 'sitio', 'movil', 'chofer']) { const L = P.ent[a][ty]; if (L && L.length >= 2) { P.cmp = false; P.dim = ty === 'movil' ? 'unit' : ty; P.dimExpl = true; P.areas = P.areas || [a]; P.N = L.length; } } }
   if (P.when) { const wm = (n.match(/(MEJOR|PEOR) (MES|DIA|HORA)|(MES|DIA) (CON|DE) (MAS|MENOS|MAYOR|MENOR)|(A|EN) QUE HORA|EN QUE (MES|DIA|FECHA|SEMANA)|QUE (MES|DIA)|CUAL (FUE |ES )?(EL )?(MES|DIA)|CUANDO/) || [''])[0]; P.dim = /HORA/.test(wm) ? 'hora' : /DIA|FECHA/.test(wm) ? 'dia' : 'mes'; }
   if (P.trend && !P.dim) P.dim = /DIA/.test(n) ? 'dia' : 'mes';
+  if (P.dim === 'concepto') { P.cross = 'mes'; P.when = false; P.trend = false; P.cmp = false; P.count = false; }
   { const XM = /\b(MES A MES|MES CON MES|MES POR MES|POR MES|POR MESES|MENSUAL(ES|MENTE)?|CADA MES|DE CADA MES|DESGLOSADO POR MES)\b/; if (XM.test(n)) { const n2 = n.replace(XM, ' ').replace(/\bMESES\b/g, ' '); const d2 = pq2Dim(n2, P.ent); if (d2 && !/^(mes|dia|hora)$/.test(d2.d)) { P.dim = d2.d; P.cross = 'mes'; P.dimExpl = true; P.when = false; P.trend = false; P.cmp = false; P.count = false; } } }
   const tm = n.match(/(DEBAJO DE(L)?|MENOS DE(L)?|MENOR(?:ES)? (?:A|AL|DE|QUE)|ABAJO DE(L)?|BAJO (?:EL |DEL )?|ARRIBA DE(L)?|MAS DE(L)?|MAYOR(?:ES)? (?:A|AL|DE|QUE)|SOBRE EL |ENCIMA DE(L)?|POR ENCIMA DE(L)?|POR DEBAJO DE(L)?)\s*(\d+(?:[.,]\d+)?)\s*(%|POR CIENTO)?/);
   if (tm) { const v = +tm[tm.length - 2].replace(',', '.'); P.thr = { op: /DEBAJO|MENOS|MENOR|ABAJO|BAJO/.test(tm[1]) ? '<' : '>', v, pct: !!tm[tm.length - 1] }; }
@@ -3180,7 +3209,7 @@ function pq2Rows(src, a, per, P, fuel) {
     const u = U[v]; if (E.marca && !(u && inL(E.marca, a === 'log' ? sm(u.marca) : marcaOps(u.desc)))) return false; if (E.tipo && !(u && inL(E.tipo, u.desc))) return false; if (E.clase && !(u && claseOps(u.desc) === E.clase[0])) return false;
     if (fuel && a === 'ops' && combOf(v) !== fuel) return false; if (fuel === 'GASOLINA' && a === 'log') return false; return true;
   };
-  if (src === 'rend') return per.months.flatMap(m => areaRows(a, m).map(r => Object.assign({ _m: m }, r))).filter(r => {
+  if (src === 'rend') return per.months.flatMap(m => areaRows(a, m, P.m === 'km' && P.dim === 'concepto').map(r => Object.assign({ _m: m }, r))).filter(r => {
     const v = a === 'log' ? r.eco : r.movil; if (E.movil && !E.movil.includes(v)) return false;
     if (E.region && !inL(E.region, QBY[a].region(r)) && !inL(E.region, regionOf(a, v))) return false; if (E.marca && !inL(E.marca, QBY[a].marca(r))) return false;
     if (a === 'ops') { if (E.sucursal && !inL(E.sucursal, r.suc)) return false; if (E.tipo && !inL(E.tipo, r.desc)) return false; if (E.clase && segOf('ops', r) !== E.clase[0]) return false; if (fuel && r.comb !== fuel) return false; }
@@ -3208,11 +3237,11 @@ function pq2Key(dim, src, a) {
   if (dim === 'mes') return src === 'rend' || src === 'chof' ? r => r._m : r => String(r.fecha).slice(0, 7);
   if (dim === 'dia') return src === 'rend' || src === 'chof' ? null : r => r.fecha;
   if (dim === 'hora') return src === 'ral' || src === 'cargas' ? r => String(r.hora || '00').slice(0, 2) + ':00' : null;
-  if (src === 'rend') return ({ region: QBY[a].region, sucursal: QBY[a].sucursal || QBY[a].region, marca: QBY[a].marca, tipo: QBY[a].tipo || QBY[a].marca, modalidad: QBY[a].modalidad, clase: QBY[a].clase, segmento: QBY[a].segmento, comb: QBY[a].combustible || (() => 'DIESEL'), unit: QBY[a].movil })[dim] || null;
+  if (src === 'rend') return ({ region: QBY[a].region, sucursal: QBY[a].sucursal || QBY[a].region, marca: QBY[a].marca, tipo: QBY[a].tipo || QBY[a].marca, concepto: QBY[a].concepto || null, modalidad: QBY[a].modalidad, clase: QBY[a].clase, segmento: QBY[a].segmento, comb: QBY[a].combustible || (() => 'DIESEL'), unit: QBY[a].movil })[dim] || null;
   if (src === 'chof') return dim === 'chofer' || dim === 'unit' ? r => r.chofer : null;
   if (src === 'anom' && dim === 'anomt') return x => x.tn;
   const vk = src === 'cargas' ? r => r.movil : src === 'ral' ? r => r.veh : x => x.veh;
-  const f = { region: r => regionOf(a, vk(r)), sucursal: a === 'ops' ? r => sucOf(vk(r)) : r => regionOf(a, vk(r)), marca: r => { const u = U[vk(r)]; return u ? (a === 'log' ? sm(u.marca) : marcaOps(u.desc)) : 'Sin clasificar'; }, tipo: r => { const u = U[vk(r)]; return u ? (a === 'log' ? sm(u.marca) : u.desc) : 'Sin clasificar'; }, clase: r => { const u = U[vk(r)]; return a === 'log' ? 'Tractos' : u ? claseOps(u.desc) : 'Sin clasificar'; }, unit: vk, comb: r => a === 'log' ? 'DIESEL' : (combOf(vk(r)) || 'Sin clasificar') }[dim];
+  const f = { region: r => regionOf(a, vk(r)), sucursal: a === 'ops' ? r => sucOf(vk(r)) : r => regionOf(a, vk(r)), marca: r => { const u = U[vk(r)]; return u ? (a === 'log' ? sm(u.marca) : marcaOps(u.desc)) : 'Sin clasificar'; }, tipo: r => { const u = U[vk(r)]; return u ? (a === 'log' ? sm(u.marca) : u.desc) : 'Sin clasificar'; }, concepto: a === 'ops' ? r => { const u = U[vk(r)]; return u ? conceptoOps(u.desc) : 'SIN CLASIFICAR'; } : null, clase: r => { const u = U[vk(r)]; return a === 'log' ? 'Tractos' : u ? claseOps(u.desc) : 'Sin clasificar'; }, unit: vk, comb: r => a === 'log' ? 'DIESEL' : (combOf(vk(r)) || 'Sin clasificar') }[dim];
   if (f) return f;
   if (src === 'cargas') return { prov: CG[a].prov, sitio: CG[a].sitio, fuente: CG[a].fuente }[dim] || null;
   if (src === 'ral') return { ubic: placeOf, chofer: r => r.chofer || 'Sin chofer', sitio: placeOf }[dim] || null;
@@ -3226,13 +3255,13 @@ function pq2Cross(P, a, rows, src, per) {
   const ms = Array.from(new Set(rows.map(fm).filter(Boolean))).sort(); if (!ms.length) return null;
   const G = Array.from(groupBy(rows, fk)).filter(([k]) => k !== null && k !== undefined && k !== '').map(([k, g]) => { const bm = groupBy(g, fm); return { k, lab: pq2Lab(P.dim, k), tot: pq2Val(P.m, a, g), m: ms.map(mm => { const x = bm.get(mm); return x && x.length ? pq2Val(P.m, a, x) : null; }) }; }).filter(x => x.tot !== null && isFinite(x.tot));
   if (!G.length) return null;
-  G.sort((x, y) => y.tot - x.tot);
+  if (P.dim === 'concepto') { const have = new Set(G.map(x => x.k)); CONC_OPS.forEach(k => { if (!have.has(k)) G.push({ k, lab: k, tot: null, m: ms.map(() => null) }); }); G.sort((x, y) => concOrder(x.k) - concOrder(y.k) || String(x.k).localeCompare(String(y.k))); } else G.sort((x, y) => y.tot - x.tot);
   const tot = { lab: 'Total', tot: pq2Val(P.m, a, rows), m: ms.map(mm => { const x = rows.filter(r => fm(r) === mm); return x.length ? pq2Val(P.m, a, x) : null; }) };
   const ml = ms.map(mm => pq2Lab('mes', mm)); const sumable = /^(km|lts|gasto|exc|cargasN|cargasL|cargasI|ralL|ralE|ralH|ralM|anom|anomM)$/.test(P.m);
   const fmt = v => v === null || v === undefined ? '—' : pq2Fmt(P.m, v);
   const head = '<tr><th>' + esc(PQ_DL[P.dim].charAt(0).toUpperCase() + PQ_DL[P.dim].slice(1)) + '</th>' + ms.map(mm => '<th>' + esc(perShort(mm)) + '</th>').join('') + '<th>' + (sumable ? 'Total' : 'Periodo') + '</th></tr>';
   const row = (x, cls) => '<tr' + (cls ? ' class="' + cls + '"' : '') + '><td class="pn">' + esc(x.lab) + '</td>' + x.m.map(v => '<td>' + fmt(v) + '</td>').join('') + '<td><b>' + fmt(x.tot) + '</b></td></tr>';
-  const K = 15;
+  const K = P.dim === 'concepto' ? 40 : 15;
   const html = '<div class="pqxt"><table><thead>' + head + '</thead><tbody>' + G.slice(0, K).map(x => row(x)).join('') + (G.length > 1 ? row(tot, 'tot') : '') + '</tbody></table></div>' + (G.length > K ? '<span class="muted">Se muestran ' + K + ' de ' + G.length + '; el Excel trae todos.</span>' : '<span class="muted">El Excel trae esta misma tabla.</span>');
   const nm = PQ_DL[P.dim].charAt(0).toUpperCase() + PQ_DL[P.dim].slice(1);
   const xl = G.concat(G.length > 1 ? [tot] : []).map(x => { const o = {}; o[nm] = x.lab; ms.forEach((mm, i) => { o[ml[i]] = x.m[i] === null ? null : +(+x.m[i]).toFixed(P.m === 'rend' || P.m === 'precio' ? 3 : 2); }); o[sumable ? 'Total' : 'Periodo'] = +(+x.tot).toFixed(3); return o; });
@@ -3264,7 +3293,7 @@ function pq2Groups(m, a, rows, dim, src, per) {
   return G.filter(x => x.v !== null && isFinite(x.v));
 }
 function pq2Combos(P, src) {
-  let areas = P.areas;
+  let areas = P.areas || (P.dim === 'concepto' ? ['ops'] : null);
   if (!areas) { const el = Object.keys(P.ent.log).length, eo = Object.keys(P.ent.ops).length; if (el && !eo) areas = ['log']; else if (eo && !el) areas = ['ops']; else if (el && eo) { const lm = P.ent.log.movil && L0(P.ent.log.movil[0], 'log'); const om = P.ent.ops.movil && L0(P.ent.ops.movil[0], 'ops'); areas = lm && !om ? ['log'] : om && !lm ? ['ops'] : ['log', 'ops']; } }
   if (!areas) { const pr = /^(OPERACIONES|LOGISTICA)/.exec(FP.norm(S.route || '')); areas = P.fuels && P.fuels.length === 1 && P.fuels[0] === 'GASOLINA' ? ['ops'] : ['log', 'ops']; }
   const out = [];
