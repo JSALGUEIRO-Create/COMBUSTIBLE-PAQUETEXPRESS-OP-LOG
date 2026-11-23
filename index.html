@@ -5470,7 +5470,7 @@ async function ghBadNotice() {
   const bad = GHS.badParts || []; if (!bad.length) return;
   const why = { missing: 'no está en el repositorio (o se subió con otro nombre, por ejemplo con "(1)")', old: 'es de una versión anterior: no corresponde al data.enc.json actual', net: 'no se pudo descargar (revisa tu conexión)' };
   const b = document.createElement('div'); b.id = 'ghbad'; b.setAttribute('role', 'alert');
-  b.innerHTML = '<b>⚠ No se pudo cargar ' + bad.length + ' archivo(s); el portal funciona con el resto de la información:</b><ul>' + bad.map(x => '<li><code>' + esc(x.f) + '</code> ' + why[x.why] + '</li>').join('') + '</ul><span>Solución: sube al repositorio estos archivos con el nombre exacto, junto con el data.enc.json de la misma publicación. Si acabas de subirlos, espera 1–2 minutos a que GitHub termine de publicar y recarga.</span><button aria-label="Cerrar aviso">×</button>';
+  b.innerHTML = '<b>⚠ No se pudo cargar ' + bad.length + ' archivo(s); el portal funciona con el resto de la información:</b><ul>' + bad.map(x => '<li><code>' + esc(x.f) + '</code> ' + why[x.why] + '</li>').join('') + '</ul><span>Solución: sube al repositorio estos archivos con el nombre exacto, junto con el data.enc.json de la misma publicación (si acabas de subirlos, espera 1–2 minutos y recarga). Si ya no los tienes, vuelve a cargar los Excel de esos meses en <b>Cargar archivos</b> y pulsa <b>Publicar cambios</b>.</span><button aria-label="Cerrar aviso">×</button>';
   b.querySelector('button').onclick = () => b.remove(); document.body.appendChild(b);
 }
 async function ghTryStored(file) {
@@ -5544,8 +5544,23 @@ async function addUserForm(keep) {
     toast(msg, 'ok'); return true;
   } catch (err) { toast('No se pudo agregar: ' + err.message, 'warn'); return false; }
 }
-async function ghPublish() {
-  if ((GHS.badParts || []).length) { toast('Antes de publicar corrige los archivos que no se cargaron (ver aviso en pantalla); si publicas así se perderían datos de esos meses.', 'warn'); ghBadNotice(); return; }
+function ghBadLabel(k) { const [ds, p] = k.split('__'); const tipo = /ral/.test(ds) ? 'Ralentí' : /cargas/.test(ds) ? 'Cargas' : ds; const area = /^log/.test(ds) ? 'Logística' : 'Operaciones'; return tipo + ' ' + area + ' · ' + perLabel(p); }
+function ghAskForce() {
+  const bad = GHS.badParts || []; const m = $('#modal'); DSTACK.length = 0; m.classList.remove('drill');
+  m.innerHTML = '<div class="mbox"><header><h3>Hay meses que no se pudieron leer</h3><button class="x" data-act="closeModal" aria-label="Cerrar">×</button></header><div class="mbody">'
+    + '<p>Estos archivos del repositorio no corresponden al data.enc.json publicado, así que el portal no tiene su información:</p><ul class="flist">'
+    + bad.map(x => '<li>📄 <b>' + esc(ghBadLabel(x.k)) + '</b> <span class="muted">(' + esc(x.f) + ')</span></li>').join('') + '</ul>'
+    + '<p><b>Para salir del atorón:</b> carga otra vez en <b>Cargar archivos</b> los Excel de esos meses (todos los que tengas de ese mes) y luego publica. El portal rearmará esos meses con lo que cargues y generará archivos .bin nuevos.</p>'
+    + '<p class="note" style="color:#b42318">Si publicas sin volver a cargarlos, esos meses quedarán vacíos hasta que los cargues de nuevo. Los demás meses no se tocan.</p>'
+    + '</div><footer><button class="btn ghost" data-act="closeModal">Cancelar</button> <button class="btn" data-act="publishForce">Publicar de todos modos</button></footer></div>';
+  m.classList.add('open');
+}
+async function ghPublish(force) {
+  if ((GHS.badParts || []).length) {
+    if (!force) { ghAskForce(); return; }
+    for (const x of GHS.badParts) { GHS.dirtyParts.add(x.k); delete GHS.parts[x.k]; }
+    GHS.badParts = []; const nb = document.getElementById('ghbad'); if (nb) nb.remove();
+  }
   const core = {};
   const files = [];
   for (const ds of Object.keys(FP.COLS)) for (const p of periodsOf(ds)) {
@@ -7296,6 +7311,7 @@ function bindEvents() {
     }
     else if (act === 'src') { S.toggles.logSrc = t.getAttribute('data-v'); const y = window.scrollY; render(); window.scrollTo(0, y); }
     else if (act === 'logout') { try { ['pc-auth', 'pc-gh', 'pc-user'].forEach(k => { sessionStorage.removeItem(k); localStorage.removeItem(k); }); } catch (e) { } location.reload(); }
+    else if (act === 'publishForce') { t.disabled = true; closeDrill(); try { await ghPublish(true); } catch (err) { toast('No se pudo generar: ' + err.message, 'warn'); } render(); }
     else if (act === 'publish') { t.disabled = true; try { await ghPublish(); } catch (err) { toast('No se pudo generar: ' + err.message, 'warn'); } t.disabled = false; render(); }
     else if (act === 'theme') { setTheme(S.theme === 'dark' ? 'light' : 'dark'); render(); }
   });
